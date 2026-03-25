@@ -9,7 +9,7 @@ export interface PaymentResult {
   channel: string;
 }
 
-export interface TreasuryCheckoutModalProps {
+export interface TreasuryPaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Treasury payment intent ID */
@@ -31,7 +31,7 @@ export interface TreasuryCheckoutModalProps {
 
 type PaymentState = 'loading' | 'checkout' | 'confirmed' | 'failed';
 
-export function TreasuryCheckoutModal({
+export function TreasuryPaymentModal({
   open,
   onOpenChange,
   paymentIntentId,
@@ -40,10 +40,10 @@ export function TreasuryCheckoutModal({
   currency = 'KES',
   description,
   allowedMethods,
-  treasuryUiUrl = process.env.NEXT_PUBLIC_TREASURY_UI_URL || 'https://books.codevertexitsolutions.com',
+  treasuryUiUrl = 'https://books.codevertexitsolutions.com',
   onPaymentConfirmed,
   onPaymentFailed,
-}: TreasuryCheckoutModalProps) {
+}: TreasuryPaymentModalProps) {
   const [paymentState, setPaymentState] = useState<PaymentState>('loading');
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');

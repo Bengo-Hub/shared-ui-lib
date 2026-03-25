@@ -1,1 +1,1 @@
-export { TreasuryCheckoutModal, type TreasuryCheckoutModalProps, type PaymentResult } from './treasury-checkout-modal';
+export { TreasuryPaymentModal, type PaymentResult, type TreasuryPaymentModalProps } from './treasury-payment-modal';

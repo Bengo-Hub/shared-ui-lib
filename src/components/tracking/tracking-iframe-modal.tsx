@@ -19,7 +19,7 @@ export function TrackingIframeModal({
   open,
   onOpenChange,
   trackingCode,
-  logisticsUiUrl = process.env.NEXT_PUBLIC_LOGISTICS_UI_URL || 'https://logistics.codevertexitsolutions.com',
+  logisticsUiUrl = 'https://logistics.codevertexitsolutions.com',
   title = 'Track Order',
 }: TrackingIframeModalProps) {
   const [loadState, setLoadState] = useState<LoadState>('loading');

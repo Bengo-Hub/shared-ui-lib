@@ -34,7 +34,7 @@ export function SSOLoginModal({
   open,
   onOpenChange,
   tenantSlug,
-  authUiUrl = process.env.NEXT_PUBLIC_AUTH_UI_URL || 'https://accounts.codevertexitsolutions.com',
+  authUiUrl = 'https://accounts.codevertexitsolutions.com',
   onLoginSuccess,
   onLoginFailed,
   title = 'Sign In',
