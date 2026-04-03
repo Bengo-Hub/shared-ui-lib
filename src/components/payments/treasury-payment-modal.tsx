@@ -63,10 +63,18 @@ export function TreasuryPaymentModal({
     return `${treasuryUiUrl}/pay?${params.toString()}`;
   }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl]);
 
+  // Prevent duplicate processing of payment events
+  const processedRef = useRef(false);
+
   // Listen for postMessage from treasury-ui iframe
   const handleMessage = useCallback((event: MessageEvent) => {
-    // Only accept messages from treasury-ui origin
-    if (!treasuryUiUrl || !event.origin.includes(new URL(treasuryUiUrl).hostname)) return;
+    // Strict origin check — exact match, not substring
+    try {
+      const expectedOrigin = new URL(treasuryUiUrl).origin;
+      if (event.origin !== expectedOrigin) return;
+    } catch {
+      return;
+    }
 
     const data = event.data;
     if (!data || typeof data.type !== 'string') return;
@@ -76,6 +84,10 @@ export function TreasuryPaymentModal({
         setPaymentState('checkout');
         break;
       case 'treasury:payment_confirmed': {
+        // Guard against duplicate processing
+        if (processedRef.current) return;
+        processedRef.current = true;
+
         const result: PaymentResult = {
           intentId: data.intentId,
           amount: data.amount,
@@ -106,6 +118,7 @@ export function TreasuryPaymentModal({
       setPaymentState('loading');
       setPaymentResult(null);
       setErrorMessage('');
+      processedRef.current = false;
     }
     return () => {
       window.removeEventListener('message', handleMessage);
@@ -197,7 +210,7 @@ export function TreasuryPaymentModal({
                 src={iframeSrc}
                 className="w-full border-0"
                 style={{ height: '500px' }}
-                title="Payment"
+                title={`Complete payment of ${currency} ${amount.toLocaleString()}`}
                 onLoad={handleIframeLoad}
                 allow="payment"
               />
