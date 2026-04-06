@@ -21,15 +21,25 @@ export interface TreasuryPaymentModalProps {
   description?: string;
   /** Restrict gateway options (e.g., exclude cash for pickup). Comma-separated gateway types. */
   allowedMethods?: string;
-  /** Treasury-UI base URL */
+  /** Treasury-UI base URL. Falls back to NEXT_PUBLIC_TREASURY_UI_URL env var, then production default. */
   treasuryUiUrl?: string;
+  /** Payment modal timeout in ms. Default: 600000 (10 minutes). Set 0 to disable. */
+  timeoutMs?: number;
   /** Called when payment succeeds — receives payment details from postMessage */
   onPaymentConfirmed?: (result: PaymentResult) => void;
   /** Called when payment fails */
   onPaymentFailed?: (error: string) => void;
 }
 
-type PaymentState = 'loading' | 'checkout' | 'confirmed' | 'failed';
+type PaymentState = 'loading' | 'checkout' | 'confirmed' | 'failed' | 'expired';
+
+/** Default treasury-ui URL — prefer env var, fall back to production. */
+const DEFAULT_TREASURY_UI_URL =
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_TREASURY_UI_URL) ||
+  'https://books.codevertexitsolutions.com';
+
+/** Default timeout: 10 minutes */
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 
 export function TreasuryPaymentModal({
   open,
@@ -40,7 +50,8 @@ export function TreasuryPaymentModal({
   currency = 'KES',
   description,
   allowedMethods,
-  treasuryUiUrl = 'https://books.codevertexitsolutions.com',
+  treasuryUiUrl = DEFAULT_TREASURY_UI_URL,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
   onPaymentConfirmed,
   onPaymentFailed,
 }: TreasuryPaymentModalProps) {
@@ -48,6 +59,7 @@ export function TreasuryPaymentModal({
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Build iframe URL
   const iframeSrc = useMemo(() => {
@@ -119,11 +131,21 @@ export function TreasuryPaymentModal({
       setPaymentResult(null);
       setErrorMessage('');
       processedRef.current = false;
+
+      // Start timeout timer (auto-expire payment modal)
+      if (timeoutMs > 0) {
+        timeoutRef.current = setTimeout(() => {
+          if (processedRef.current) return; // Already confirmed
+          setPaymentState('expired');
+          onPaymentFailed?.('Payment session expired. Please try again.');
+        }, timeoutMs);
+      }
     }
     return () => {
       window.removeEventListener('message', handleMessage);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [open, handleMessage]);
+  }, [open, handleMessage, timeoutMs, onPaymentFailed]);
 
   const handleIframeLoad = useCallback(() => {
     if (paymentState === 'loading') {
@@ -163,7 +185,21 @@ export function TreasuryPaymentModal({
 
         {/* Content */}
         <div className="flex-1 min-h-0 relative">
-          {paymentState === 'confirmed' && paymentResult ? (
+          {paymentState === 'expired' ? (
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Payment Session Expired</h3>
+              <p className="text-sm text-gray-600">Your payment session has timed out. Please close this dialog and try again.</p>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          ) : paymentState === 'confirmed' && paymentResult ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
