@@ -23,6 +23,10 @@ export interface TreasuryPaymentModalProps {
   allowedMethods?: string;
   /** Treasury-UI base URL. Falls back to NEXT_PUBLIC_TREASURY_UI_URL env var, then production default. */
   treasuryUiUrl?: string;
+  /** Treasury API initiate URL for the payment intent. Required for Paystack/gateway payments. */
+  initiateUrl?: string;
+  /** Customer email — pre-fills the email on the payment page so the user doesn't have to enter it again. */
+  customerEmail?: string;
   /** Payment modal timeout in ms. Default: 600000 (10 minutes). Set 0 to disable. */
   timeoutMs?: number;
   /** Called when payment succeeds — receives payment details from postMessage */
@@ -51,6 +55,8 @@ export function TreasuryPaymentModal({
   description,
   allowedMethods,
   treasuryUiUrl = DEFAULT_TREASURY_UI_URL,
+  initiateUrl,
+  customerEmail,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   onPaymentConfirmed,
   onPaymentFailed,
@@ -72,8 +78,10 @@ export function TreasuryPaymentModal({
     });
     if (description) params.set('description', description);
     if (allowedMethods) params.set('gateways', allowedMethods);
+    if (initiateUrl) params.set('initiate_url', initiateUrl);
+    if (customerEmail) params.set('email', customerEmail);
     return `${treasuryUiUrl}/pay?${params.toString()}`;
-  }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl]);
+  }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail]);
 
   // Prevent duplicate processing of payment events
   const processedRef = useRef(false);
