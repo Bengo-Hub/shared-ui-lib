@@ -174,9 +174,9 @@ export function TreasuryPaymentModal({
       {/* Modal */}
       <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
           <div>
-            <h2 className="text-lg font-semibold">Complete Payment</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Complete Payment</h2>
             <p className="text-sm text-gray-500">
               {currency} {amount.toLocaleString()}
               {description && ` — ${description}`}
@@ -184,7 +184,7 @@ export function TreasuryPaymentModal({
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

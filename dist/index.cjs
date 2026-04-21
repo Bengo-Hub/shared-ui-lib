@@ -243,9 +243,9 @@ function TreasuryPaymentModal({
       }
     ),
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col", children: [
-      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-6 py-4 border-b", children: [
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white", children: [
         /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-lg font-semibold", children: "Complete Payment" }),
+          /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-lg font-semibold text-gray-900", children: "Complete Payment" }),
           /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-gray-500", children: [
             currency,
             " ",
@@ -257,7 +257,7 @@ function TreasuryPaymentModal({
           "button",
           {
             onClick: () => onOpenChange(false),
-            className: "p-2 rounded-full hover:bg-gray-100 transition-colors",
+            className: "p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors",
             "aria-label": "Close",
             children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
               /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M18 6 6 18" }),
