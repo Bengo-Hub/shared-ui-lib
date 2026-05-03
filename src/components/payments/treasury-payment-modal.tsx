@@ -165,26 +165,26 @@ export function TreasuryPaymentModal({
 
   // Render as a modal overlay (pure CSS, no shadcn dependency)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
         onClick={() => onOpenChange(false)}
       />
-      {/* Modal */}
-      <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+      {/* Modal — full-screen on mobile, constrained card on larger screens */}
+      <div className="relative w-full sm:max-w-lg sm:mx-4 bg-white sm:rounded-2xl shadow-xl overflow-hidden flex flex-col h-dvh sm:h-auto sm:max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Complete Payment</h2>
-            <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-white shrink-0">
+          <div className="min-w-0 mr-3">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Complete Payment</h2>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">
               {currency} {amount.toLocaleString()}
               {description && ` — ${description}`}
             </p>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            className="shrink-0 p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -192,7 +192,7 @@ export function TreasuryPaymentModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 relative">
+        <div className="flex-1 min-h-0 overflow-y-auto relative">
           {paymentState === 'expired' ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
               <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
@@ -240,7 +240,7 @@ export function TreasuryPaymentModal({
               </button>
             </div>
           ) : (
-            <>
+            <div className="relative h-full">
               {paymentState === 'loading' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
                   <div className="flex flex-col items-center gap-3">
@@ -252,13 +252,13 @@ export function TreasuryPaymentModal({
               <iframe
                 ref={iframeRef}
                 src={iframeSrc}
-                className="w-full border-0"
-                style={{ height: '500px' }}
+                className="w-full border-0 block"
+                style={{ height: '520px', minHeight: '420px' }}
                 title={`Complete payment of ${currency} ${amount.toLocaleString()}`}
                 onLoad={handleIframeLoad}
                 allow="payment"
               />
-            </>
+            </div>
           )}
         </div>
       </div>
