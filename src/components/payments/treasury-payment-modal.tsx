@@ -42,8 +42,9 @@ export interface TreasuryPaymentModalProps {
 type PaymentState = 'loading' | 'checkout' | 'confirmed' | 'failed' | 'expired';
 
 /** Default treasury-ui URL — prefer env var, fall back to production. */
-const DEFAULT_TREASURY_UI_URL =
-  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_TREASURY_UI_URL) ||
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DEFAULT_TREASURY_UI_URL: string =
+  ((globalThis as any).process?.env?.NEXT_PUBLIC_TREASURY_UI_URL as string | undefined) ||
   'https://books.codevertexitsolutions.com';
 
 /** Default timeout: 10 minutes */

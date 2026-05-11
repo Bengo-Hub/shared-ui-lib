@@ -4,7 +4,7 @@ var react = require('react');
 var jsxRuntime = require('react/jsx-runtime');
 
 // src/components/payments/treasury-payment-modal.tsx
-var DEFAULT_TREASURY_UI_URL = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_TREASURY_UI_URL || "https://books.codevertexitsolutions.com";
+var DEFAULT_TREASURY_UI_URL = globalThis.process?.env?.NEXT_PUBLIC_TREASURY_UI_URL || "https://books.codevertexitsolutions.com";
 var DEFAULT_TIMEOUT_MS = 10 * 60 * 1e3;
 function TreasuryPaymentModal({
   open,
