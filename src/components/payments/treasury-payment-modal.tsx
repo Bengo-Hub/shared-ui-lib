@@ -90,6 +90,9 @@ export function TreasuryPaymentModal({
     // Fallback: let treasury-ui auto-create an intent if initiate_url + intent_id are missing
     if (referenceId) params.set('reference_id', referenceId);
     if (referenceType) params.set('reference_type', referenceType);
+    // Paystack redirect: after payment, redirect back to treasury-ui success page within
+    // the iframe so it fires treasury:payment_confirmed to this parent modal.
+    params.set('redirect_url', `${treasuryUiUrl}/pay/success?embed=true`);
     return `${treasuryUiUrl}/pay?${params.toString()}`;
   }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType]);
 
