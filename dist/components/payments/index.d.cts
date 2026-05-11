@@ -24,6 +24,10 @@ interface TreasuryPaymentModalProps {
     initiateUrl?: string;
     /** Customer email — pre-fills the email on the payment page so the user doesn't have to enter it again. */
     customerEmail?: string;
+    /** Reference ID (e.g. order UUID) passed to treasury-ui so it can auto-create an intent as fallback when initiate_url is missing. */
+    referenceId?: string;
+    /** Reference type (e.g. "order"). Paired with referenceId for intent auto-creation. */
+    referenceType?: string;
     /** Payment modal timeout in ms. Default: 600000 (10 minutes). Set 0 to disable. */
     timeoutMs?: number;
     /** Called when payment succeeds — receives payment details from postMessage */
@@ -31,6 +35,6 @@ interface TreasuryPaymentModalProps {
     /** Called when payment fails */
     onPaymentFailed?: (error: string) => void;
 }
-declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): react_jsx_runtime.JSX.Element | null;
+declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): react_jsx_runtime.JSX.Element | null;
 
 export { type PaymentResult, TreasuryPaymentModal, type TreasuryPaymentModalProps };

@@ -143,6 +143,8 @@ function TreasuryPaymentModal({
   treasuryUiUrl = DEFAULT_TREASURY_UI_URL,
   initiateUrl,
   customerEmail,
+  referenceId,
+  referenceType,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   onPaymentConfirmed,
   onPaymentFailed
@@ -164,8 +166,10 @@ function TreasuryPaymentModal({
     if (allowedMethods) params.set("gateways", allowedMethods);
     if (initiateUrl) params.set("initiate_url", initiateUrl);
     if (customerEmail) params.set("email", customerEmail);
+    if (referenceId) params.set("reference_id", referenceId);
+    if (referenceType) params.set("reference_type", referenceType);
     return `${treasuryUiUrl}/pay?${params.toString()}`;
-  }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail]);
+  }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType]);
   const processedRef = useRef(false);
   const handleMessage = useCallback((event) => {
     try {
