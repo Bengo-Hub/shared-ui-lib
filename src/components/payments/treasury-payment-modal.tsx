@@ -92,7 +92,8 @@ export function TreasuryPaymentModal({
     if (referenceType) params.set('reference_type', referenceType);
     // Paystack redirect: after payment, redirect back to treasury-ui success page within
     // the iframe so it fires treasury:payment_confirmed to this parent modal.
-    params.set('redirect_url', `${treasuryUiUrl}/pay/success?embed=true`);
+    // Include intent_id and amount so the success page can pass them back via postMessage.
+    params.set('redirect_url', `${treasuryUiUrl}/pay/success?embed=true&intent_id=${encodeURIComponent(paymentIntentId)}&amount=${amount}`);
     return `${treasuryUiUrl}/pay?${params.toString()}`;
   }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType]);
 

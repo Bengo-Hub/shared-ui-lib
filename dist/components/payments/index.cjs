@@ -43,7 +43,7 @@ function TreasuryPaymentModal({
     if (customerEmail) params.set("email", customerEmail);
     if (referenceId) params.set("reference_id", referenceId);
     if (referenceType) params.set("reference_type", referenceType);
-    params.set("redirect_url", `${treasuryUiUrl}/pay/success?embed=true`);
+    params.set("redirect_url", `${treasuryUiUrl}/pay/success?embed=true&intent_id=${encodeURIComponent(paymentIntentId)}&amount=${amount}`);
     return `${treasuryUiUrl}/pay?${params.toString()}`;
   }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType]);
   const processedRef = react.useRef(false);
