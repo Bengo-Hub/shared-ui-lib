@@ -272,6 +272,38 @@ function SubscriptionBanner({
   return null;
 }
 
+// src/components/subscription/service-tags.ts
+var SERVICE_TAGS = {
+  ORDERING: "ordering",
+  POS: "pos",
+  LOGISTICS: "logistics",
+  INVENTORY: "inventory",
+  ERP: "erp",
+  TREASURY: "treasury",
+  TRULOAD: "truload",
+  MARKETFLOW: "marketflow",
+  CAFE: "cafe",
+  ISP_BILLING: "isp_billing",
+  NOTIFICATIONS: "notifications",
+  PROJECTS: "projects"
+};
+var SERVICE_TAG_LABELS = {
+  ordering: "Ordering",
+  pos: "Point of Sale",
+  logistics: "Logistics",
+  inventory: "Inventory",
+  erp: "ERP / Accounting",
+  treasury: "Treasury & Finance",
+  truload: "Axle Load (TruLoad)",
+  marketflow: "MarketFlow",
+  cafe: "Cafe & Hospitality",
+  isp_billing: "ISP Billing",
+  notifications: "Notifications",
+  projects: "Projects & Invoicing"
+};
+
+exports.SERVICE_TAGS = SERVICE_TAGS;
+exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
 exports.SubscriptionBanner = SubscriptionBanner;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map
