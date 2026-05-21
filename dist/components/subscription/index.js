@@ -280,9 +280,7 @@ var SERVICE_TAGS = {
   TREASURY: "treasury",
   TRULOAD: "truload",
   MARKETFLOW: "marketflow",
-  CAFE: "cafe",
   ISP_BILLING: "isp_billing",
-  NOTIFICATIONS: "notifications",
   PROJECTS: "projects"
 };
 var SERVICE_TAG_LABELS = {
@@ -294,9 +292,7 @@ var SERVICE_TAG_LABELS = {
   treasury: "Treasury & Finance",
   truload: "Axle Load (TruLoad)",
   marketflow: "MarketFlow",
-  cafe: "Cafe & Hospitality",
   isp_billing: "ISP Billing",
-  notifications: "Notifications",
   projects: "Projects & Invoicing"
 };
 

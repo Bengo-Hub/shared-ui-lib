@@ -16,6 +16,10 @@ export interface SubscriptionBannerProps {
   isCommercialTenant: boolean;
   isLoading: boolean;
   isHydrated: boolean;
+  /** True for service-charge billing model tenants — subscription gating does not apply */
+  isServiceCharge?: boolean;
+  /** True for demo tenant/users — subscription gating does not apply */
+  isDemo?: boolean;
   /** Full URL to the upgrade/plans page — include ?service=<tag> for service-specific filtering */
   upgradeUrl: string;
   /** Full URL to the billing/payment management page */
@@ -42,6 +46,69 @@ function useOnlineStatus(): boolean {
     };
   }, []);
   return online;
+}
+
+function SubscribeOverlay({ upgradeUrl }: { upgradeUrl: string }) {
+  const isOnline = useOnlineStatus();
+
+  if (!isOnline) {
+    return (
+      <div
+        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+        role="alertdialog"
+        aria-modal="true"
+        aria-label="No internet connection"
+      >
+        <div className="flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+          <WifiOff className="size-8 text-gray-600 dark:text-gray-400" />
+        </div>
+        <div className="max-w-md space-y-2 px-4 text-center">
+          <h2 className="text-2xl font-bold">No Internet Connection</h2>
+          <p className="text-sm text-muted-foreground">
+            Connect to the internet to activate your subscription and access the platform.
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        >
+          <RefreshCw className="size-4" />
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Subscription required"
+    >
+      <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
+        <Zap className="size-8 text-primary" />
+      </div>
+      <div className="max-w-md space-y-2 px-4 text-center">
+        <h2 className="text-2xl font-bold">Subscription Required</h2>
+        <p className="text-sm text-muted-foreground">
+          Choose a plan to unlock access to the platform and all its features.
+        </p>
+      </div>
+      <a
+        href={upgradeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+      >
+        <Zap className="size-4" />
+        Choose a plan
+      </a>
+      <p className="text-xs text-muted-foreground">
+        Contact <span className="font-medium">support@codevertexitsolutions.com</span> for assistance
+      </p>
+    </div>
+  );
 }
 
 function BlockingOverlay({
@@ -201,12 +268,15 @@ export function SubscriptionBanner({
   isCommercialTenant,
   isLoading,
   isHydrated,
+  isServiceCharge,
+  isDemo,
   upgradeUrl,
   billingUrl,
 }: SubscriptionBannerProps) {
   const [dismissed, setDismissed] = useState(false);
 
-  if (isPlatformOwner || !isCommercialTenant || isLoading || !isHydrated) return null;
+  // Service-charge and demo tenants are never gated by subscription.
+  if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
 
   const normalizedStatus = (status ?? '').toUpperCase();
   const normalizedPlan = (plan ?? 'STARTER').toUpperCase();
@@ -288,16 +358,7 @@ export function SubscriptionBanner({
   }
 
   if (needsSubscription) {
-    return (
-      <Banner
-        variant="info"
-        icon={<Zap className="size-4" />}
-        message="No active subscription — subscribe to unlock all features."
-        actionLabel="Subscribe"
-        actionHref={upgradeUrl}
-        onDismiss={() => setDismissed(true)}
-      />
-    );
+    return <SubscribeOverlay upgradeUrl={upgradeUrl} />;
   }
 
   return null;

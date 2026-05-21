@@ -20,9 +20,15 @@ interface SubscriptionBannerProps {
 }
 declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, upgradeUrl, billingUrl, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
-/** Canonical service tag values for all Codevertex/BengoBox services.
- * Must match service_tag values in subscriptions-api seed data and
- * the SERVICE_OPTIONS list in auth-ui equity page.
+/**
+ * Canonical service tag values for all billable Codevertex/BengoBox services.
+ *
+ * Platform-level services (auth, subscriptions, codevertex-website) are NOT included
+ * here — they have no subscription plans.
+ *
+ * NOTE: cafe-website is NOT a standalone service. Its subscription gating derives
+ * from the `ordering` plan features (cafe_website_enabled, cafe_website_basic).
+ * Notifications is platform infrastructure included in other plans, not billed separately.
  */
 declare const SERVICE_TAGS: {
     readonly ORDERING: "ordering";
@@ -33,13 +39,11 @@ declare const SERVICE_TAGS: {
     readonly TREASURY: "treasury";
     readonly TRULOAD: "truload";
     readonly MARKETFLOW: "marketflow";
-    readonly CAFE: "cafe";
     readonly ISP_BILLING: "isp_billing";
-    readonly NOTIFICATIONS: "notifications";
     readonly PROJECTS: "projects";
 };
 type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
-/** Human-readable labels for each service tag. Used in auth-ui billing tabs. */
+/** Human-readable labels for each billable service tag. Used in auth-ui billing tabs. */
 declare const SERVICE_TAG_LABELS: Record<ServiceTag, string>;
 
 export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps };
