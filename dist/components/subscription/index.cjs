@@ -25,6 +25,72 @@ function useOnlineStatus() {
   }, []);
   return online;
 }
+function SubscribeOverlay({ upgradeUrl }) {
+  const isOnline = useOnlineStatus();
+  if (!isOnline) {
+    return /* @__PURE__ */ jsxRuntime.jsxs(
+      "div",
+      {
+        className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
+        role: "alertdialog",
+        "aria-modal": "true",
+        "aria-label": "No internet connection",
+        children: [
+          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-8 text-gray-600 dark:text-gray-400" }) }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
+            /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground", children: "Connect to the internet to activate your subscription and access the platform." })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs(
+            "button",
+            {
+              onClick: () => window.location.reload(),
+              className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+              children: [
+                /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
+                "Try again"
+              ]
+            }
+          )
+        ]
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "div",
+    {
+      className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
+      role: "alertdialog",
+      "aria-modal": "true",
+      "aria-label": "Subscription required",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-primary/10", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-8 text-primary" }) }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "Subscription Required" }),
+          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground", children: "Choose a plan to unlock access to the platform and all its features." })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs(
+          "a",
+          {
+            href: upgradeUrl,
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+            children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
+              "Choose a plan"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs text-muted-foreground", children: [
+          "Contact ",
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
+          " for assistance"
+        ] })
+      ]
+    }
+  );
+}
 function BlockingOverlay({
   plan,
   upgradeUrl
@@ -175,11 +241,13 @@ function SubscriptionBanner({
   isCommercialTenant,
   isLoading,
   isHydrated,
+  isServiceCharge,
+  isDemo,
   upgradeUrl,
   billingUrl
 }) {
   const [dismissed, setDismissed] = react.useState(false);
-  if (isPlatformOwner || !isCommercialTenant || isLoading || !isHydrated) return null;
+  if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
   const normalizedStatus = (status ?? "").toUpperCase();
   const normalizedPlan = (plan ?? "STARTER").toUpperCase();
   if (isExpired && !isInGracePeriod) {
@@ -257,17 +325,7 @@ function SubscriptionBanner({
     );
   }
   if (needsSubscription) {
-    return /* @__PURE__ */ jsxRuntime.jsx(
-      Banner,
-      {
-        variant: "info",
-        icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
-        message: "No active subscription \u2014 subscribe to unlock all features.",
-        actionLabel: "Subscribe",
-        actionHref: upgradeUrl,
-        onDismiss: () => setDismissed(true)
-      }
-    );
+    return /* @__PURE__ */ jsxRuntime.jsx(SubscribeOverlay, { upgradeUrl });
   }
   return null;
 }

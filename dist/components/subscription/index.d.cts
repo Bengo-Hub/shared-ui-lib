@@ -13,12 +13,16 @@ interface SubscriptionBannerProps {
     isCommercialTenant: boolean;
     isLoading: boolean;
     isHydrated: boolean;
+    /** True for service-charge billing model tenants — subscription gating does not apply */
+    isServiceCharge?: boolean;
+    /** True for demo tenant/users — subscription gating does not apply */
+    isDemo?: boolean;
     /** Full URL to the upgrade/plans page — include ?service=<tag> for service-specific filtering */
     upgradeUrl: string;
     /** Full URL to the billing/payment management page */
     billingUrl: string;
 }
-declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, upgradeUrl, billingUrl, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
+declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
  * Canonical service tag values for all billable Codevertex/BengoBox services.
