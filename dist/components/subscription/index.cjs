@@ -2,6 +2,7 @@
 
 var lucideReact = require('lucide-react');
 var react = require('react');
+var reactDom = require('react-dom');
 var jsxRuntime = require('react/jsx-runtime');
 
 // src/components/subscription/subscription-banner.tsx
@@ -25,38 +26,43 @@ function useOnlineStatus() {
   }, []);
   return online;
 }
+function PortaledOverlay({ children }) {
+  const [mounted, setMounted] = react.useState(false);
+  react.useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted || typeof document === "undefined") return null;
+  return reactDom.createPortal(children, document.body);
+}
 function SubscribeOverlay({ upgradeUrl }) {
   const isOnline = useOnlineStatus();
-  if (!isOnline) {
-    return /* @__PURE__ */ jsxRuntime.jsxs(
-      "div",
-      {
-        className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
-        role: "alertdialog",
-        "aria-modal": "true",
-        "aria-label": "No internet connection",
-        children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-8 text-gray-600 dark:text-gray-400" }) }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
-            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground", children: "Connect to the internet to activate your subscription and access the platform." })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs(
-            "button",
-            {
-              onClick: () => window.location.reload(),
-              className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
-              children: [
-                /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
-                "Try again"
-              ]
-            }
-          )
-        ]
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntime.jsxs(
+  const content = !isOnline ? /* @__PURE__ */ jsxRuntime.jsxs(
+    "div",
+    {
+      className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
+      role: "alertdialog",
+      "aria-modal": "true",
+      "aria-label": "No internet connection",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-8 text-gray-600 dark:text-gray-400" }) }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
+          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground", children: "Connect to the internet to activate your subscription and access the platform." })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs(
+          "button",
+          {
+            onClick: () => window.location.reload(),
+            className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+            children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
+              "Try again"
+            ]
+          }
+        )
+      ]
+    }
+  ) : /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
       className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
@@ -90,51 +96,49 @@ function SubscribeOverlay({ upgradeUrl }) {
       ]
     }
   );
+  return /* @__PURE__ */ jsxRuntime.jsx(PortaledOverlay, { children: content });
 }
 function BlockingOverlay({
   plan,
   upgradeUrl
 }) {
   const isOnline = useOnlineStatus();
-  if (!isOnline) {
-    return /* @__PURE__ */ jsxRuntime.jsxs(
-      "div",
-      {
-        className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
-        role: "alertdialog",
-        "aria-modal": "true",
-        "aria-label": "No internet connection",
-        children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-8 text-gray-600 dark:text-gray-400" }) }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
-            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-muted-foreground", children: [
-              "Your ",
-              /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: plan }),
-              " plan has expired. Connect to the internet to renew your subscription and restore access."
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs(
-            "button",
-            {
-              onClick: () => window.location.reload(),
-              className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
-              children: [
-                /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
-                "Try again"
-              ]
-            }
-          ),
-          /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs text-muted-foreground", children: [
-            "Contact ",
-            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
-            " for assistance"
+  const content = !isOnline ? /* @__PURE__ */ jsxRuntime.jsxs(
+    "div",
+    {
+      className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
+      role: "alertdialog",
+      "aria-modal": "true",
+      "aria-label": "No internet connection",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-8 text-gray-600 dark:text-gray-400" }) }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
+          /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-muted-foreground", children: [
+            "Your ",
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: plan }),
+            " plan has expired. Connect to the internet to renew your subscription and restore access."
           ] })
-        ]
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntime.jsxs(
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs(
+          "button",
+          {
+            onClick: () => window.location.reload(),
+            className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+            children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
+              "Try again"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs text-muted-foreground", children: [
+          "Contact ",
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
+          " for assistance"
+        ] })
+      ]
+    }
+  ) : /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
       className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
@@ -172,6 +176,7 @@ function BlockingOverlay({
       ]
     }
   );
+  return /* @__PURE__ */ jsxRuntime.jsx(PortaledOverlay, { children: content });
 }
 var BANNER_COLORS = {
   info: "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50",
@@ -199,12 +204,23 @@ function Banner({
   message,
   actionLabel,
   actionHref,
-  onDismiss
+  onDismiss,
+  onActionClick
 }) {
   return /* @__PURE__ */ jsxRuntime.jsx("div", { className: `border-b ${BANNER_COLORS[variant]}`, role: "alert", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 ${BANNER_TEXT_COLORS[variant]}`, children: [
     /* @__PURE__ */ jsxRuntime.jsx("span", { className: "shrink-0", children: icon }),
     /* @__PURE__ */ jsxRuntime.jsx("p", { className: "flex-1 text-sm", children: message }),
-    /* @__PURE__ */ jsxRuntime.jsxs(
+    onActionClick ? /* @__PURE__ */ jsxRuntime.jsxs(
+      "button",
+      {
+        onClick: onActionClick,
+        className: `inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${BANNER_ACTION_COLORS[variant]}`,
+        children: [
+          actionLabel,
+          /* @__PURE__ */ jsxRuntime.jsx(lucideReact.ArrowRight, { className: "size-3" })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntime.jsxs(
       "a",
       {
         href: actionHref,
@@ -247,6 +263,7 @@ function SubscriptionBanner({
   billingUrl
 }) {
   const [dismissed, setDismissed] = react.useState(false);
+  const isOnline = useOnlineStatus();
   if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
   const normalizedStatus = (status ?? "").toUpperCase();
   const normalizedPlan = (plan ?? "STARTER").toUpperCase();
@@ -258,12 +275,26 @@ function SubscriptionBanner({
       0,
       Math.ceil((gracePeriodEndsAt.getTime() - Date.now()) / (1e3 * 60 * 60 * 24))
     );
+    if (!isOnline) {
+      return /* @__PURE__ */ jsxRuntime.jsx(
+        Banner,
+        {
+          variant: "warning",
+          icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "size-4" }),
+          message: "You're offline \u2014 connect to the internet to renew your subscription before access is blocked.",
+          actionLabel: "Try again",
+          actionHref: "#",
+          onDismiss: null,
+          onActionClick: () => window.location.reload()
+        }
+      );
+    }
     return /* @__PURE__ */ jsxRuntime.jsx(
       Banner,
       {
         variant: "warning",
         icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.AlertTriangle, { className: "size-4" }),
-        message: `Subscription expired \u2014 ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to renew before access is blocked.`,
+        message: `Subscription expired \u2014 ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to renew before access is blocked. Write operations (create, edit, delete) are currently restricted.`,
         actionLabel: "Renew now",
         actionHref: upgradeUrl,
         onDismiss: null

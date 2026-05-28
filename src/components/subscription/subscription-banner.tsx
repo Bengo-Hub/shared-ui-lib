@@ -2,6 +2,7 @@
 
 import { AlertTriangle, ArrowRight, Clock, RefreshCw, ShieldAlert, WifiOff, X, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface SubscriptionBannerProps {
   status: string | null;
@@ -48,38 +49,46 @@ function useOnlineStatus(): boolean {
   return online;
 }
 
+/**
+ * Renders children into document.body via a React portal, bypassing any CSS
+ * stacking contexts created by fixed/sticky sidebars, headers, or overflow
+ * containers. The mounted guard prevents SSR hydration mismatches.
+ */
+function PortaledOverlay({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted || typeof document === 'undefined') return null;
+  return createPortal(children, document.body);
+}
+
 function SubscribeOverlay({ upgradeUrl }: { upgradeUrl: string }) {
   const isOnline = useOnlineStatus();
 
-  if (!isOnline) {
-    return (
-      <div
-        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
-        role="alertdialog"
-        aria-modal="true"
-        aria-label="No internet connection"
-      >
-        <div className="flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-          <WifiOff className="size-8 text-gray-600 dark:text-gray-400" />
-        </div>
-        <div className="max-w-md space-y-2 px-4 text-center">
-          <h2 className="text-2xl font-bold">No Internet Connection</h2>
-          <p className="text-sm text-muted-foreground">
-            Connect to the internet to activate your subscription and access the platform.
-          </p>
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
-        >
-          <RefreshCw className="size-4" />
-          Try again
-        </button>
+  const content = !isOnline ? (
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="No internet connection"
+    >
+      <div className="flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+        <WifiOff className="size-8 text-gray-600 dark:text-gray-400" />
       </div>
-    );
-  }
-
-  return (
+      <div className="max-w-md space-y-2 px-4 text-center">
+        <h2 className="text-2xl font-bold">No Internet Connection</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect to the internet to activate your subscription and access the platform.
+        </p>
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+      >
+        <RefreshCw className="size-4" />
+        Try again
+      </button>
+    </div>
+  ) : (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
       role="alertdialog"
@@ -109,6 +118,8 @@ function SubscribeOverlay({ upgradeUrl }: { upgradeUrl: string }) {
       </p>
     </div>
   );
+
+  return <PortaledOverlay>{content}</PortaledOverlay>;
 }
 
 function BlockingOverlay({
@@ -120,40 +131,36 @@ function BlockingOverlay({
 }) {
   const isOnline = useOnlineStatus();
 
-  if (!isOnline) {
-    return (
-      <div
-        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
-        role="alertdialog"
-        aria-modal="true"
-        aria-label="No internet connection"
-      >
-        <div className="flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-          <WifiOff className="size-8 text-gray-600 dark:text-gray-400" />
-        </div>
-        <div className="max-w-md space-y-2 px-4 text-center">
-          <h2 className="text-2xl font-bold">No Internet Connection</h2>
-          <p className="text-sm text-muted-foreground">
-            Your <span className="font-semibold">{plan}</span> plan has expired. Connect to the
-            internet to renew your subscription and restore access.
-          </p>
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
-        >
-          <RefreshCw className="size-4" />
-          Try again
-        </button>
-        <p className="text-xs text-muted-foreground">
-          Contact <span className="font-medium">support@codevertexitsolutions.com</span> for
-          assistance
+  const content = !isOnline ? (
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="No internet connection"
+    >
+      <div className="flex size-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+        <WifiOff className="size-8 text-gray-600 dark:text-gray-400" />
+      </div>
+      <div className="max-w-md space-y-2 px-4 text-center">
+        <h2 className="text-2xl font-bold">No Internet Connection</h2>
+        <p className="text-sm text-muted-foreground">
+          Your <span className="font-semibold">{plan}</span> plan has expired. Connect to the
+          internet to renew your subscription and restore access.
         </p>
       </div>
-    );
-  }
-
-  return (
+      <button
+        onClick={() => window.location.reload()}
+        className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+      >
+        <RefreshCw className="size-4" />
+        Try again
+      </button>
+      <p className="text-xs text-muted-foreground">
+        Contact <span className="font-medium">support@codevertexitsolutions.com</span> for
+        assistance
+      </p>
+    </div>
+  ) : (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
       role="alertdialog"
@@ -184,6 +191,8 @@ function BlockingOverlay({
       </p>
     </div>
   );
+
+  return <PortaledOverlay>{content}</PortaledOverlay>;
 }
 
 type BannerVariant = 'info' | 'warning' | 'error';
@@ -219,6 +228,7 @@ function Banner({
   actionLabel,
   actionHref,
   onDismiss,
+  onActionClick,
 }: {
   variant: BannerVariant;
   icon: React.ReactNode;
@@ -226,21 +236,32 @@ function Banner({
   actionLabel: string;
   actionHref: string;
   onDismiss: (() => void) | null;
+  onActionClick?: () => void;
 }) {
   return (
     <div className={`border-b ${BANNER_COLORS[variant]}`} role="alert">
       <div className={`mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 ${BANNER_TEXT_COLORS[variant]}`}>
         <span className="shrink-0">{icon}</span>
         <p className="flex-1 text-sm">{message}</p>
-        <a
-          href={actionHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${BANNER_ACTION_COLORS[variant]}`}
-        >
-          {actionLabel}
-          <ArrowRight className="size-3" />
-        </a>
+        {onActionClick ? (
+          <button
+            onClick={onActionClick}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${BANNER_ACTION_COLORS[variant]}`}
+          >
+            {actionLabel}
+            <ArrowRight className="size-3" />
+          </button>
+        ) : (
+          <a
+            href={actionHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${BANNER_ACTION_COLORS[variant]}`}
+          >
+            {actionLabel}
+            <ArrowRight className="size-3" />
+          </a>
+        )}
         {onDismiss && (
           <button
             onClick={onDismiss}
@@ -274,6 +295,7 @@ export function SubscriptionBanner({
   billingUrl,
 }: SubscriptionBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const isOnline = useOnlineStatus();
 
   // Service-charge and demo tenants are never gated by subscription.
   if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
@@ -290,11 +312,26 @@ export function SubscriptionBanner({
       0,
       Math.ceil((gracePeriodEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
     );
+
+    if (!isOnline) {
+      return (
+        <Banner
+          variant="warning"
+          icon={<WifiOff className="size-4" />}
+          message="You're offline — connect to the internet to renew your subscription before access is blocked."
+          actionLabel="Try again"
+          actionHref="#"
+          onDismiss={null}
+          onActionClick={() => window.location.reload()}
+        />
+      );
+    }
+
     return (
       <Banner
         variant="warning"
         icon={<AlertTriangle className="size-4" />}
-        message={`Subscription expired — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to renew before access is blocked.`}
+        message={`Subscription expired — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to renew before access is blocked. Write operations (create, edit, delete) are currently restricted.`}
         actionLabel="Renew now"
         actionHref={upgradeUrl}
         onDismiss={null}
