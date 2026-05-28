@@ -122,14 +122,24 @@ function SubscribeOverlay({ upgradeUrl }: { upgradeUrl: string }) {
   return <PortaledOverlay>{content}</PortaledOverlay>;
 }
 
+function formatPlanName(plan: string): string {
+  return plan
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function BlockingOverlay({
   plan,
+  billingUrl,
   upgradeUrl,
 }: {
   plan: string;
+  billingUrl: string;
   upgradeUrl: string;
 }) {
   const isOnline = useOnlineStatus();
+  const planLabel = formatPlanName(plan);
 
   const content = !isOnline ? (
     <div
@@ -144,7 +154,7 @@ function BlockingOverlay({
       <div className="max-w-md space-y-2 px-4 text-center">
         <h2 className="text-2xl font-bold">No Internet Connection</h2>
         <p className="text-sm text-muted-foreground">
-          Your <span className="font-semibold">{plan}</span> plan has expired. Connect to the
+          Your <span className="font-semibold">{planLabel}</span> plan has expired. Connect to the
           internet to renew your subscription and restore access.
         </p>
       </div>
@@ -162,7 +172,7 @@ function BlockingOverlay({
     </div>
   ) : (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-8 bg-background/95 backdrop-blur-sm px-4"
       role="alertdialog"
       aria-modal="true"
       aria-label="Subscription expired"
@@ -170,22 +180,46 @@ function BlockingOverlay({
       <div className="flex size-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
         <ShieldAlert className="size-8 text-red-600 dark:text-red-400" />
       </div>
-      <div className="max-w-md space-y-2 px-4 text-center">
+
+      <div className="space-y-2 text-center">
         <h2 className="text-2xl font-bold">Subscription Expired</h2>
-        <p className="text-sm text-muted-foreground">
-          Your <span className="font-semibold">{plan}</span> plan has expired and the grace period
-          has ended. Upgrade now to restore access.
+        <p className="text-sm text-muted-foreground max-w-sm">
+          Your grace period has ended and access has been suspended. Renew your plan to restore access.
         </p>
       </div>
+
+      {/* Current plan card */}
+      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Current plan</p>
+            <p className="mt-0.5 text-lg font-bold text-foreground">{planLabel}</p>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-400">
+            Expired
+          </span>
+        </div>
+        <a
+          href={billingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        >
+          <RefreshCw className="size-4" />
+          Renew {planLabel}
+        </a>
+      </div>
+
       <a
         href={upgradeUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
-        <Zap className="size-4" />
-        Upgrade now
+        <Zap className="size-3.5" />
+        View other plans
       </a>
+
       <p className="text-xs text-muted-foreground">
         Contact <span className="font-medium">support@codevertexitsolutions.com</span> for assistance
       </p>
@@ -304,7 +338,7 @@ export function SubscriptionBanner({
   const normalizedPlan = (plan ?? 'STARTER').toUpperCase();
 
   if (isExpired && !isInGracePeriod) {
-    return <BlockingOverlay plan={normalizedPlan} upgradeUrl={upgradeUrl} />;
+    return <BlockingOverlay plan={normalizedPlan} billingUrl={billingUrl} upgradeUrl={upgradeUrl} />;
   }
 
   if (isInGracePeriod && gracePeriodEndsAt) {
@@ -333,7 +367,7 @@ export function SubscriptionBanner({
         icon={<AlertTriangle className="size-4" />}
         message={`Subscription expired — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to renew before access is blocked. Write operations (create, edit, delete) are currently restricted.`}
         actionLabel="Renew now"
-        actionHref={upgradeUrl}
+        actionHref={billingUrl}
         onDismiss={null}
       />
     );

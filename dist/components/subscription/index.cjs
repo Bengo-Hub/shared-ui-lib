@@ -98,11 +98,16 @@ function SubscribeOverlay({ upgradeUrl }) {
   );
   return /* @__PURE__ */ jsxRuntime.jsx(PortaledOverlay, { children: content });
 }
+function formatPlanName(plan) {
+  return plan.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 function BlockingOverlay({
   plan,
+  billingUrl,
   upgradeUrl
 }) {
   const isOnline = useOnlineStatus();
+  const planLabel = formatPlanName(plan);
   const content = !isOnline ? /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
@@ -116,7 +121,7 @@ function BlockingOverlay({
           /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "No Internet Connection" }),
           /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-muted-foreground", children: [
             "Your ",
-            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: plan }),
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: planLabel }),
             " plan has expired. Connect to the internet to renew your subscription and restore access."
           ] })
         ] }),
@@ -141,19 +146,38 @@ function BlockingOverlay({
   ) : /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
-      className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm",
+      className: "fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-8 bg-background/95 backdrop-blur-sm px-4",
       role: "alertdialog",
       "aria-modal": "true",
       "aria-label": "Subscription expired",
       children: [
         /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.ShieldAlert, { className: "size-8 text-red-600 dark:text-red-400" }) }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "max-w-md space-y-2 px-4 text-center", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-2 text-center", children: [
           /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-2xl font-bold", children: "Subscription Expired" }),
-          /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-muted-foreground", children: [
-            "Your ",
-            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: plan }),
-            " plan has expired and the grace period has ended. Upgrade now to restore access."
-          ] })
+          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground max-w-sm", children: "Your grace period has ended and access has been suspended. Renew your plan to restore access." })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-sm", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-4 flex items-center justify-between", children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-xs font-medium uppercase tracking-wider text-muted-foreground", children: "Current plan" }),
+              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "mt-0.5 text-lg font-bold text-foreground", children: planLabel })
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-400", children: "Expired" })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs(
+            "a",
+            {
+              href: billingUrl,
+              target: "_blank",
+              rel: "noopener noreferrer",
+              className: "flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+              children: [
+                /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
+                "Renew ",
+                planLabel
+              ]
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntime.jsxs(
           "a",
@@ -161,10 +185,10 @@ function BlockingOverlay({
             href: upgradeUrl,
             target: "_blank",
             rel: "noopener noreferrer",
-            className: "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90",
+            className: "inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline",
             children: [
-              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
-              "Upgrade now"
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-3.5" }),
+              "View other plans"
             ]
           }
         ),
@@ -268,7 +292,7 @@ function SubscriptionBanner({
   const normalizedStatus = (status ?? "").toUpperCase();
   const normalizedPlan = (plan ?? "STARTER").toUpperCase();
   if (isExpired && !isInGracePeriod) {
-    return /* @__PURE__ */ jsxRuntime.jsx(BlockingOverlay, { plan: normalizedPlan, upgradeUrl });
+    return /* @__PURE__ */ jsxRuntime.jsx(BlockingOverlay, { plan: normalizedPlan, billingUrl, upgradeUrl });
   }
   if (isInGracePeriod && gracePeriodEndsAt) {
     const daysLeft = Math.max(
@@ -296,7 +320,7 @@ function SubscriptionBanner({
         icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.AlertTriangle, { className: "size-4" }),
         message: `Subscription expired \u2014 ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to renew before access is blocked. Write operations (create, edit, delete) are currently restricted.`,
         actionLabel: "Renew now",
-        actionHref: upgradeUrl,
+        actionHref: billingUrl,
         onDismiss: null
       }
     );
