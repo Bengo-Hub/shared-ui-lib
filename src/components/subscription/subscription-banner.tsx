@@ -1,8 +1,15 @@
 'use client';
 
-import { AlertTriangle, ArrowRight, Clock, RefreshCw, ShieldAlert, WifiOff, X, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Clock, RefreshCw, ShieldAlert, TrendingUp, WifiOff, X, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+export interface UsageAlert {
+  metric: string;
+  limit: number;
+  current: number;
+  pct: number;
+}
 
 export interface SubscriptionBannerProps {
   status: string | null;
@@ -25,6 +32,8 @@ export interface SubscriptionBannerProps {
   upgradeUrl: string;
   /** Full URL to the billing/payment management page */
   billingUrl: string;
+  /** Active usage threshold alerts — shown as a warning banner to prompt the tenant to upgrade */
+  usageAlerts?: UsageAlert[];
 }
 
 function formatDate(d: Date | null | undefined): string {
@@ -310,6 +319,10 @@ function Banner({
   );
 }
 
+function formatMetricLabel(metric: string): string {
+  return metric.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function SubscriptionBanner({
   status,
   plan,
@@ -327,8 +340,11 @@ export function SubscriptionBanner({
   isDemo,
   upgradeUrl,
   billingUrl,
+  usageAlerts,
 }: SubscriptionBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const [usageAlertDismissed, setUsageAlertDismissed] = useState(false);
+  const [upgradeDismissed, setUpgradeDismissed] = useState(false);
   const isOnline = useOnlineStatus();
 
   // Service-charge and demo tenants are never gated by subscription.
@@ -336,6 +352,7 @@ export function SubscriptionBanner({
 
   const normalizedStatus = (status ?? '').toUpperCase();
   const normalizedPlan = (plan ?? 'STARTER').toUpperCase();
+  const planLabel = formatPlanName(normalizedPlan);
 
   if (isExpired && !isInGracePeriod) {
     return <BlockingOverlay plan={normalizedPlan} billingUrl={billingUrl} upgradeUrl={upgradeUrl} />;
@@ -394,8 +411,8 @@ export function SubscriptionBanner({
       <Banner
         variant="info"
         icon={<Clock className="size-4" />}
-        message={`${normalizedPlan} trial — ${days} day${days === 1 ? '' : 's'} left. Expires ${formatDate(expiresAt)}. Upgrade to keep your features.`}
-        actionLabel="Subscribe"
+        message={`${planLabel} trial — ${days} day${days === 1 ? '' : 's'} left. Expires ${formatDate(expiresAt)}.`}
+        actionLabel="Upgrade plan"
         actionHref={upgradeUrl}
         onDismiss={() => setDismissed(true)}
       />
@@ -407,7 +424,7 @@ export function SubscriptionBanner({
       <Banner
         variant="warning"
         icon={<RefreshCw className="size-4" />}
-        message={`${normalizedPlan} — Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} on ${formatDate(expiresAt)}.`}
+        message={`${planLabel} — Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} on ${formatDate(expiresAt)}.`}
         actionLabel="Manage billing"
         actionHref={billingUrl}
         onDismiss={() => setDismissed(true)}
@@ -420,7 +437,7 @@ export function SubscriptionBanner({
       <Banner
         variant="error"
         icon={<AlertTriangle className="size-4" />}
-        message={`${normalizedPlan} plan cancelled${expiresAt ? ` — access until ${formatDate(expiresAt)}` : ''}. Reactivate to keep your features.`}
+        message={`${planLabel} plan cancelled${expiresAt ? ` — access until ${formatDate(expiresAt)}` : ''}. Reactivate to keep your features.`}
         actionLabel="Reactivate"
         actionHref={upgradeUrl}
         onDismiss={() => setDismissed(true)}
@@ -430,6 +447,35 @@ export function SubscriptionBanner({
 
   if (needsSubscription) {
     return <SubscribeOverlay upgradeUrl={upgradeUrl} />;
+  }
+
+  // Usage threshold alert — shown when any metric approaches its plan limit (>= 80%).
+  if (!usageAlertDismissed && usageAlerts && usageAlerts.length > 0) {
+    const top = usageAlerts.reduce((a, b) => (b.pct > a.pct ? b : a));
+    return (
+      <Banner
+        variant="warning"
+        icon={<TrendingUp className="size-4" />}
+        message={`${formatMetricLabel(top.metric)} at ${top.pct}% of your ${planLabel} limit (${top.current.toLocaleString()} / ${top.limit.toLocaleString()}). Upgrade to avoid interruption.`}
+        actionLabel="Upgrade plan"
+        actionHref={upgradeUrl}
+        onDismiss={() => setUsageAlertDismissed(true)}
+      />
+    );
+  }
+
+  // Persistent upgrade nudge for ACTIVE tenants — dismissible.
+  if (normalizedStatus === 'ACTIVE' && !upgradeDismissed) {
+    return (
+      <Banner
+        variant="info"
+        icon={<Zap className="size-4" />}
+        message={`You're on the ${planLabel} plan. Upgrade for higher limits, more features, and priority support.`}
+        actionLabel="Upgrade plan"
+        actionHref={upgradeUrl}
+        onDismiss={() => setUpgradeDismissed(true)}
+      />
+    );
   }
 
   return null;

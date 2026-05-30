@@ -1,5 +1,11 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
+interface UsageAlert {
+    metric: string;
+    limit: number;
+    current: number;
+    pct: number;
+}
 interface SubscriptionBannerProps {
     status: string | null;
     plan: string | null;
@@ -21,8 +27,10 @@ interface SubscriptionBannerProps {
     upgradeUrl: string;
     /** Full URL to the billing/payment management page */
     billingUrl: string;
+    /** Active usage threshold alerts — shown as a warning banner to prompt the tenant to upgrade */
+    usageAlerts?: UsageAlert[];
 }
-declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
+declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, usageAlerts, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
  * Canonical service tag values for all billable Codevertex/BengoBox services.
@@ -50,4 +58,4 @@ type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
 /** Human-readable labels for each billable service tag. Used in auth-ui billing tabs. */
 declare const SERVICE_TAG_LABELS: Record<ServiceTag, string>;
 
-export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps };
+export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type UsageAlert };

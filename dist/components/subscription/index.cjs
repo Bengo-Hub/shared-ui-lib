@@ -268,6 +268,9 @@ function Banner({
     )
   ] }) });
 }
+function formatMetricLabel(metric) {
+  return metric.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 function SubscriptionBanner({
   status,
   plan,
@@ -284,13 +287,17 @@ function SubscriptionBanner({
   isServiceCharge,
   isDemo,
   upgradeUrl,
-  billingUrl
+  billingUrl,
+  usageAlerts
 }) {
   const [dismissed, setDismissed] = react.useState(false);
+  const [usageAlertDismissed, setUsageAlertDismissed] = react.useState(false);
+  const [upgradeDismissed, setUpgradeDismissed] = react.useState(false);
   const isOnline = useOnlineStatus();
   if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
   const normalizedStatus = (status ?? "").toUpperCase();
   const normalizedPlan = (plan ?? "STARTER").toUpperCase();
+  const planLabel = formatPlanName(normalizedPlan);
   if (isExpired && !isInGracePeriod) {
     return /* @__PURE__ */ jsxRuntime.jsx(BlockingOverlay, { plan: normalizedPlan, billingUrl, upgradeUrl });
   }
@@ -346,8 +353,8 @@ function SubscriptionBanner({
       {
         variant: "info",
         icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Clock, { className: "size-4" }),
-        message: `${normalizedPlan} trial \u2014 ${days} day${days === 1 ? "" : "s"} left. Expires ${formatDate(expiresAt)}. Upgrade to keep your features.`,
-        actionLabel: "Subscribe",
+        message: `${planLabel} trial \u2014 ${days} day${days === 1 ? "" : "s"} left. Expires ${formatDate(expiresAt)}.`,
+        actionLabel: "Upgrade plan",
         actionHref: upgradeUrl,
         onDismiss: () => setDismissed(true)
       }
@@ -359,7 +366,7 @@ function SubscriptionBanner({
       {
         variant: "warning",
         icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "size-4" }),
-        message: `${normalizedPlan} \u2014 Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} on ${formatDate(expiresAt)}.`,
+        message: `${planLabel} \u2014 Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} on ${formatDate(expiresAt)}.`,
         actionLabel: "Manage billing",
         actionHref: billingUrl,
         onDismiss: () => setDismissed(true)
@@ -372,7 +379,7 @@ function SubscriptionBanner({
       {
         variant: "error",
         icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.AlertTriangle, { className: "size-4" }),
-        message: `${normalizedPlan} plan cancelled${expiresAt ? ` \u2014 access until ${formatDate(expiresAt)}` : ""}. Reactivate to keep your features.`,
+        message: `${planLabel} plan cancelled${expiresAt ? ` \u2014 access until ${formatDate(expiresAt)}` : ""}. Reactivate to keep your features.`,
         actionLabel: "Reactivate",
         actionHref: upgradeUrl,
         onDismiss: () => setDismissed(true)
@@ -381,6 +388,33 @@ function SubscriptionBanner({
   }
   if (needsSubscription) {
     return /* @__PURE__ */ jsxRuntime.jsx(SubscribeOverlay, { upgradeUrl });
+  }
+  if (!usageAlertDismissed && usageAlerts && usageAlerts.length > 0) {
+    const top = usageAlerts.reduce((a, b) => b.pct > a.pct ? b : a);
+    return /* @__PURE__ */ jsxRuntime.jsx(
+      Banner,
+      {
+        variant: "warning",
+        icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.TrendingUp, { className: "size-4" }),
+        message: `${formatMetricLabel(top.metric)} at ${top.pct}% of your ${planLabel} limit (${top.current.toLocaleString()} / ${top.limit.toLocaleString()}). Upgrade to avoid interruption.`,
+        actionLabel: "Upgrade plan",
+        actionHref: upgradeUrl,
+        onDismiss: () => setUsageAlertDismissed(true)
+      }
+    );
+  }
+  if (normalizedStatus === "ACTIVE" && !upgradeDismissed) {
+    return /* @__PURE__ */ jsxRuntime.jsx(
+      Banner,
+      {
+        variant: "info",
+        icon: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
+        message: `You're on the ${planLabel} plan. Upgrade for higher limits, more features, and priority support.`,
+        actionLabel: "Upgrade plan",
+        actionHref: upgradeUrl,
+        onDismiss: () => setUpgradeDismissed(true)
+      }
+    );
   }
   return null;
 }
