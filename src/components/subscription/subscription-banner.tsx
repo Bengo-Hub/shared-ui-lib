@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ArrowRight, Clock, RefreshCw, ShieldAlert, TrendingUp, WifiOff, X, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronDown, ChevronRight, Clock, ExternalLink, RefreshCw, ShieldAlert, TrendingUp, WifiOff, X, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -34,6 +34,8 @@ export interface SubscriptionBannerProps {
   billingUrl: string;
   /** Active usage threshold alerts — shown as a warning banner to prompt the tenant to upgrade */
   usageAlerts?: UsageAlert[];
+  /** Tenant brand color (hex) — used to style the active-plan bar. Falls back to primary. */
+  brandColor?: string;
 }
 
 function formatDate(d: Date | null | undefined): string {
@@ -341,10 +343,11 @@ export function SubscriptionBanner({
   upgradeUrl,
   billingUrl,
   usageAlerts,
+  brandColor,
 }: SubscriptionBannerProps) {
   const [dismissed, setDismissed] = useState(false);
   const [usageAlertDismissed, setUsageAlertDismissed] = useState(false);
-  const [upgradeDismissed, setUpgradeDismissed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const isOnline = useOnlineStatus();
 
   // Service-charge and demo tenants are never gated by subscription.
@@ -464,17 +467,96 @@ export function SubscriptionBanner({
     );
   }
 
-  // Persistent upgrade nudge for ACTIVE tenants — dismissible.
-  if (normalizedStatus === 'ACTIVE' && !upgradeDismissed) {
+  // Active plan — compact collapsible bar with brand color accent.
+  if (normalizedStatus === 'ACTIVE') {
+    const accent = brandColor || 'var(--color-primary, #6366f1)';
+    const renewalText = expiresAt ? `Renews ${formatDate(expiresAt)}` : null;
+
     return (
-      <Banner
-        variant="info"
-        icon={<Zap className="size-4" />}
-        message={`You're on the ${planLabel} plan. Upgrade for higher limits, more features, and priority support.`}
-        actionLabel="Upgrade plan"
-        actionHref={upgradeUrl}
-        onDismiss={() => setUpgradeDismissed(true)}
-      />
+      <div
+        className="border-b border-border bg-card"
+        style={{ borderLeftWidth: 3, borderLeftStyle: 'solid', borderLeftColor: accent }}
+      >
+        {/* Collapsed row */}
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+          <Zap className="size-3.5 shrink-0" style={{ color: accent }} />
+          <span className="text-sm font-semibold text-foreground">{planLabel}</span>
+          {renewalText && (
+            <span className="text-xs text-muted-foreground hidden sm:inline">· {renewalText}</span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            <a
+              href={upgradeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: accent }}
+            >
+              Upgrade
+              <ArrowRight className="size-3" />
+            </a>
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="rounded p-1 text-muted-foreground transition hover:text-foreground hover:bg-accent"
+              aria-label={expanded ? 'Collapse plan details' : 'Expand plan details'}
+            >
+              {expanded
+                ? <ChevronDown className="size-4" />
+                : <ChevronRight className="size-4" />}
+            </button>
+            <button
+              onClick={() => setDismissed(true)}
+              className="rounded p-1 text-muted-foreground/60 transition hover:text-muted-foreground hover:bg-accent"
+              aria-label="Dismiss"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded details panel */}
+        {expanded && (
+          <div className="mx-auto max-w-6xl border-t border-border/50 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+              <span>
+                <span className="font-medium text-foreground">Plan</span>{' '}
+                {planLabel}
+              </span>
+              <span>
+                <span className="font-medium text-foreground">Status</span>{' '}
+                <span className="capitalize">{normalizedStatus.toLowerCase()}</span>
+              </span>
+              {expiresAt && (
+                <span>
+                  <span className="font-medium text-foreground">Next renewal</span>{' '}
+                  {formatDate(expiresAt)}
+                </span>
+              )}
+              <div className="ml-auto flex items-center gap-3">
+                <a
+                  href={billingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-foreground hover:underline underline-offset-2"
+                >
+                  Manage billing
+                  <ExternalLink className="size-3" />
+                </a>
+                <a
+                  href={upgradeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium hover:underline underline-offset-2"
+                  style={{ color: accent }}
+                >
+                  Upgrade plan
+                  <ArrowRight className="size-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
