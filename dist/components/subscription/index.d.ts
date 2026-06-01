@@ -29,8 +29,10 @@ interface SubscriptionBannerProps {
     billingUrl: string;
     /** Active usage threshold alerts — shown as a warning banner to prompt the tenant to upgrade */
     usageAlerts?: UsageAlert[];
+    /** Tenant brand color (hex) — used to style the active-plan bar. Falls back to primary. */
+    brandColor?: string;
 }
-declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, usageAlerts, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
+declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, usageAlerts, brandColor, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
  * Canonical service tag values for all billable Codevertex/BengoBox services.

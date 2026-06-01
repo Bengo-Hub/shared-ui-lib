@@ -1,4 +1,4 @@
-import { WifiOff, AlertTriangle, Clock, RefreshCw, TrendingUp, Zap, ArrowRight, X, ShieldAlert } from 'lucide-react';
+import { WifiOff, AlertTriangle, Clock, RefreshCw, TrendingUp, Zap, ArrowRight, ChevronDown, ChevronRight, X, ExternalLink, ShieldAlert } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { jsx, jsxs } from 'react/jsx-runtime';
@@ -286,11 +286,12 @@ function SubscriptionBanner({
   isDemo,
   upgradeUrl,
   billingUrl,
-  usageAlerts
+  usageAlerts,
+  brandColor
 }) {
   const [dismissed, setDismissed] = useState(false);
   const [usageAlertDismissed, setUsageAlertDismissed] = useState(false);
-  const [upgradeDismissed, setUpgradeDismissed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const isOnline = useOnlineStatus();
   if (isPlatformOwner || isServiceCharge || isDemo || !isCommercialTenant || isLoading || !isHydrated) return null;
   const normalizedStatus = (status ?? "").toUpperCase();
@@ -401,16 +402,104 @@ function SubscriptionBanner({
       }
     );
   }
-  if (normalizedStatus === "ACTIVE" && !upgradeDismissed) {
-    return /* @__PURE__ */ jsx(
-      Banner,
+  if (normalizedStatus === "ACTIVE") {
+    const accent = brandColor || "var(--color-primary, #6366f1)";
+    const renewalText = expiresAt ? `Renews ${formatDate(expiresAt)}` : null;
+    return /* @__PURE__ */ jsxs(
+      "div",
       {
-        variant: "info",
-        icon: /* @__PURE__ */ jsx(Zap, { className: "size-4" }),
-        message: `You're on the ${planLabel} plan. Upgrade for higher limits, more features, and priority support.`,
-        actionLabel: "Upgrade plan",
-        actionHref: upgradeUrl,
-        onDismiss: () => setUpgradeDismissed(true)
+        className: "border-b border-border bg-card",
+        style: { borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: accent },
+        children: [
+          /* @__PURE__ */ jsxs("div", { className: "mx-auto flex max-w-6xl items-center gap-3 px-4 py-2", children: [
+            /* @__PURE__ */ jsx(Zap, { className: "size-3.5 shrink-0", style: { color: accent } }),
+            /* @__PURE__ */ jsx("span", { className: "text-sm font-semibold text-foreground", children: planLabel }),
+            renewalText && /* @__PURE__ */ jsxs("span", { className: "text-xs text-muted-foreground hidden sm:inline", children: [
+              "\xB7 ",
+              renewalText
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxs(
+                "a",
+                {
+                  href: upgradeUrl,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80",
+                  style: { color: accent },
+                  children: [
+                    "Upgrade",
+                    /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsx(
+                "button",
+                {
+                  onClick: () => setExpanded((v) => !v),
+                  className: "rounded p-1 text-muted-foreground transition hover:text-foreground hover:bg-accent",
+                  "aria-label": expanded ? "Collapse plan details" : "Expand plan details",
+                  children: expanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "size-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "size-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx(
+                "button",
+                {
+                  onClick: () => setDismissed(true),
+                  className: "rounded p-1 text-muted-foreground/60 transition hover:text-muted-foreground hover:bg-accent",
+                  "aria-label": "Dismiss",
+                  children: /* @__PURE__ */ jsx(X, { className: "size-3.5" })
+                }
+              )
+            ] })
+          ] }),
+          expanded && /* @__PURE__ */ jsx("div", { className: "mx-auto max-w-6xl border-t border-border/50 px-4 py-3", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground", children: [
+            /* @__PURE__ */ jsxs("span", { children: [
+              /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Plan" }),
+              " ",
+              planLabel
+            ] }),
+            /* @__PURE__ */ jsxs("span", { children: [
+              /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Status" }),
+              " ",
+              /* @__PURE__ */ jsx("span", { className: "capitalize", children: normalizedStatus.toLowerCase() })
+            ] }),
+            expiresAt && /* @__PURE__ */ jsxs("span", { children: [
+              /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Next renewal" }),
+              " ",
+              formatDate(expiresAt)
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-3", children: [
+              /* @__PURE__ */ jsxs(
+                "a",
+                {
+                  href: billingUrl,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "inline-flex items-center gap-1 font-medium text-foreground hover:underline underline-offset-2",
+                  children: [
+                    "Manage billing",
+                    /* @__PURE__ */ jsx(ExternalLink, { className: "size-3" })
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxs(
+                "a",
+                {
+                  href: upgradeUrl,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "inline-flex items-center gap-1 font-medium hover:underline underline-offset-2",
+                  style: { color: accent },
+                  children: [
+                    "Upgrade plan",
+                    /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
+                  ]
+                }
+              )
+            ] })
+          ] }) })
+        ]
       }
     );
   }
