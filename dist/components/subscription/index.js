@@ -1,4 +1,4 @@
-import { WifiOff, AlertTriangle, Clock, RefreshCw, TrendingUp, Zap, ArrowRight, ChevronDown, ChevronRight, X, ExternalLink, ShieldAlert } from 'lucide-react';
+import { WifiOff, AlertTriangle, Clock, TrendingUp, RefreshCw, Zap, ArrowRight, ChevronDown, ChevronRight, X, ExternalLink, ShieldAlert } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { jsx, jsxs } from 'react/jsx-runtime';
@@ -359,19 +359,6 @@ function SubscriptionBanner({
       }
     );
   }
-  if (normalizedStatus === "ACTIVE" && expiresAt && daysUntilExpiry !== null && daysUntilExpiry <= 7) {
-    return /* @__PURE__ */ jsx(
-      Banner,
-      {
-        variant: "warning",
-        icon: /* @__PURE__ */ jsx(RefreshCw, { className: "size-4" }),
-        message: `${planLabel} \u2014 Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} on ${formatDate(expiresAt)}.`,
-        actionLabel: "Manage billing",
-        actionHref: billingUrl,
-        onDismiss: () => setDismissed(true)
-      }
-    );
-  }
   if (normalizedStatus === "CANCELLED") {
     return /* @__PURE__ */ jsx(
       Banner,
@@ -404,17 +391,21 @@ function SubscriptionBanner({
   }
   if (normalizedStatus === "ACTIVE") {
     const accent = brandColor || "var(--color-primary, #6366f1)";
-    const renewalText = expiresAt ? `Renews ${formatDate(expiresAt)}` : null;
+    const isUrgent = daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
+    const renewalText = expiresAt ? isUrgent ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}` : `Renews ${formatDate(expiresAt)}` : null;
     return /* @__PURE__ */ jsxs(
       "div",
       {
-        className: "border-b border-border bg-card",
+        className: [
+          "border-b",
+          isUrgent ? "border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-950/30" : "border-border bg-card"
+        ].join(" "),
         style: { borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: accent },
         children: [
           /* @__PURE__ */ jsxs("div", { className: "mx-auto flex max-w-6xl items-center gap-3 px-4 py-2", children: [
-            /* @__PURE__ */ jsx(Zap, { className: "size-3.5 shrink-0", style: { color: accent } }),
-            /* @__PURE__ */ jsx("span", { className: "text-sm font-semibold text-foreground", children: planLabel }),
-            renewalText && /* @__PURE__ */ jsxs("span", { className: "text-xs text-muted-foreground hidden sm:inline", children: [
+            isUrgent ? /* @__PURE__ */ jsx(RefreshCw, { className: "size-3.5 shrink-0", style: { color: accent } }) : /* @__PURE__ */ jsx(Zap, { className: "size-3.5 shrink-0", style: { color: accent } }),
+            /* @__PURE__ */ jsx("span", { className: ["text-sm font-semibold", isUrgent ? "text-amber-900 dark:text-amber-100" : "text-foreground"].join(" "), children: planLabel }),
+            renewalText && /* @__PURE__ */ jsxs("span", { className: ["text-xs hidden sm:inline", isUrgent ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"].join(" "), children: [
               "\xB7 ",
               renewalText
             ] }),
@@ -422,13 +413,16 @@ function SubscriptionBanner({
               /* @__PURE__ */ jsxs(
                 "a",
                 {
-                  href: upgradeUrl,
+                  href: isUrgent ? billingUrl : upgradeUrl,
                   target: "_blank",
                   rel: "noopener noreferrer",
-                  className: "hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80",
-                  style: { color: accent },
+                  className: [
+                    "hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
+                    isUrgent ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:opacity-80"
+                  ].join(" "),
+                  style: isUrgent ? void 0 : { color: accent },
                   children: [
-                    "Upgrade",
+                    isUrgent ? "Renew now" : "Upgrade",
                     /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
                   ]
                 }
@@ -437,7 +431,10 @@ function SubscriptionBanner({
                 "button",
                 {
                   onClick: () => setExpanded((v) => !v),
-                  className: "rounded p-1 text-muted-foreground transition hover:text-foreground hover:bg-accent",
+                  className: [
+                    "rounded p-1 transition",
+                    isUrgent ? "text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  ].join(" "),
                   "aria-label": expanded ? "Collapse plan details" : "Expand plan details",
                   children: expanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "size-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "size-4" })
                 }
@@ -446,14 +443,17 @@ function SubscriptionBanner({
                 "button",
                 {
                   onClick: () => setDismissed(true),
-                  className: "rounded p-1 text-muted-foreground/60 transition hover:text-muted-foreground hover:bg-accent",
+                  className: [
+                    "rounded p-1 transition",
+                    isUrgent ? "text-amber-600/60 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent"
+                  ].join(" "),
                   "aria-label": "Dismiss",
                   children: /* @__PURE__ */ jsx(X, { className: "size-3.5" })
                 }
               )
             ] })
           ] }),
-          expanded && /* @__PURE__ */ jsx("div", { className: "mx-auto max-w-6xl border-t border-border/50 px-4 py-3", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground", children: [
+          expanded && /* @__PURE__ */ jsx("div", { className: ["mx-auto max-w-6xl border-t px-4 py-3", isUrgent ? "border-amber-200 dark:border-amber-800" : "border-border/50"].join(" "), children: /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground", children: [
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Plan" }),
               " ",
@@ -462,7 +462,7 @@ function SubscriptionBanner({
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Status" }),
               " ",
-              /* @__PURE__ */ jsx("span", { className: "capitalize", children: normalizedStatus.toLowerCase() })
+              isUrgent ? /* @__PURE__ */ jsx("span", { className: "text-amber-700 dark:text-amber-300 font-medium", children: "Renews soon" }) : /* @__PURE__ */ jsx("span", { className: "capitalize", children: normalizedStatus.toLowerCase() })
             ] }),
             expiresAt && /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Next renewal" }),
@@ -478,7 +478,7 @@ function SubscriptionBanner({
                   rel: "noopener noreferrer",
                   className: "inline-flex items-center gap-1 font-medium text-foreground hover:underline underline-offset-2",
                   children: [
-                    "Manage billing",
+                    isUrgent ? "Renew now" : "Manage billing",
                     /* @__PURE__ */ jsx(ExternalLink, { className: "size-3" })
                   ]
                 }

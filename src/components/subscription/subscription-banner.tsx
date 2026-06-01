@@ -422,18 +422,9 @@ export function SubscriptionBanner({
     );
   }
 
-  if (normalizedStatus === 'ACTIVE' && expiresAt && daysUntilExpiry !== null && daysUntilExpiry <= 7) {
-    return (
-      <Banner
-        variant="warning"
-        icon={<RefreshCw className="size-4" />}
-        message={`${planLabel} — Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} on ${formatDate(expiresAt)}.`}
-        actionLabel="Manage billing"
-        actionHref={billingUrl}
-        onDismiss={() => setDismissed(true)}
-      />
-    );
-  }
+  // Note: ACTIVE + daysUntilExpiry ≤ 7 is intentionally NOT handled here as a plain Banner.
+  // It falls through to the expandable ACTIVE bar below, which renders urgency styling
+  // while preserving brand color, the chevron expand button, and full billing details.
 
   if (normalizedStatus === 'CANCELLED') {
     return (
@@ -467,46 +458,79 @@ export function SubscriptionBanner({
     );
   }
 
-  // Active plan — compact collapsible bar with brand color accent.
+  // Active plan — unified expandable bar covering both normal active and renews-soon states.
+  // isUrgent (≤ 7 days) gets amber urgency styling while keeping the brand-color left
+  // border, chevron expand button, and full billing action links in both states.
   if (normalizedStatus === 'ACTIVE') {
     const accent = brandColor || 'var(--color-primary, #6366f1)';
-    const renewalText = expiresAt ? `Renews ${formatDate(expiresAt)}` : null;
+    const isUrgent = daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
+
+    const renewalText = expiresAt
+      ? isUrgent
+        ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} · ${formatDate(expiresAt)}`
+        : `Renews ${formatDate(expiresAt)}`
+      : null;
 
     return (
       <div
-        className="border-b border-border bg-card"
+        className={[
+          'border-b',
+          isUrgent
+            ? 'border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-950/30'
+            : 'border-border bg-card',
+        ].join(' ')}
         style={{ borderLeftWidth: 3, borderLeftStyle: 'solid', borderLeftColor: accent }}
       >
         {/* Collapsed row */}
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
-          <Zap className="size-3.5 shrink-0" style={{ color: accent }} />
-          <span className="text-sm font-semibold text-foreground">{planLabel}</span>
+          {isUrgent
+            ? <RefreshCw className="size-3.5 shrink-0" style={{ color: accent }} />
+            : <Zap className="size-3.5 shrink-0" style={{ color: accent }} />
+          }
+          <span className={['text-sm font-semibold', isUrgent ? 'text-amber-900 dark:text-amber-100' : 'text-foreground'].join(' ')}>
+            {planLabel}
+          </span>
           {renewalText && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">· {renewalText}</span>
+            <span className={['text-xs hidden sm:inline', isUrgent ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'].join(' ')}>
+              · {renewalText}
+            </span>
           )}
           <div className="ml-auto flex items-center gap-2">
             <a
-              href={upgradeUrl}
+              href={isUrgent ? billingUrl : upgradeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80"
-              style={{ color: accent }}
+              className={[
+                'hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
+                isUrgent
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'hover:opacity-80',
+              ].join(' ')}
+              style={isUrgent ? undefined : { color: accent }}
             >
-              Upgrade
+              {isUrgent ? 'Renew now' : 'Upgrade'}
               <ArrowRight className="size-3" />
             </a>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="rounded p-1 text-muted-foreground transition hover:text-foreground hover:bg-accent"
+              className={[
+                'rounded p-1 transition',
+                isUrgent
+                  ? 'text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+              ].join(' ')}
               aria-label={expanded ? 'Collapse plan details' : 'Expand plan details'}
             >
-              {expanded
-                ? <ChevronDown className="size-4" />
-                : <ChevronRight className="size-4" />}
+              {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
             </button>
             <button
               onClick={() => setDismissed(true)}
-              className="rounded p-1 text-muted-foreground/60 transition hover:text-muted-foreground hover:bg-accent"
+              className={[
+                'rounded p-1 transition',
+                isUrgent
+                  ? 'text-amber-600/60 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                  : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent',
+              ].join(' ')}
               aria-label="Dismiss"
             >
               <X className="size-3.5" />
@@ -516,7 +540,7 @@ export function SubscriptionBanner({
 
         {/* Expanded details panel */}
         {expanded && (
-          <div className="mx-auto max-w-6xl border-t border-border/50 px-4 py-3">
+          <div className={['mx-auto max-w-6xl border-t px-4 py-3', isUrgent ? 'border-amber-200 dark:border-amber-800' : 'border-border/50'].join(' ')}>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
               <span>
                 <span className="font-medium text-foreground">Plan</span>{' '}
@@ -524,7 +548,10 @@ export function SubscriptionBanner({
               </span>
               <span>
                 <span className="font-medium text-foreground">Status</span>{' '}
-                <span className="capitalize">{normalizedStatus.toLowerCase()}</span>
+                {isUrgent
+                  ? <span className="text-amber-700 dark:text-amber-300 font-medium">Renews soon</span>
+                  : <span className="capitalize">{normalizedStatus.toLowerCase()}</span>
+                }
               </span>
               {expiresAt && (
                 <span>
@@ -539,7 +566,7 @@ export function SubscriptionBanner({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-medium text-foreground hover:underline underline-offset-2"
                 >
-                  Manage billing
+                  {isUrgent ? 'Renew now' : 'Manage billing'}
                   <ExternalLink className="size-3" />
                 </a>
                 <a
