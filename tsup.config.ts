@@ -7,6 +7,7 @@ export default defineConfig({
     "src/components/auth/index.ts",
     "src/components/tracking/index.ts",
     "src/components/subscription/index.ts",
+    "src/components/documents/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
