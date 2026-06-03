@@ -19,8 +19,8 @@ interface PdfPreviewProps {
 /**
  * PdfPreview is a self-contained, framework-agnostic modal that previews a PDF
  * blob in an iframe with Download / Print / Open-in-new-tab actions. It mirrors
- * the truload-frontend PdfPreviewDialog but carries no shadcn/Tailwind-component
- * dependency, so any frontend can reuse it.
+ * the truload-frontend PdfPreviewDialog but uses inline styles only, so any
+ * frontend can reuse it without shadcn or Tailwind content configuration.
  *
  * Pair it with {@link useDocumentPreview} for "fetch → preview-first" flows.
  */

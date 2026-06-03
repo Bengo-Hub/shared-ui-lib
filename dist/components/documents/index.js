@@ -2,6 +2,47 @@ import { useState, useEffect, useCallback } from 'react';
 import { jsxs, jsx } from 'react/jsx-runtime';
 
 // src/components/documents/pdf-preview.tsx
+var S = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 1e3,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  backdrop: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" },
+  modal: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "90vh",
+    margin: "0 16px",
+    background: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "12px 20px",
+    borderBottom: "1px solid #e5e7eb"
+  },
+  title: { margin: 0, fontSize: 15, fontWeight: 600, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  subtitle: { margin: 0, fontSize: 12, color: "#6b7280", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  body: { position: "relative", flex: 1, minHeight: 0, background: "#f3f4f6" },
+  iframe: { width: "100%", height: "100%", border: 0 },
+  center: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, color: "#6b7280" },
+  footer: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, padding: "12px 20px", borderTop: "1px solid #e5e7eb" },
+  iconBtn: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 8, borderRadius: 9999, border: 0, background: "transparent", color: "#6b7280", cursor: "pointer" },
+  btn: { display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+  btnPrimary: { display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: 0, background: "#111827", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }
+};
 var Spinner = () => /* @__PURE__ */ jsx(
   "svg",
   {
@@ -135,96 +176,52 @@ function PdfPreview({
   const handleOpenTab = () => {
     if (previewUrl) window.open(previewUrl, "_blank");
   };
-  const maxWidth = orientation === "landscape" ? "95vw" : "90vw";
-  return /* @__PURE__ */ jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", role: "dialog", "aria-modal": "true", "aria-label": title, children: [
+  return /* @__PURE__ */ jsxs("div", { style: S.overlay, role: "dialog", "aria-modal": "true", "aria-label": title, children: [
     /* @__PURE__ */ jsx("style", { children: "@keyframes bx-pdfp-rotate{to{transform:rotate(360deg)}}.bx-pdfp-spin{animation:bx-pdfp-rotate 0.8s linear infinite}" }),
-    /* @__PURE__ */ jsx("div", { className: "absolute inset-0 bg-black/50", onClick: () => onOpenChange(false) }),
-    /* @__PURE__ */ jsxs(
-      "div",
-      {
-        className: "relative mx-4 flex h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl",
-        style: { maxWidth },
-        children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between gap-4 border-b px-5 py-3", children: [
-            /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
-              /* @__PURE__ */ jsx("h2", { className: "truncate text-base font-semibold text-gray-900", children: title }),
-              /* @__PURE__ */ jsx("p", { className: "truncate font-mono text-xs text-gray-500", children: fileName })
-            ] }),
-            /* @__PURE__ */ jsx(
-              "button",
-              {
-                onClick: () => onOpenChange(false),
-                className: "rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100",
-                "aria-label": "Close",
-                children: /* @__PURE__ */ jsx(IconClose, {})
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsx("div", { className: "relative min-h-0 flex-1 bg-gray-100", children: isLoading ? /* @__PURE__ */ jsxs("div", { className: "flex h-full flex-col items-center justify-center gap-3 text-gray-500", children: [
-            /* @__PURE__ */ jsx(Spinner, {}),
-            /* @__PURE__ */ jsx("p", { className: "text-sm", children: "Generating document\u2026" })
-          ] }) : previewUrl ? /* @__PURE__ */ jsx("iframe", { src: previewUrl, title, className: "h-full w-full border-0" }) : blob ? /* @__PURE__ */ jsxs("div", { className: "flex h-full flex-col items-center justify-center gap-3 text-center text-gray-500", children: [
-            /* @__PURE__ */ jsx("p", { className: "text-sm", children: "Preview is not available for this file." }),
-            /* @__PURE__ */ jsxs(
-              "button",
-              {
-                onClick: handleDownload,
-                className: "inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800",
-                children: [
-                  /* @__PURE__ */ jsx(IconDownload, {}),
-                  " Download ",
-                  fileName
-                ]
-              }
-            )
-          ] }) : null }),
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-2 border-t px-5 py-3", children: [
-            /* @__PURE__ */ jsx(
-              "button",
-              {
-                onClick: () => onOpenChange(false),
-                className: "inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50",
-                children: "Close"
-              }
-            ),
-            previewUrl && /* @__PURE__ */ jsxs(
-              "button",
-              {
-                onClick: handleOpenTab,
-                className: "inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50",
-                children: [
-                  /* @__PURE__ */ jsx(IconExternal, {}),
-                  " Open in tab"
-                ]
-              }
-            ),
-            previewUrl && /* @__PURE__ */ jsxs(
-              "button",
-              {
-                onClick: handlePrint,
-                className: "inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50",
-                children: [
-                  /* @__PURE__ */ jsx(IconPrinter, {}),
-                  " Print"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxs(
-              "button",
-              {
-                onClick: handleDownload,
-                disabled: !blob || isLoading,
-                className: "inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50",
-                children: [
-                  /* @__PURE__ */ jsx(IconDownload, {}),
-                  " Download"
-                ]
-              }
-            )
-          ] })
-        ]
-      }
-    )
+    /* @__PURE__ */ jsx("div", { style: S.backdrop, onClick: () => onOpenChange(false) }),
+    /* @__PURE__ */ jsxs("div", { style: { ...S.modal, maxWidth: orientation === "landscape" ? "95vw" : "90vw" }, children: [
+      /* @__PURE__ */ jsxs("div", { style: S.header, children: [
+        /* @__PURE__ */ jsxs("div", { style: { minWidth: 0 }, children: [
+          /* @__PURE__ */ jsx("h2", { style: S.title, children: title }),
+          /* @__PURE__ */ jsx("p", { style: S.subtitle, children: fileName })
+        ] }),
+        /* @__PURE__ */ jsx("button", { onClick: () => onOpenChange(false), style: S.iconBtn, "aria-label": "Close", children: /* @__PURE__ */ jsx(IconClose, {}) })
+      ] }),
+      /* @__PURE__ */ jsx("div", { style: S.body, children: isLoading ? /* @__PURE__ */ jsxs("div", { style: S.center, children: [
+        /* @__PURE__ */ jsx(Spinner, {}),
+        /* @__PURE__ */ jsx("p", { style: { margin: 0, fontSize: 14 }, children: "Generating document\u2026" })
+      ] }) : previewUrl ? /* @__PURE__ */ jsx("iframe", { src: previewUrl, title, style: S.iframe }) : blob ? /* @__PURE__ */ jsxs("div", { style: { ...S.center, textAlign: "center" }, children: [
+        /* @__PURE__ */ jsx("p", { style: { margin: 0, fontSize: 14 }, children: "Preview is not available for this file." }),
+        /* @__PURE__ */ jsxs("button", { onClick: handleDownload, style: S.btnPrimary, children: [
+          /* @__PURE__ */ jsx(IconDownload, {}),
+          " Download ",
+          fileName
+        ] })
+      ] }) : null }),
+      /* @__PURE__ */ jsxs("div", { style: S.footer, children: [
+        /* @__PURE__ */ jsx("button", { onClick: () => onOpenChange(false), style: S.btn, children: "Close" }),
+        previewUrl && /* @__PURE__ */ jsxs("button", { onClick: handleOpenTab, style: S.btn, children: [
+          /* @__PURE__ */ jsx(IconExternal, {}),
+          " Open in tab"
+        ] }),
+        previewUrl && /* @__PURE__ */ jsxs("button", { onClick: handlePrint, style: S.btn, children: [
+          /* @__PURE__ */ jsx(IconPrinter, {}),
+          " Print"
+        ] }),
+        /* @__PURE__ */ jsxs(
+          "button",
+          {
+            onClick: handleDownload,
+            disabled: !blob || isLoading,
+            style: { ...S.btnPrimary, opacity: !blob || isLoading ? 0.5 : 1 },
+            children: [
+              /* @__PURE__ */ jsx(IconDownload, {}),
+              " Download"
+            ]
+          }
+        )
+      ] })
+    ] })
   ] });
 }
 var INITIAL = {
