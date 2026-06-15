@@ -533,9 +533,64 @@ var SERVICE_TAG_LABELS = {
   isp_billing: "ISP Billing",
   projects: "Projects & Invoicing"
 };
+var EMPTY = {
+  features: [],
+  limits: {},
+  isExempt: false,
+  status: null,
+  isLoading: false
+};
+var SubscriptionContext = react.createContext(EMPTY);
+function SubscriptionProvider({
+  value,
+  children
+}) {
+  const v = react.useMemo(
+    () => ({ ...EMPTY, ...value }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [value.features, value.limits, value.isExempt, value.status, value.isLoading]
+  );
+  return /* @__PURE__ */ jsxRuntime.jsx(SubscriptionContext.Provider, { value: v, children });
+}
+function useEntitlements() {
+  return react.useContext(SubscriptionContext);
+}
+function useFeature(code) {
+  const e = react.useContext(SubscriptionContext);
+  return e.isExempt || e.features.includes(code);
+}
+function useAnyFeature(...codes) {
+  const e = react.useContext(SubscriptionContext);
+  return e.isExempt || codes.some((c) => e.features.includes(c));
+}
+function useLimit(key) {
+  const e = react.useContext(SubscriptionContext);
+  if (e.isExempt) return Infinity;
+  const v = e.limits?.[key];
+  if (v === void 0 || v === null || v < 0) return Infinity;
+  return v;
+}
+function FeatureGate({
+  feature,
+  anyOf,
+  fallback = null,
+  loadingFallback = null,
+  children
+}) {
+  const e = react.useContext(SubscriptionContext);
+  if (e.isLoading) return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: loadingFallback });
+  const ok = e.isExempt || (feature ? e.features.includes(feature) : false) || (anyOf ? anyOf.some((f) => e.features.includes(f)) : false);
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: ok ? children : fallback });
+}
 
+exports.FeatureGate = FeatureGate;
 exports.SERVICE_TAGS = SERVICE_TAGS;
 exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
 exports.SubscriptionBanner = SubscriptionBanner;
+exports.SubscriptionProvider = SubscriptionProvider;
+exports.useAnyFeature = useAnyFeature;
+exports.useEntitlements = useEntitlements;
+exports.useFeature = useFeature;
+exports.useLimit = useLimit;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

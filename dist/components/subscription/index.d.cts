@@ -1,4 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import React from 'react';
 
 interface UsageAlert {
     metric: string;
@@ -60,4 +61,58 @@ type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
 /** Human-readable labels for each billable service tag. Used in auth-ui billing tabs. */
 declare const SERVICE_TAG_LABELS: Record<ServiceTag, string>;
 
-export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type UsageAlert };
+/**
+ * SubscriptionEntitlements is the store-agnostic entitlement snapshot each app feeds into
+ * the provider. Apps compute it from their own auth store / JWT claims (sub_features,
+ * sub_limits, is_demo / is_platform_owner / billing_mode) and pass it down once.
+ *
+ * `isExempt` is the single bypass flag (platform owner OR demo OR service_charge). When set,
+ * every feature reads as enabled and every limit as Infinity — matching the backend
+ * IsGatingExempt funnel so the UI never hides a control the backend would actually allow.
+ */
+interface SubscriptionEntitlements {
+    features: string[];
+    limits: Record<string, number>;
+    isExempt: boolean;
+    status?: string | null;
+    isLoading?: boolean;
+}
+/**
+ * SubscriptionProvider makes the tenant's entitlements available to useFeature / useLimit /
+ * FeatureGate anywhere below it. Wrap the authenticated app shell with it, fed from the
+ * app's useSubscription hook.
+ */
+declare function SubscriptionProvider({ value, children, }: {
+    value: SubscriptionEntitlements;
+    children: React.ReactNode;
+}): react_jsx_runtime.JSX.Element;
+/** useEntitlements returns the raw entitlement snapshot. */
+declare function useEntitlements(): SubscriptionEntitlements;
+/** useFeature reports whether a feature code is enabled (exempt tenants always pass). */
+declare function useFeature(code: string): boolean;
+/** useAnyFeature reports whether ANY of the given feature codes is enabled. */
+declare function useAnyFeature(...codes: string[]): boolean;
+/**
+ * useLimit returns the numeric cap for a metric. Exempt tenants and unlimited (-1) limits
+ * return Infinity; an unset key also returns Infinity (treated as not-configured, allow).
+ */
+declare function useLimit(key: string): number;
+interface FeatureGateProps {
+    /** Single required feature code. */
+    feature?: string;
+    /** Pass any of these feature codes (OR). */
+    anyOf?: string[];
+    /** Rendered when the feature is NOT available (default: nothing). */
+    fallback?: React.ReactNode;
+    /** Rendered while entitlements are still loading (default: nothing). */
+    loadingFallback?: React.ReactNode;
+    children: React.ReactNode;
+}
+/**
+ * FeatureGate renders its children only when the tenant's plan includes the feature (or the
+ * tenant is exempt). Use it to wrap premium buttons, pages, and nav items so they disappear
+ * for plans that don't include them — the same codes the backend RequireFeature() gates on.
+ */
+declare function FeatureGate({ feature, anyOf, fallback, loadingFallback, children, }: FeatureGateProps): react_jsx_runtime.JSX.Element;
+
+export { FeatureGate, type FeatureGateProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type SubscriptionEntitlements, SubscriptionProvider, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useLimit };
