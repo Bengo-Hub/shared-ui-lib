@@ -73,38 +73,61 @@ function SyncedConfirmation({ className = "" }) {
     " All offline data synced"
   ] });
 }
+function buildIdFrom(html) {
+  const m = html.match(/\/_next\/static\/([^/"']+)\/_(?:build|ssg)Manifest/);
+  return m ? m[1] : null;
+}
+function currentBuildId() {
+  if (typeof document === "undefined") return null;
+  const el = document.querySelector('script[src*="_buildManifest"], link[href*="_buildManifest"]');
+  const src = el?.getAttribute("src") || el?.getAttribute("href") || "";
+  const fromEl = buildIdFrom(src);
+  if (fromEl) return fromEl;
+  return buildIdFrom(document.documentElement.outerHTML);
+}
 function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
-  const [waiting, setWaiting] = react.useState(null);
+  const [updateAvailable, setUpdateAvailable] = react.useState(false);
   react.useEffect(() => {
-    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    let reg;
-    let reloaded = false;
-    const trackInstalling = (worker) => {
-      if (!worker) return;
-      worker.addEventListener("statechange", () => {
-        if (worker.state === "installed" && navigator.serviceWorker.controller) setWaiting(worker);
-      });
+    if (typeof window === "undefined") return;
+    const mine = currentBuildId();
+    if (!mine) return;
+    let stopped = false;
+    const check = async () => {
+      try {
+        const res = await fetch(window.location.href, { cache: "no-store", credentials: "same-origin" });
+        if (!res.ok) return;
+        const server = buildIdFrom(await res.text());
+        if (!stopped && server && server !== mine) setUpdateAvailable(true);
+      } catch {
+      }
     };
-    navigator.serviceWorker.getRegistration().then((r) => {
-      if (!r) return;
-      reg = r;
-      if (r.waiting && navigator.serviceWorker.controller) setWaiting(r.waiting);
-      r.addEventListener("updatefound", () => trackInstalling(r.installing));
-    });
-    const onController = () => {
-      if (reloaded) return;
-      reloaded = true;
-      window.location.reload();
-    };
-    navigator.serviceWorker.addEventListener("controllerchange", onController);
-    const id = setInterval(() => reg?.update().catch(() => {
-    }), checkIntervalMs);
+    const id = setInterval(check, checkIntervalMs);
+    const onFocus = () => void check();
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("online", onFocus);
     return () => {
+      stopped = true;
       clearInterval(id);
-      navigator.serviceWorker.removeEventListener("controllerchange", onController);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("online", onFocus);
     };
   }, [checkIntervalMs]);
-  if (!waiting) return null;
+  const applyUpdate = async () => {
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.update().catch(() => {
+        })));
+      }
+    } catch {
+    }
+    window.location.reload();
+  };
+  if (!updateAvailable) return null;
   return /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
@@ -117,7 +140,7 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
           "button",
           {
             type: "button",
-            onClick: () => waiting.postMessage({ type: "SKIP_WAITING" }),
+            onClick: () => void applyUpdate(),
             className: "rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100",
             children: "Update now"
           }

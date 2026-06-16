@@ -59,18 +59,18 @@ interface OfflineBarProps {
 declare function OfflineBar({ getPendingCount, availableOffline, disabledOffline, onSyncNow, swUrl, registerSW, showUpdater, className, }: OfflineBarProps): react_jsx_runtime.JSX.Element;
 
 interface PwaUpdaterProps {
-    /** How often to check the server for a new service worker, ms (default 60s). */
+    /** How often to poll the server for a newer deployed build, ms (default 60s). */
     checkIntervalMs?: number;
     className?: string;
 }
 /**
- * Standard PWA update banner — uniform across every Codevertex frontend.
+ * PWA update banner — uniform across every Codevertex frontend.
  *
- * next-pwa (built with `next build --webpack`) emits a fresh service worker on every build, so
- * the browser detects the change and the new worker installs into the "waiting" state (we keep
- * skipWaiting:false). This banner surfaces that, and on "Update now" tells the waiting worker to
- * activate (SKIP_WAITING) and reloads once it takes control — effectively replacing the old
- * cached version with the latest deploy.
+ * The fleet ships a committed static service worker whose bytes don't change per deploy, so the
+ * browser's SW-update lifecycle can't detect new releases. Instead this polls the server for the
+ * current Next.js build id (embedded in the _buildManifest asset path) and compares it to the one
+ * this tab loaded. When the deployed build is newer, it shows "Update now" → clears caches,
+ * unregisters the SW, and hard-reloads to pull the latest version.
  */
 declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 
