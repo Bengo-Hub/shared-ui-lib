@@ -8,3 +8,13 @@ export {
   type DocumentPreviewProps,
   type OpenPreviewOptions,
 } from './components/documents';
+export {
+  OfflineSyncBanner,
+  SyncedConfirmation,
+  type OfflineSyncBannerProps,
+  useOnlineStatus,
+  useOfflineSync,
+  registerServiceWorker,
+  type UseOfflineSyncOptions,
+  type OfflineSyncState,
+} from './components/offline';
