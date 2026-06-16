@@ -33,6 +33,29 @@ declare function SyncedConfirmation({ className }: {
     className?: string;
 }): react_jsx_runtime.JSX.Element;
 
+interface OfflineBarProps {
+    /** Optional offline-queue depth provider (apps with offline data sync, e.g. POS). */
+    getPendingCount?: () => number | Promise<number>;
+    /** What still works while offline. */
+    availableOffline?: string[];
+    /** What is unavailable while offline. */
+    disabledOffline?: string[];
+    /** Manual "Sync now" trigger shown on the syncing ribbon. */
+    onSyncNow?: () => void;
+    /** Service worker URL to register (default /sw.js). */
+    swUrl?: string;
+    /** Register the offline-shell service worker on mount (default true, production only). */
+    registerSW?: boolean;
+    className?: string;
+}
+/**
+ * Drop-in offline/sync ribbon for any Codevertex frontend: registers the offline-shell service
+ * worker and renders the shared OfflineSyncBanner (offline-mode + "Syncing offline data…").
+ * Place once at the top of the app shell. Apps without an offline queue simply omit
+ * getPendingCount and get the offline-mode banner only.
+ */
+declare function OfflineBar({ getPendingCount, availableOffline, disabledOffline, onSyncNow, swUrl, registerSW, className, }: OfflineBarProps): react_jsx_runtime.JSX.Element;
+
 /** Reactive online/offline status from navigator.onLine + the online/offline events. */
 declare function useOnlineStatus(): boolean;
 /**
@@ -64,4 +87,4 @@ interface OfflineSyncState {
  */
 declare function useOfflineSync(opts?: UseOfflineSyncOptions): OfflineSyncState;
 
-export { OfflineSyncBanner, type OfflineSyncBannerProps, type OfflineSyncState, SyncedConfirmation, type UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus };
+export { OfflineBar, type OfflineBarProps, OfflineSyncBanner, type OfflineSyncBannerProps, type OfflineSyncState, SyncedConfirmation, type UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus };

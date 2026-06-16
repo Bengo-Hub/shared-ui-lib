@@ -12,6 +12,8 @@ export {
   OfflineSyncBanner,
   SyncedConfirmation,
   type OfflineSyncBannerProps,
+  OfflineBar,
+  type OfflineBarProps,
   useOnlineStatus,
   useOfflineSync,
   registerServiceWorker,

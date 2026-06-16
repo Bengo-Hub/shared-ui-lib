@@ -115,7 +115,34 @@ function useOfflineSync(opts = {}) {
   }, [getPendingCount, pollMs, tick]);
   return { isOnline, pendingCount, syncing: isOnline && pendingCount > 0 };
 }
+function OfflineBar({
+  getPendingCount,
+  availableOffline,
+  disabledOffline,
+  onSyncNow,
+  swUrl = "/sw.js",
+  registerSW = true,
+  className
+}) {
+  react.useEffect(() => {
+    if (registerSW) registerServiceWorker(swUrl);
+  }, [registerSW, swUrl]);
+  const { isOnline, pendingCount, syncing } = useOfflineSync({ getPendingCount });
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    OfflineSyncBanner,
+    {
+      isOnline,
+      pendingCount,
+      syncing,
+      availableOffline,
+      disabledOffline,
+      onSyncNow,
+      className
+    }
+  );
+}
 
+exports.OfflineBar = OfflineBar;
 exports.OfflineSyncBanner = OfflineSyncBanner;
 exports.SyncedConfirmation = SyncedConfirmation;
 exports.registerServiceWorker = registerServiceWorker;

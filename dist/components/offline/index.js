@@ -113,7 +113,33 @@ function useOfflineSync(opts = {}) {
   }, [getPendingCount, pollMs, tick]);
   return { isOnline, pendingCount, syncing: isOnline && pendingCount > 0 };
 }
+function OfflineBar({
+  getPendingCount,
+  availableOffline,
+  disabledOffline,
+  onSyncNow,
+  swUrl = "/sw.js",
+  registerSW = true,
+  className
+}) {
+  useEffect(() => {
+    if (registerSW) registerServiceWorker(swUrl);
+  }, [registerSW, swUrl]);
+  const { isOnline, pendingCount, syncing } = useOfflineSync({ getPendingCount });
+  return /* @__PURE__ */ jsx(
+    OfflineSyncBanner,
+    {
+      isOnline,
+      pendingCount,
+      syncing,
+      availableOffline,
+      disabledOffline,
+      onSyncNow,
+      className
+    }
+  );
+}
 
-export { OfflineSyncBanner, SyncedConfirmation, registerServiceWorker, useOfflineSync, useOnlineStatus };
+export { OfflineBar, OfflineSyncBanner, SyncedConfirmation, registerServiceWorker, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
