@@ -46,6 +46,8 @@ interface OfflineBarProps {
     swUrl?: string;
     /** Register the offline-shell service worker on mount (default true, production only). */
     registerSW?: boolean;
+    /** Also render the PWA update banner (new-version → update). Default true. */
+    showUpdater?: boolean;
     className?: string;
 }
 /**
@@ -54,7 +56,23 @@ interface OfflineBarProps {
  * Place once at the top of the app shell. Apps without an offline queue simply omit
  * getPendingCount and get the offline-mode banner only.
  */
-declare function OfflineBar({ getPendingCount, availableOffline, disabledOffline, onSyncNow, swUrl, registerSW, className, }: OfflineBarProps): react_jsx_runtime.JSX.Element;
+declare function OfflineBar({ getPendingCount, availableOffline, disabledOffline, onSyncNow, swUrl, registerSW, showUpdater, className, }: OfflineBarProps): react_jsx_runtime.JSX.Element;
+
+interface PwaUpdaterProps {
+    /** How often to check the server for a new service worker, ms (default 60s). */
+    checkIntervalMs?: number;
+    className?: string;
+}
+/**
+ * Standard PWA update banner — uniform across every Codevertex frontend.
+ *
+ * next-pwa (built with `next build --webpack`) emits a fresh service worker on every build, so
+ * the browser detects the change and the new worker installs into the "waiting" state (we keep
+ * skipWaiting:false). This banner surfaces that, and on "Update now" tells the waiting worker to
+ * activate (SKIP_WAITING) and reloads once it takes control — effectively replacing the old
+ * cached version with the latest deploy.
+ */
+declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 
 /** Reactive online/offline status from navigator.onLine + the online/offline events. */
 declare function useOnlineStatus(): boolean;
@@ -87,4 +105,4 @@ interface OfflineSyncState {
  */
 declare function useOfflineSync(opts?: UseOfflineSyncOptions): OfflineSyncState;
 
-export { OfflineBar, type OfflineBarProps, OfflineSyncBanner, type OfflineSyncBannerProps, type OfflineSyncState, SyncedConfirmation, type UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus };
+export { OfflineBar, type OfflineBarProps, OfflineSyncBanner, type OfflineSyncBannerProps, type OfflineSyncState, PwaUpdater, type PwaUpdaterProps, SyncedConfirmation, type UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus };

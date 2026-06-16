@@ -14,6 +14,8 @@ export {
   type OfflineSyncBannerProps,
   OfflineBar,
   type OfflineBarProps,
+  PwaUpdater,
+  type PwaUpdaterProps,
   useOnlineStatus,
   useOfflineSync,
   registerServiceWorker,

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { OfflineSyncBanner } from './offline-sync-banner';
+import { PwaUpdater } from './pwa-updater';
 import { useOfflineSync, registerServiceWorker } from './use-offline-sync';
 
 export interface OfflineBarProps {
@@ -17,6 +18,8 @@ export interface OfflineBarProps {
   swUrl?: string;
   /** Register the offline-shell service worker on mount (default true, production only). */
   registerSW?: boolean;
+  /** Also render the PWA update banner (new-version → update). Default true. */
+  showUpdater?: boolean;
   className?: string;
 }
 
@@ -33,6 +36,7 @@ export function OfflineBar({
   onSyncNow,
   swUrl = '/sw.js',
   registerSW = true,
+  showUpdater = true,
   className,
 }: OfflineBarProps) {
   useEffect(() => {
@@ -42,14 +46,17 @@ export function OfflineBar({
   const { isOnline, pendingCount, syncing } = useOfflineSync({ getPendingCount });
 
   return (
-    <OfflineSyncBanner
-      isOnline={isOnline}
-      pendingCount={pendingCount}
-      syncing={syncing}
-      availableOffline={availableOffline}
-      disabledOffline={disabledOffline}
-      onSyncNow={onSyncNow}
-      className={className}
-    />
+    <>
+      {showUpdater ? <PwaUpdater /> : null}
+      <OfflineSyncBanner
+        isOnline={isOnline}
+        pendingCount={pendingCount}
+        syncing={syncing}
+        availableOffline={availableOffline}
+        disabledOffline={disabledOffline}
+        onSyncNow={onSyncNow}
+        className={className}
+      />
+    </>
   );
 }

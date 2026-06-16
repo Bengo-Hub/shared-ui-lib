@@ -1,5 +1,5 @@
 import { WifiOff, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { jsxs, jsx } from 'react/jsx-runtime';
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // src/components/offline/offline-sync-banner.tsx
@@ -71,6 +71,59 @@ function SyncedConfirmation({ className = "" }) {
     " All offline data synced"
   ] });
 }
+function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
+  const [waiting, setWaiting] = useState(null);
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    let reg;
+    let reloaded = false;
+    const trackInstalling = (worker) => {
+      if (!worker) return;
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "installed" && navigator.serviceWorker.controller) setWaiting(worker);
+      });
+    };
+    navigator.serviceWorker.getRegistration().then((r) => {
+      if (!r) return;
+      reg = r;
+      if (r.waiting && navigator.serviceWorker.controller) setWaiting(r.waiting);
+      r.addEventListener("updatefound", () => trackInstalling(r.installing));
+    });
+    const onController = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onController);
+    const id = setInterval(() => reg?.update().catch(() => {
+    }), checkIntervalMs);
+    return () => {
+      clearInterval(id);
+      navigator.serviceWorker.removeEventListener("controllerchange", onController);
+    };
+  }, [checkIntervalMs]);
+  if (!waiting) return null;
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      role: "status",
+      className: `flex w-full items-center justify-center gap-3 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white ${className}`,
+      children: [
+        /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4 shrink-0" }),
+        /* @__PURE__ */ jsx("span", { children: "A new version is available." }),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: () => waiting.postMessage({ type: "SKIP_WAITING" }),
+            className: "rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100",
+            children: "Update now"
+          }
+        )
+      ]
+    }
+  );
+}
 function useOnlineStatus() {
   const [online, setOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
   useEffect(() => {
@@ -120,26 +173,30 @@ function OfflineBar({
   onSyncNow,
   swUrl = "/sw.js",
   registerSW = true,
+  showUpdater = true,
   className
 }) {
   useEffect(() => {
     if (registerSW) registerServiceWorker(swUrl);
   }, [registerSW, swUrl]);
   const { isOnline, pendingCount, syncing } = useOfflineSync({ getPendingCount });
-  return /* @__PURE__ */ jsx(
-    OfflineSyncBanner,
-    {
-      isOnline,
-      pendingCount,
-      syncing,
-      availableOffline,
-      disabledOffline,
-      onSyncNow,
-      className
-    }
-  );
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    showUpdater ? /* @__PURE__ */ jsx(PwaUpdater, {}) : null,
+    /* @__PURE__ */ jsx(
+      OfflineSyncBanner,
+      {
+        isOnline,
+        pendingCount,
+        syncing,
+        availableOffline,
+        disabledOffline,
+        onSyncNow,
+        className
+      }
+    )
+  ] });
 }
 
-export { OfflineBar, OfflineSyncBanner, SyncedConfirmation, registerServiceWorker, useOfflineSync, useOnlineStatus };
+export { OfflineBar, OfflineSyncBanner, PwaUpdater, SyncedConfirmation, registerServiceWorker, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
