@@ -224,6 +224,67 @@ function PdfPreview({
     ] })
   ] });
 }
+
+// src/components/documents/extract-error.ts
+async function extractErrorMessage(err, fallback = "Something went wrong") {
+  try {
+    if (err == null) return fallback;
+    if (typeof err === "string") return err.trim() || fallback;
+    const anyErr = err;
+    const response = anyErr.response;
+    if (response && "data" in response) {
+      const fromData = await messageFromBody(response.data);
+      if (fromData) return fromData;
+      if (response.statusText) return response.statusText;
+    }
+    if (typeof Response !== "undefined" && err instanceof Response) {
+      const text = await err.clone().text();
+      const fromText = messageFromString(text);
+      if (fromText) return fromText;
+      if (err.statusText) return err.statusText;
+    }
+    if (typeof anyErr.message === "string" && anyErr.message.trim()) {
+      return anyErr.message.trim();
+    }
+  } catch {
+  }
+  return fallback;
+}
+async function messageFromBody(data) {
+  if (data == null) return null;
+  if (typeof Blob !== "undefined" && data instanceof Blob) {
+    const text = await data.text();
+    return messageFromString(text);
+  }
+  if (typeof data === "string") return messageFromString(data);
+  if (typeof data === "object") return messageFromObject(data);
+  return null;
+}
+function messageFromString(text) {
+  const trimmed = text?.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const fromObj = messageFromObject(parsed);
+      if (fromObj) return fromObj;
+    } catch {
+    }
+  }
+  if (trimmed.startsWith("<")) return null;
+  return trimmed;
+}
+function messageFromObject(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  const o = obj;
+  const candidate = pickString(o.message) ?? pickString(o.error) ?? pickString(o.detail) ?? pickString(o.title) ?? pickString(o.error?.message);
+  return candidate ?? null;
+}
+function pickString(v) {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+// src/components/documents/use-document-preview.ts
 var INITIAL = {
   open: false,
   blob: null,
@@ -247,8 +308,9 @@ function useDocumentPreview(opts) {
       try {
         const blob = await fetchFn();
         setState((s) => ({ ...s, blob, isLoading: false }));
-      } catch {
-        opts?.onError?.("Failed to load document");
+      } catch (err) {
+        const message = await extractErrorMessage(err, "Failed to load document");
+        opts?.onError?.(message);
         setState((s) => ({ ...s, open: false, isLoading: false }));
       }
     },
@@ -267,6 +329,6 @@ function useDocumentPreview(opts) {
   return { openPreview, previewProps };
 }
 
-export { PdfPreview, useDocumentPreview };
+export { PdfPreview, extractErrorMessage, useDocumentPreview };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

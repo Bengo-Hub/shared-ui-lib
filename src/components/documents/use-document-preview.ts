@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { PdfPreviewProps } from './pdf-preview';
+import { extractErrorMessage } from './extract-error';
 
 interface PreviewState {
   open: boolean;
@@ -63,8 +64,12 @@ export function useDocumentPreview(opts?: { onError?: (message: string) => void 
       try {
         const blob = await fetchFn();
         setState((s) => ({ ...s, blob, isLoading: false }));
-      } catch {
-        opts?.onError?.('Failed to load document');
+      } catch (err) {
+        // Surface the REAL backend error (e.g. "No items matched the selection")
+        // instead of a generic "Failed to load document". Blob error bodies (the
+        // server returns JSON even on a responseType:'blob' request) are decoded.
+        const message = await extractErrorMessage(err, 'Failed to load document');
+        opts?.onError?.(message);
         setState((s) => ({ ...s, open: false, isLoading: false }));
       }
     },
