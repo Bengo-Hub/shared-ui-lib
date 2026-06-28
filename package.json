@@ -41,6 +41,11 @@
       "types": "./dist/components/offline/index.d.ts",
       "import": "./dist/components/offline/index.js",
       "require": "./dist/components/offline/index.cjs"
+    },
+    "./suppliers": {
+      "types": "./dist/components/suppliers/index.d.ts",
+      "import": "./dist/components/suppliers/index.js",
+      "require": "./dist/components/suppliers/index.cjs"
     }
   },
   "files": [

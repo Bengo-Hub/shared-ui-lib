@@ -9,6 +9,7 @@ export default defineConfig({
     "src/components/subscription/index.ts",
     "src/components/documents/index.ts",
     "src/components/offline/index.ts",
+    "src/components/suppliers/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
