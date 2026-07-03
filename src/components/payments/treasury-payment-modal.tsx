@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface PaymentResult {
   intentId: string;
@@ -176,17 +177,22 @@ export function TreasuryPaymentModal({
   }, [paymentState]);
 
   if (!open) return null;
+  // Portal to <body> so the overlay is positioned relative to the VIEWPORT, not to whatever
+  // transformed/relative ancestor it happens to render inside (a `position:fixed` element is
+  // trapped by any ancestor with a transform/filter — that's what pushed this modal off-centre
+  // and let it overflow below the screen inside the POS terminal panel).
+  if (typeof document === 'undefined') return null;
 
   // Render as a modal overlay (pure CSS, no shadcn dependency)
-  return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
         onClick={() => onOpenChange(false)}
       />
-      {/* Modal — full-screen on mobile, constrained card on larger screens */}
-      <div className="relative w-full sm:max-w-lg sm:mx-4 bg-white sm:rounded-2xl shadow-xl overflow-hidden flex flex-col h-dvh sm:h-auto sm:max-h-[92vh]">
+      {/* Modal — constrained card that always fits and scrolls internally; centered on all sizes. */}
+      <div className="relative w-full sm:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90dvh]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-white shrink-0">
           <div className="min-w-0 mr-3">
@@ -276,6 +282,7 @@ export function TreasuryPaymentModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

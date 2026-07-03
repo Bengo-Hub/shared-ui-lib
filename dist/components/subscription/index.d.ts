@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import React from 'react';
+import React__default from 'react';
 
 interface UsageAlert {
     metric: string;
@@ -84,7 +84,7 @@ interface SubscriptionEntitlements {
  */
 declare function SubscriptionProvider({ value, children, }: {
     value: SubscriptionEntitlements;
-    children: React.ReactNode;
+    children: React__default.ReactNode;
 }): react_jsx_runtime.JSX.Element;
 /** useEntitlements returns the raw entitlement snapshot. */
 declare function useEntitlements(): SubscriptionEntitlements;
@@ -103,10 +103,10 @@ interface FeatureGateProps {
     /** Pass any of these feature codes (OR). */
     anyOf?: string[];
     /** Rendered when the feature is NOT available (default: nothing). */
-    fallback?: React.ReactNode;
+    fallback?: React__default.ReactNode;
     /** Rendered while entitlements are still loading (default: nothing). */
-    loadingFallback?: React.ReactNode;
-    children: React.ReactNode;
+    loadingFallback?: React__default.ReactNode;
+    children: React__default.ReactNode;
 }
 /**
  * FeatureGate renders its children only when the tenant's plan includes the feature (or the

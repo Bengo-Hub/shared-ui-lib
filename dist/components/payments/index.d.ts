@@ -1,4 +1,4 @@
-import * as react_jsx_runtime from 'react/jsx-runtime';
+import * as React from 'react';
 
 interface PaymentResult {
     intentId: string;
@@ -35,6 +35,6 @@ interface TreasuryPaymentModalProps {
     /** Called when payment fails */
     onPaymentFailed?: (error: string) => void;
 }
-declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): react_jsx_runtime.JSX.Element | null;
+declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): React.ReactPortal | null;
 
 export { type PaymentResult, TreasuryPaymentModal, type TreasuryPaymentModalProps };
