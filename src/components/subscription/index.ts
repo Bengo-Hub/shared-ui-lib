@@ -3,6 +3,8 @@ export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag } from './service-tag
 export {
   SubscriptionProvider,
   FeatureGate,
+  UpgradeBadge,
+  FeatureLockBanner,
   useEntitlements,
   useFeature,
   useAnyFeature,

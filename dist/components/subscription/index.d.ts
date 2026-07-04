@@ -110,9 +110,34 @@ interface FeatureGateProps {
 }
 /**
  * FeatureGate renders its children only when the tenant's plan includes the feature (or the
- * tenant is exempt). Use it to wrap premium buttons, pages, and nav items so they disappear
- * for plans that don't include them — the same codes the backend RequireFeature() gates on.
+ * tenant is exempt). It HIDES gated content by default (fallback = null).
+ *
+ * Prefer the non-hiding pattern for navigation and pages: keep the item/page visible and use
+ * `useFeature()` + `<UpgradeBadge/>` on nav items and `<FeatureLockBanner/>` on pages, so users
+ * always see what exists and get an upgrade prompt instead of a disappearing UI. Reserve
+ * FeatureGate for genuinely invisible extras.
  */
 declare function FeatureGate({ feature, anyOf, fallback, loadingFallback, children, }: FeatureGateProps): react_jsx_runtime.JSX.Element;
+/**
+ * UpgradeBadge — a small amber "locked" pill for nav items / buttons whose plan-feature is
+ * missing. It flags the item WITHOUT hiding it; the item stays clickable and the destination
+ * surfaces the upgrade prompt. Render it only when `useFeature(code)` is false.
+ */
+declare function UpgradeBadge({ label, className }: {
+    label?: string;
+    className?: string;
+}): react_jsx_runtime.JSX.Element;
+/**
+ * FeatureLockBanner — a non-hiding, top-of-page upgrade blocker. Drop it at the top of a gated
+ * page; it renders nothing when the feature is available (or while loading), so the page keeps
+ * all of its own content and buttons. Subscription gating explains what's locked, never hides it.
+ */
+declare function FeatureLockBanner({ feature, upgradeUrl, title, description, }: {
+    feature: string;
+    /** Absolute URL to the subscribe/upgrade page. */
+    upgradeUrl: string;
+    title?: string;
+    description?: string;
+}): react_jsx_runtime.JSX.Element | null;
 
-export { FeatureGate, type FeatureGateProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type SubscriptionEntitlements, SubscriptionProvider, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useLimit };
+export { FeatureGate, type FeatureGateProps, FeatureLockBanner, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useLimit };

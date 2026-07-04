@@ -582,12 +582,57 @@ function FeatureGate({
   const ok = e.isExempt || (feature ? e.features.includes(feature) : false) || (anyOf ? anyOf.some((f) => e.features.includes(f)) : false);
   return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: ok ? children : fallback });
 }
+function UpgradeBadge({ label = "Upgrade", className }) {
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "span",
+    {
+      className: "flex items-center gap-1 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-500 border border-amber-500/20 shrink-0 " + (className ?? ""),
+      title: "Your plan doesn\u2019t include this \u2014 upgrade to unlock",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-2.5 w-2.5" }),
+        label
+      ]
+    }
+  );
+}
+function FeatureLockBanner({
+  feature,
+  upgradeUrl,
+  title = "This feature needs a plan upgrade",
+  description = "You can view this page, but actions here require a plan that includes it."
+}) {
+  const e = react.useContext(SubscriptionContext);
+  if (e.isLoading) return null;
+  if (e.isExempt || e.features.includes(feature)) return null;
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-start gap-3", children: [
+      /* @__PURE__ */ jsxRuntime.jsx("span", { className: "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-500", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-4 w-4" }) }),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-0.5", children: [
+        /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm font-semibold text-foreground", children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-xs text-muted-foreground", children: description })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntime.jsxs(
+      "a",
+      {
+        href: upgradeUrl,
+        className: "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90",
+        children: [
+          /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "h-3.5 w-3.5" }),
+          "Upgrade plan"
+        ]
+      }
+    )
+  ] });
+}
 
 exports.FeatureGate = FeatureGate;
+exports.FeatureLockBanner = FeatureLockBanner;
 exports.SERVICE_TAGS = SERVICE_TAGS;
 exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
 exports.SubscriptionBanner = SubscriptionBanner;
 exports.SubscriptionProvider = SubscriptionProvider;
+exports.UpgradeBadge = UpgradeBadge;
 exports.useAnyFeature = useAnyFeature;
 exports.useEntitlements = useEntitlements;
 exports.useFeature = useFeature;
