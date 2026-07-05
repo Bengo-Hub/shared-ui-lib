@@ -12,12 +12,31 @@ import { Lock, Zap } from "lucide-react";
  * every feature reads as enabled and every limit as Infinity — matching the backend
  * IsGatingExempt funnel so the UI never hides a control the backend would actually allow.
  */
+/**
+ * FeatureCatalogEntry is the per-feature tier metadata (from subscriptions-api
+ * GET /features/catalog: minPlanCode/minTierLabel/serviceTag). It lets FeatureLock/UpgradeDialog
+ * render "Available on <tier>" + deep-link to the right pricing plan without any per-app map.
+ */
+export interface FeatureCatalogEntry {
+  minPlanCode?: string;
+  minTierLabel?: string;
+  serviceTag?: string;
+  label?: string;
+}
+
 export interface SubscriptionEntitlements {
   features: string[];
   limits: Record<string, number>;
   isExempt: boolean;
   status?: string | null;
   isLoading?: boolean;
+  /** The tenant's current plan code + tier order (for "you're on X" context). */
+  planCode?: string | null;
+  tierOrder?: number | null;
+  /** feature code → tier metadata, keyed as returned by GET /features/catalog. */
+  catalog?: Record<string, FeatureCatalogEntry>;
+  /** Base URL of the pricing UI (e.g. NEXT_PUBLIC_SUBSCRIPTIONS_UI_URL). Upgrade links target it. */
+  upgradeBaseUrl?: string;
 }
 
 const EMPTY: SubscriptionEntitlements = {
@@ -26,9 +45,14 @@ const EMPTY: SubscriptionEntitlements = {
   isExempt: false,
   status: null,
   isLoading: false,
+  planCode: null,
+  tierOrder: null,
+  catalog: {},
+  upgradeBaseUrl: "",
 };
 
-const SubscriptionContext = createContext<SubscriptionEntitlements>(EMPTY);
+/** SubscriptionContext is exported so sibling gate components (FeatureLock) share one provider. */
+export const SubscriptionContext = createContext<SubscriptionEntitlements>(EMPTY);
 
 /**
  * SubscriptionProvider makes the tenant's entitlements available to useFeature / useLimit /
@@ -45,7 +69,7 @@ export function SubscriptionProvider({
   const v = useMemo(
     () => ({ ...EMPTY, ...value }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [value.features, value.limits, value.isExempt, value.status, value.isLoading],
+    [value.features, value.limits, value.isExempt, value.status, value.isLoading, value.planCode, value.tierOrder, value.catalog, value.upgradeBaseUrl],
   );
   return <SubscriptionContext.Provider value={v}>{children}</SubscriptionContext.Provider>;
 }

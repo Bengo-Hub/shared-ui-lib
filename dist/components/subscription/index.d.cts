@@ -70,13 +70,33 @@ declare const SERVICE_TAG_LABELS: Record<ServiceTag, string>;
  * every feature reads as enabled and every limit as Infinity — matching the backend
  * IsGatingExempt funnel so the UI never hides a control the backend would actually allow.
  */
+/**
+ * FeatureCatalogEntry is the per-feature tier metadata (from subscriptions-api
+ * GET /features/catalog: minPlanCode/minTierLabel/serviceTag). It lets FeatureLock/UpgradeDialog
+ * render "Available on <tier>" + deep-link to the right pricing plan without any per-app map.
+ */
+interface FeatureCatalogEntry {
+    minPlanCode?: string;
+    minTierLabel?: string;
+    serviceTag?: string;
+    label?: string;
+}
 interface SubscriptionEntitlements {
     features: string[];
     limits: Record<string, number>;
     isExempt: boolean;
     status?: string | null;
     isLoading?: boolean;
+    /** The tenant's current plan code + tier order (for "you're on X" context). */
+    planCode?: string | null;
+    tierOrder?: number | null;
+    /** feature code → tier metadata, keyed as returned by GET /features/catalog. */
+    catalog?: Record<string, FeatureCatalogEntry>;
+    /** Base URL of the pricing UI (e.g. NEXT_PUBLIC_SUBSCRIPTIONS_UI_URL). Upgrade links target it. */
+    upgradeBaseUrl?: string;
 }
+/** SubscriptionContext is exported so sibling gate components (FeatureLock) share one provider. */
+declare const SubscriptionContext: React__default.Context<SubscriptionEntitlements>;
 /**
  * SubscriptionProvider makes the tenant's entitlements available to useFeature / useLimit /
  * FeatureGate anywhere below it. Wrap the authenticated app shell with it, fed from the
@@ -140,4 +160,49 @@ declare function FeatureLockBanner({ feature, upgradeUrl, title, description, }:
     description?: string;
 }): react_jsx_runtime.JSX.Element | null;
 
-export { FeatureGate, type FeatureGateProps, FeatureLockBanner, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useLimit };
+/**
+ * FeatureLock — the canonical "show, don't hide" subscription gate.
+ *
+ * It ALWAYS renders its children. When the tenant's plan does not include `feature` (and the tenant
+ * is not exempt), it wraps the children so interacting with them surfaces an UpgradeDialog naming the
+ * tier that unlocks the feature — never `display:none`. This lets customers see that a feature exists
+ * and learn how to get it, instead of a silently-missing control.
+ *
+ *  - mode="overlay" (default): children shown dimmed + non-interactive; a transparent overlay
+ *    intercepts clicks and opens the dialog. Use for buttons, cards, form sections.
+ *  - mode="badge": children shown inline with a small "🔒 <tier>" chip; clicking anywhere in the
+ *    wrapper opens the dialog (capture-phase, so an inner <Link> won't navigate). Use for nav items.
+ *  - mode="block": a full upgrade CTA card replacing the interactive body. Use for whole pages.
+ */
+type FeatureLockMode = "overlay" | "badge" | "block";
+interface FeatureLockProps {
+    feature: string;
+    mode?: FeatureLockMode;
+    children: React__default.ReactNode;
+    className?: string;
+    /** Optional copy overrides for the block/dialog. */
+    title?: string;
+    description?: string;
+}
+/** Resolve the tier metadata + a pricing deep-link for a feature the tenant lacks. */
+declare function useFeatureUpgrade(feature: string): {
+    locked: boolean;
+    isLoading: boolean;
+    entry?: FeatureCatalogEntry;
+    tierLabel: string;
+    upgradeHref: string;
+};
+/**
+ * UpgradeDialog — a dependency-free modal that names the unlocking tier and links to the pricing UI.
+ * Rendered by FeatureLock; can also be used standalone (open controlled by the caller).
+ */
+declare function UpgradeDialog({ feature, open, onClose, title, description, }: {
+    feature: string;
+    open: boolean;
+    onClose: () => void;
+    title?: string;
+    description?: string;
+}): react_jsx_runtime.JSX.Element | null;
+declare function FeatureLock({ feature, mode, children, className, title, description }: FeatureLockProps): react_jsx_runtime.JSX.Element;
+
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };
