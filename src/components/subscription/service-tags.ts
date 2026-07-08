@@ -1,5 +1,5 @@
 /**
- * Canonical service tag values for all billable Codevertex/BengoBox services.
+ * Canonical service tag values for all billable Codevertex services.
  *
  * Platform-level services (auth, subscriptions, codevertex-website) are NOT included
  * here — they have no subscription plans.
