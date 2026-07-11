@@ -157,27 +157,41 @@ function bannerMessage(state) {
   }
   return "Your email is unverified and the grace period has passed. Verify now to restore full access.";
 }
-function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified }) {
+function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerified }) {
   const [open, setOpen] = React.useState(false);
   const [dismissed, setDismissed] = React.useState(false);
   const stage = state?.stage ?? "notice";
   const mustAct = stage === "enforced";
+  const linkMode = !!verifyUrl || !onSendCode || !onVerifyCode;
   React.useEffect(() => {
-    if (state && !state.verified && mustAct) setOpen(true);
-  }, [state, mustAct]);
+    if (state && !state.verified && mustAct && !linkMode) setOpen(true);
+  }, [state, mustAct, linkMode]);
   if (!state || state.verified) return null;
   if (dismissed && stage === "notice") return null;
+  const actionLabel = state.is_placeholder ? "Add email" : "Verify email";
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx("div", { className: `border-b ${BANNER_STYLES[stage]}`, role: "alert", children: /* @__PURE__ */ jsxs("div", { className: `mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 ${TEXT_STYLES[stage]}`, children: [
       /* @__PURE__ */ jsx("span", { className: "shrink-0", children: stage === "notice" ? /* @__PURE__ */ jsx(MailWarning, { className: "size-4" }) : /* @__PURE__ */ jsx(AlertTriangle, { className: "size-4" }) }),
       /* @__PURE__ */ jsx("p", { className: "flex-1 text-sm", children: bannerMessage(state) }),
-      /* @__PURE__ */ jsxs(
+      linkMode ? /* @__PURE__ */ jsxs(
+        "a",
+        {
+          href: verifyUrl,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          className: `inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`,
+          children: [
+            actionLabel,
+            /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
+          ]
+        }
+      ) : /* @__PURE__ */ jsxs(
         "button",
         {
           onClick: () => setOpen(true),
           className: `inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`,
           children: [
-            state.is_placeholder ? "Add email" : "Verify email",
+            actionLabel,
             /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
           ]
         }
@@ -192,7 +206,7 @@ function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified }) {
         }
       )
     ] }) }),
-    open && /* @__PURE__ */ jsx(
+    open && onSendCode && onVerifyCode && /* @__PURE__ */ jsx(
       VerifyEmailDialog,
       {
         state,

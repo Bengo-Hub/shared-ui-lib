@@ -36,15 +36,24 @@ interface EmailVerificationState {
 }
 interface VerifyEmailBannerProps {
     state: EmailVerificationState | null | undefined;
-    /** POST /auth/me/email/send-code {email} */
-    onSendCode: (email: string) => Promise<void>;
-    /** POST /auth/me/email/verify-code {email, code} */
-    onVerifyCode: (email: string, code: string) => Promise<void>;
+    /**
+     * When set, the banner's action DEEP-LINKS here (the accounts portal) instead of opening
+     * the embedded verify dialog. Use this in apps that cannot call auth-api's verify
+     * endpoints directly (cross-origin) — the actual verification happens in the accounts
+     * portal, while the graduated banner still surfaces the state in-app.
+     */
+    verifyUrl?: string;
+    /** POST /auth/me/email/send-code {email} — required unless verifyUrl is set. */
+    onSendCode?: (email: string) => Promise<void>;
+    /** POST /auth/me/email/verify-code {email, code} — required unless verifyUrl is set. */
+    onVerifyCode?: (email: string, code: string) => Promise<void>;
     /** Called after a successful verification so the app can refetch /me. */
     onVerified?: () => void;
 }
-declare function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified }: VerifyEmailBannerProps): react_jsx_runtime.JSX.Element | null;
-interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerified'> {
+declare function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerified }: VerifyEmailBannerProps): react_jsx_runtime.JSX.Element | null;
+interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerified' | 'onSendCode' | 'onVerifyCode'> {
+    onSendCode: (email: string) => Promise<void>;
+    onVerifyCode: (email: string, code: string) => Promise<void>;
     onVerified: () => void;
     onClose: () => void;
 }

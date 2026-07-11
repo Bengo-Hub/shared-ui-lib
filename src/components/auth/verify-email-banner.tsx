@@ -41,10 +41,17 @@ export interface EmailVerificationState {
 
 export interface VerifyEmailBannerProps {
   state: EmailVerificationState | null | undefined;
-  /** POST /auth/me/email/send-code {email} */
-  onSendCode: (email: string) => Promise<void>;
-  /** POST /auth/me/email/verify-code {email, code} */
-  onVerifyCode: (email: string, code: string) => Promise<void>;
+  /**
+   * When set, the banner's action DEEP-LINKS here (the accounts portal) instead of opening
+   * the embedded verify dialog. Use this in apps that cannot call auth-api's verify
+   * endpoints directly (cross-origin) — the actual verification happens in the accounts
+   * portal, while the graduated banner still surfaces the state in-app.
+   */
+  verifyUrl?: string;
+  /** POST /auth/me/email/send-code {email} — required unless verifyUrl is set. */
+  onSendCode?: (email: string) => Promise<void>;
+  /** POST /auth/me/email/verify-code {email, code} — required unless verifyUrl is set. */
+  onVerifyCode?: (email: string, code: string) => Promise<void>;
   /** Called after a successful verification so the app can refetch /me. */
   onVerified?: () => void;
 }
@@ -81,20 +88,26 @@ function bannerMessage(state: EmailVerificationState): string {
   return 'Your email is unverified and the grace period has passed. Verify now to restore full access.';
 }
 
-export function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified }: VerifyEmailBannerProps) {
+export function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerified }: VerifyEmailBannerProps) {
   const [open, setOpen] = React.useState(false);
   const [dismissed, setDismissed] = React.useState(false);
 
   const stage: VerifyEmailStage = (state?.stage as VerifyEmailStage) ?? 'notice';
   const mustAct = stage === 'enforced';
+  // Deep-link mode: no embedded dialog (the app can't reach the verify endpoints), so the
+  // action is a link to the accounts portal.
+  const linkMode = !!verifyUrl || !onSendCode || !onVerifyCode;
 
-  // In the enforced stage the dialog opens on its own and cannot be waved away.
+  // In the enforced stage the embedded dialog opens on its own and cannot be waved away.
+  // In link mode there is no dialog to force open.
   React.useEffect(() => {
-    if (state && !state.verified && mustAct) setOpen(true);
-  }, [state, mustAct]);
+    if (state && !state.verified && mustAct && !linkMode) setOpen(true);
+  }, [state, mustAct, linkMode]);
 
   if (!state || state.verified) return null;
   if (dismissed && stage === 'notice') return null;
+
+  const actionLabel = state.is_placeholder ? 'Add email' : 'Verify email';
 
   return (
     <>
@@ -104,13 +117,25 @@ export function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified 
             {stage === 'notice' ? <MailWarning className="size-4" /> : <AlertTriangle className="size-4" />}
           </span>
           <p className="flex-1 text-sm">{bannerMessage(state)}</p>
-          <button
-            onClick={() => setOpen(true)}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`}
-          >
-            {state.is_placeholder ? 'Add email' : 'Verify email'}
-            <ArrowRight className="size-3" />
-          </button>
+          {linkMode ? (
+            <a
+              href={verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`}
+            >
+              {actionLabel}
+              <ArrowRight className="size-3" />
+            </a>
+          ) : (
+            <button
+              onClick={() => setOpen(true)}
+              className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`}
+            >
+              {actionLabel}
+              <ArrowRight className="size-3" />
+            </button>
+          )}
           {/* Only the soft notice can be dismissed for the session. */}
           {stage === 'notice' && (
             <button
@@ -124,7 +149,7 @@ export function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified 
         </div>
       </div>
 
-      {open && (
+      {open && onSendCode && onVerifyCode && (
         <VerifyEmailDialog
           state={state}
           onSendCode={onSendCode}
@@ -140,7 +165,9 @@ export function VerifyEmailBanner({ state, onSendCode, onVerifyCode, onVerified 
   );
 }
 
-export interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerified'> {
+export interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerified' | 'onSendCode' | 'onVerifyCode'> {
+  onSendCode: (email: string) => Promise<void>;
+  onVerifyCode: (email: string, code: string) => Promise<void>;
   onVerified: () => void;
   onClose: () => void;
 }
