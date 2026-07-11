@@ -36,7 +36,7 @@ interface SubscriptionBannerProps {
 declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, usageAlerts, brandColor, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
- * Canonical service tag values for all billable Codevertex/BengoBox services.
+ * Canonical service tag values for all billable Codevertex services.
  *
  * Platform-level services (auth, subscriptions, codevertex-website) are NOT included
  * here — they have no subscription plans.

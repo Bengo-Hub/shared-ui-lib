@@ -1,1 +1,9 @@
 export { SSOLoginModal, type SSOLoginModalProps, type SSOLoginResult } from './sso-login-modal';
+export {
+  VerifyEmailBanner,
+  VerifyEmailDialog,
+  type VerifyEmailBannerProps,
+  type VerifyEmailDialogProps,
+  type EmailVerificationState,
+  type VerifyEmailStage,
+} from './verify-email-banner';
