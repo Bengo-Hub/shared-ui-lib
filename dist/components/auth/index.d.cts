@@ -14,6 +14,14 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
  *
  * Accounts provisioned with a placeholder address (e.g. <id>@unknown.local) are asked for
  * a REAL email; once the code is confirmed, that address REPLACES the one on file.
+ *
+ * IMPORTANT: this component's own visual styling is fully self-contained via a scoped
+ * <style> block (class prefix `veb-`). It must NOT rely on the host app's Tailwind config
+ * being present, because the same component ships into many apps with different design
+ * tokens/content globs. Earlier the action button used Tailwind class *names*
+ * (bg-neutral-900 / text-white); apps whose Tailwind build didn't emit the neutral palette
+ * rendered a transparent button with white text — an invisible primary action. Everything
+ * that matters visually is now inline style or scoped CSS.
  */
 type VerifyEmailStage = 'notice' | 'final_warning' | 'enforced';
 interface EmailVerificationState {
@@ -38,14 +46,14 @@ interface VerifyEmailBannerProps {
     state: EmailVerificationState | null | undefined;
     /**
      * When set, the banner's action DEEP-LINKS here (the accounts portal) instead of opening
-     * the embedded verify dialog. Use this in apps that cannot call auth-api's verify
-     * endpoints directly (cross-origin) — the actual verification happens in the accounts
-     * portal, while the graduated banner still surfaces the state in-app.
+     * the embedded verify dialog. Use this ONLY in apps that cannot call auth-api's verify
+     * endpoints directly. Prefer wiring onSendCode/onVerifyCode — the embedded OTP flow is a
+     * better experience and works cross-origin (auth-api CORS allows it).
      */
     verifyUrl?: string;
-    /** POST /auth/me/email/send-code {email} — required unless verifyUrl is set. */
+    /** POST /auth/me/email/send-code {email} — required for the embedded flow. */
     onSendCode?: (email: string) => Promise<void>;
-    /** POST /auth/me/email/verify-code {email, code} — required unless verifyUrl is set. */
+    /** POST /auth/me/email/verify-code {email, code} — required for the embedded flow. */
     onVerifyCode?: (email: string, code: string) => Promise<void>;
     /** Called after a successful verification so the app can refetch /me. */
     onVerified?: () => void;
@@ -56,7 +64,9 @@ interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerifie
     onVerifyCode: (email: string, code: string) => Promise<void>;
     onVerified: () => void;
     onClose: () => void;
+    /** Suppress the built-in overlay/close chrome when embedding inside another card. */
+    embedded?: boolean;
 }
-declare function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose }: VerifyEmailDialogProps): react_jsx_runtime.JSX.Element;
+declare function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose, embedded }: VerifyEmailDialogProps): react_jsx_runtime.JSX.Element;
 
 export { type EmailVerificationState, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage };

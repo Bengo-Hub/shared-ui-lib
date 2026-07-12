@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
-import { MailWarning, AlertTriangle, ArrowRight, X } from 'lucide-react';
+import { MailWarning, AlertTriangle, ArrowRight, X, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 
 // src/components/auth/sso-login-modal.tsx
 function SSOLoginModal({
@@ -141,10 +141,10 @@ var TEXT_STYLES = {
   final_warning: "text-red-800 dark:text-red-200",
   enforced: "text-red-900 dark:text-red-100"
 };
-var ACTION_STYLES = {
-  notice: "bg-amber-600 text-white hover:bg-amber-700",
-  final_warning: "bg-red-600 text-white hover:bg-red-700",
-  enforced: "bg-red-700 text-white hover:bg-red-800"
+var ACTION_COLORS = {
+  notice: { bg: "#d97706", fg: "#ffffff" },
+  final_warning: { bg: "#dc2626", fg: "#ffffff" },
+  enforced: { bg: "#b91c1c", fg: "#ffffff" }
 };
 function bannerMessage(state) {
   const stage = state.stage ?? "notice";
@@ -162,13 +162,15 @@ function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerif
   const [dismissed, setDismissed] = React.useState(false);
   const stage = state?.stage ?? "notice";
   const mustAct = stage === "enforced";
-  const linkMode = !!verifyUrl || !onSendCode || !onVerifyCode;
+  const canEmbed = !!onSendCode && !!onVerifyCode;
+  const linkMode = !canEmbed && !!verifyUrl;
   React.useEffect(() => {
-    if (state && !state.verified && mustAct && !linkMode) setOpen(true);
-  }, [state, mustAct, linkMode]);
+    if (state && !state.verified && mustAct && canEmbed) setOpen(true);
+  }, [state, mustAct, canEmbed]);
   if (!state || state.verified) return null;
   if (dismissed && stage === "notice") return null;
   const actionLabel = state.is_placeholder ? "Add email" : "Verify email";
+  const colors = ACTION_COLORS[stage];
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx("div", { className: `border-b ${BANNER_STYLES[stage]}`, role: "alert", children: /* @__PURE__ */ jsxs("div", { className: `mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 ${TEXT_STYLES[stage]}`, children: [
       /* @__PURE__ */ jsx("span", { className: "shrink-0", children: stage === "notice" ? /* @__PURE__ */ jsx(MailWarning, { className: "size-4" }) : /* @__PURE__ */ jsx(AlertTriangle, { className: "size-4" }) }),
@@ -179,7 +181,8 @@ function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerif
           href: verifyUrl,
           target: "_blank",
           rel: "noopener noreferrer",
-          className: `inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`,
+          className: "inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90",
+          style: { backgroundColor: colors.bg, color: colors.fg },
           children: [
             actionLabel,
             /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
@@ -189,7 +192,8 @@ function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerif
         "button",
         {
           onClick: () => setOpen(true),
-          className: `inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-colors ${ACTION_STYLES[stage]}`,
+          className: "inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90",
+          style: { backgroundColor: colors.bg, color: colors.fg },
           children: [
             actionLabel,
             /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
@@ -221,62 +225,194 @@ function VerifyEmailBanner({ state, verifyUrl, onSendCode, onVerifyCode, onVerif
     )
   ] });
 }
-function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose }) {
+var DIALOG_CSS = `
+.veb-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);}
+.veb-card{width:100%;max-width:440px;border-radius:18px;background:#ffffff;color:#0f172a;box-shadow:0 20px 60px -12px rgba(15,23,42,.35);padding:28px 26px;box-sizing:border-box;font-family:inherit;}
+.veb-card *{box-sizing:border-box;}
+.veb-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(147,51,234,.12);color:#9333ea;}
+.veb-title{margin:0;text-align:center;font-size:19px;font-weight:700;line-height:1.25;color:#0f172a;}
+.veb-sub{margin:6px auto 0;text-align:center;font-size:13.5px;line-height:1.5;color:#64748b;max-width:340px;}
+.veb-sub b{color:#334155;font-weight:600;}
+.veb-alert{margin:16px 0 4px;border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.45;border:1px solid;}
+.veb-alert-warn{background:#fef2f2;border-color:#fecaca;color:#b91c1c;}
+.veb-label{display:block;margin:18px 0 7px;font-size:12px;font-weight:600;color:#475569;}
+.veb-input{width:100%;height:46px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#0f172a;padding:0 14px;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s;}
+.veb-input:focus{border-color:#9333ea;box-shadow:0 0 0 3px rgba(147,51,234,.18);}
+.veb-input:disabled{background:#f8fafc;color:#94a3b8;cursor:not-allowed;}
+.veb-otp{display:flex;justify-content:center;gap:9px;margin-top:6px;}
+.veb-otp-box{width:46px;height:56px;text-align:center;font-size:22px;font-weight:700;color:#0f172a;border-radius:13px;border:1.5px solid #e2e8f0;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;}
+.veb-otp-box:focus{border-color:#9333ea;box-shadow:0 0 0 3px rgba(147,51,234,.18);}
+.veb-otp-box:disabled{opacity:.6;}
+.veb-err{display:flex;align-items:flex-start;gap:8px;margin-top:14px;padding:10px 12px;font-size:13px;line-height:1.4;border-radius:11px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
+.veb-ok{margin-top:12px;text-align:center;font-size:12.5px;color:#059669;}
+.veb-btn{width:100%;height:48px;margin-top:20px;border:none;border-radius:13px;font-size:15px;font-weight:700;color:#fff;background:#9333ea;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 24px -8px rgba(147,51,234,.6);transition:background .15s,opacity .15s;}
+.veb-btn:hover:not(:disabled){background:#7e22ce;}
+.veb-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
+.veb-foot{margin-top:16px;text-align:center;font-size:13px;color:#64748b;}
+.veb-link{background:none;border:none;padding:0;font-size:13px;font-weight:700;color:#9333ea;cursor:pointer;text-decoration:none;}
+.veb-link:hover:not(:disabled){text-decoration:underline;}
+.veb-link:disabled{opacity:.5;cursor:not-allowed;}
+.veb-later{background:none;border:none;font-size:13px;color:#94a3b8;cursor:pointer;padding:6px;margin-top:10px;width:100%;}
+.veb-later:hover{color:#64748b;}
+.veb-wait{margin-top:14px;text-align:center;font-size:12.5px;color:#94a3b8;}
+.veb-spin{animation:veb-spin 1s linear infinite;}
+@keyframes veb-spin{to{transform:rotate(360deg);}}
+@media (prefers-color-scheme: dark){
+  .veb-card{background:#0f172a;color:#e2e8f0;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);}
+  .veb-title{color:#f1f5f9;}
+  .veb-sub{color:#94a3b8;}
+  .veb-sub b{color:#cbd5e1;}
+  .veb-label{color:#94a3b8;}
+  .veb-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+  .veb-input:disabled{background:#1e293b;color:#64748b;}
+  .veb-otp-box{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+  .veb-alert-warn{background:rgba(127,29,29,.35);border-color:rgba(153,27,27,.6);color:#fca5a5;}
+  .veb-err{background:rgba(127,29,29,.3);border-color:rgba(153,27,27,.5);color:#fca5a5;}
+  .veb-foot{color:#94a3b8;}
+}
+`;
+var cssInjected = false;
+function useDialogCss() {
+  React.useEffect(() => {
+    if (cssInjected || typeof document === "undefined") return;
+    const el = document.createElement("style");
+    el.setAttribute("data-veb", "");
+    el.textContent = DIALOG_CSS;
+    document.head.appendChild(el);
+    cssInjected = true;
+  }, []);
+}
+function OtpInput({
+  value,
+  onChange,
+  onComplete,
+  disabled
+}) {
+  const refs = React.useRef([]);
+  const digits = React.useMemo(() => {
+    const arr = value.split("");
+    return Array.from({ length: 6 }, (_, i) => arr[i] ?? "");
+  }, [value]);
+  React.useEffect(() => {
+    refs.current[0]?.focus();
+  }, []);
+  const setDigit = (i, raw) => {
+    const clean = raw.replace(/\D/g, "");
+    if (clean.length > 1) {
+      const next = clean.slice(0, 6);
+      onChange(next);
+      if (next.length === 6) onComplete(next);
+      else refs.current[Math.min(next.length, 5)]?.focus();
+      return;
+    }
+    const copy = [...digits];
+    copy[i] = clean;
+    const joined = copy.join("");
+    onChange(joined);
+    if (clean && i < 5) refs.current[i + 1]?.focus();
+    if (joined.length === 6 && !copy.includes("")) onComplete(joined);
+  };
+  const onKeyDown = (i, e) => {
+    if (e.key === "Backspace" && !digits[i] && i > 0) refs.current[i - 1]?.focus();
+  };
+  return /* @__PURE__ */ jsx("div", { className: "veb-otp", children: digits.map((d, i) => /* @__PURE__ */ jsx(
+    "input",
+    {
+      ref: (el) => {
+        refs.current[i] = el;
+      },
+      className: "veb-otp-box",
+      type: "text",
+      inputMode: "numeric",
+      autoComplete: i === 0 ? "one-time-code" : "off",
+      maxLength: 6,
+      value: d,
+      disabled,
+      onChange: (e) => setDigit(i, e.target.value),
+      onKeyDown: (e) => onKeyDown(i, e)
+    },
+    i
+  )) });
+}
+function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose, embedded }) {
+  useDialogCss();
   const s = state;
   const stage = s.stage ?? "notice";
   const [email, setEmail] = React.useState(s.is_placeholder ? "" : s.email);
   const [code, setCode] = React.useState("");
   const [sent, setSent] = React.useState(false);
-  const [busy, setBusy] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+  const [verifying, setVerifying] = React.useState(false);
   const [error, setError] = React.useState(null);
+  const [resent, setResent] = React.useState(false);
+  const [cooldown, setCooldown] = React.useState(0);
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1e3);
+    return () => clearTimeout(t);
+  }, [cooldown]);
   const [wait, setWait] = React.useState(stage === "enforced" ? s.wait_seconds ?? 60 : 0);
   React.useEffect(() => {
     if (wait <= 0) return;
     const t = setTimeout(() => setWait((w) => w - 1), 1e3);
     return () => clearTimeout(t);
   }, [wait]);
-  const canClose = stage !== "enforced" || wait <= 0;
-  async function handleSend() {
+  const canClose = !embedded && (stage !== "enforced" || wait <= 0);
+  const doSend = React.useCallback(async (isResend) => {
     setError(null);
-    if (!email.includes("@")) {
+    if (!email.includes("@") || !email.includes(".")) {
       setError("Enter a valid email address.");
       return;
     }
-    setBusy(true);
+    setSending(true);
     try {
       await onSendCode(email);
       setSent(true);
+      if (isResend) {
+        setResent(true);
+        setCooldown(45);
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not send the code. Try again.");
+      setError(e instanceof Error ? e.message : "Could not send the code. Please try again.");
     } finally {
-      setBusy(false);
+      setSending(false);
     }
-  }
-  async function handleVerify() {
+  }, [email, onSendCode]);
+  const doVerify = React.useCallback(async (full) => {
     setError(null);
-    if (!code.trim()) {
+    setResent(false);
+    if (full.length !== 6) {
       setError("Enter the 6-digit code we emailed you.");
       return;
     }
-    setBusy(true);
+    setVerifying(true);
     try {
-      await onVerifyCode(email, code.trim());
+      await onVerifyCode(email, full);
       onVerified();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "That code is not valid.");
+      setError(e instanceof Error ? e.message : "That code is incorrect or has expired.");
+      setCode("");
     } finally {
-      setBusy(false);
+      setVerifying(false);
     }
-  }
-  return /* @__PURE__ */ jsx("div", { className: "fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4", children: /* @__PURE__ */ jsxs("div", { className: "w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-neutral-900", children: [
-    /* @__PURE__ */ jsxs("div", { className: "mb-3 flex items-start gap-3", children: [
-      /* @__PURE__ */ jsx("span", { className: stage === "notice" ? "text-amber-600" : "text-red-600", children: stage === "notice" ? /* @__PURE__ */ jsx(MailWarning, { className: "size-5" }) : /* @__PURE__ */ jsx(AlertTriangle, { className: "size-5" }) }),
-      /* @__PURE__ */ jsxs("div", { className: "flex-1", children: [
-        /* @__PURE__ */ jsx("h2", { className: "text-base font-semibold text-neutral-900 dark:text-neutral-100", children: s.is_placeholder ? "Add a real email address" : "Verify your email address" }),
-        /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-neutral-600 dark:text-neutral-400", children: s.is_placeholder ? "Your account was set up without a real email, so we cannot reach you. Add your email below \u2014 we will send a 6-digit code to confirm it, and it will replace the placeholder on your account." : "We need to confirm this address is yours so we can send receipts, alerts and password resets, and so you can recover your account." })
-      ] })
-    ] }),
-    stage === "final_warning" && /* @__PURE__ */ jsxs("div", { className: "mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200", children: [
+  }, [email, onVerifyCode, onVerified]);
+  const changeEmail = () => {
+    setSent(false);
+    setCode("");
+    setError(null);
+    setResent(false);
+    setCooldown(0);
+  };
+  const busy = sending || verifying;
+  const card = /* @__PURE__ */ jsxs("div", { className: "veb-card", role: "dialog", "aria-modal": "true", "aria-label": "Verify your email", children: [
+    /* @__PURE__ */ jsx("div", { className: "veb-icon", children: /* @__PURE__ */ jsx(Mail, { className: "size-6" }) }),
+    /* @__PURE__ */ jsx("h2", { className: "veb-title", children: s.is_placeholder ? "Add a real email address" : "Verify your email" }),
+    /* @__PURE__ */ jsx("p", { className: "veb-sub", children: !sent ? s.is_placeholder ? "Your account was set up without a reachable email. Add yours below \u2014 we\u2019ll send a 6-digit code, and it will replace the placeholder on your account." : "Confirm this address is yours so we can send receipts, alerts and password resets, and so you can recover your account." : /* @__PURE__ */ jsxs(Fragment, { children: [
+      "We sent a 6-digit code to ",
+      /* @__PURE__ */ jsx("b", { children: email }),
+      "."
+    ] }) }),
+    stage === "final_warning" && /* @__PURE__ */ jsxs("div", { className: "veb-alert veb-alert-warn", children: [
       /* @__PURE__ */ jsxs("strong", { children: [
         "Your account will be disabled in ",
         s.days_until_disable ?? 0,
@@ -284,84 +420,68 @@ function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClos
         (s.days_until_disable ?? 0) === 1 ? "" : "s",
         "."
       ] }),
-      " Verify your email to keep access."
+      " ",
+      "Verify your email to keep access."
     ] }),
-    stage === "enforced" && /* @__PURE__ */ jsxs("div", { className: "mb-3 rounded-md border border-red-300 bg-red-100 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-100", children: [
+    stage === "enforced" && /* @__PURE__ */ jsxs("div", { className: "veb-alert veb-alert-warn", children: [
       /* @__PURE__ */ jsx("strong", { children: "The grace period has passed." }),
-      " Verify your email to remove this interruption \u2014 it gets longer each day until you do."
+      " Verify your email to remove this interruption \u2014 the wait grows each day until you do."
     ] }),
-    /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-400", children: "Email address" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "email",
-        value: email,
-        disabled: sent,
-        onChange: (e) => setEmail(e.target.value),
-        placeholder: "name@example.com",
-        className: "mb-3 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:disabled:bg-neutral-800/60"
-      }
-    ),
-    sent && /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsxs("label", { className: "mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-400", children: [
-        "6-digit code sent to ",
-        email
-      ] }),
+    !sent ? /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("label", { className: "veb-label", htmlFor: "veb-email", children: "Email address" }),
       /* @__PURE__ */ jsx(
         "input",
         {
-          inputMode: "numeric",
-          value: code,
-          onChange: (e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6)),
-          placeholder: "123456",
-          className: "mb-3 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm tracking-widest dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+          id: "veb-email",
+          className: "veb-input",
+          type: "email",
+          value: email,
+          disabled: sending,
+          autoComplete: "email",
+          onChange: (e) => setEmail(e.target.value),
+          onKeyDown: (e) => {
+            if (e.key === "Enter") doSend(false);
+          },
+          placeholder: "name@example.com"
         }
-      )
-    ] }),
-    error && /* @__PURE__ */ jsx("p", { className: "mb-3 text-sm text-red-600 dark:text-red-400", children: error }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-2", children: [
-      canClose ? /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: onClose,
-          className: "rounded-md px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800",
-          children: "Later"
-        }
-      ) : /* @__PURE__ */ jsxs("span", { className: "mr-auto text-xs text-neutral-500 dark:text-neutral-400", children: [
-        "You can continue in ",
-        wait,
-        "s"
+      ),
+      error && /* @__PURE__ */ jsxs("div", { className: "veb-err", children: [
+        /* @__PURE__ */ jsx(AlertTriangle, { className: "size-4", style: { flexShrink: 0, marginTop: 1 } }),
+        /* @__PURE__ */ jsx("span", { children: error })
       ] }),
-      !sent ? /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: handleSend,
-          disabled: busy,
-          className: "rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-900",
-          children: busy ? "Sending\u2026" : "Send code"
-        }
-      ) : /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            onClick: handleSend,
-            disabled: busy,
-            className: "rounded-md px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-400 dark:hover:bg-neutral-800",
-            children: "Resend"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            onClick: handleVerify,
-            disabled: busy,
-            className: "rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-900",
-            children: busy ? "Verifying\u2026" : "Verify"
-          }
-        )
+      /* @__PURE__ */ jsx("button", { className: "veb-btn", onClick: () => doSend(false), disabled: busy, children: sending ? /* @__PURE__ */ jsx(Loader2, { className: "size-5 veb-spin" }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+        "Send code ",
+        /* @__PURE__ */ jsx(ArrowRight, { className: "size-4" })
+      ] }) })
+    ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("label", { className: "veb-label", style: { textAlign: "center" }, children: "Enter the code" }),
+      /* @__PURE__ */ jsx(OtpInput, { value: code, onChange: setCode, onComplete: doVerify, disabled: verifying }),
+      error && /* @__PURE__ */ jsxs("div", { className: "veb-err", children: [
+        /* @__PURE__ */ jsx(AlertTriangle, { className: "size-4", style: { flexShrink: 0, marginTop: 1 } }),
+        /* @__PURE__ */ jsx("span", { children: error })
+      ] }),
+      resent && !error && /* @__PURE__ */ jsx("p", { className: "veb-ok", children: "A new code has been sent." }),
+      /* @__PURE__ */ jsx("button", { className: "veb-btn", onClick: () => doVerify(code), disabled: busy || code.length !== 6, children: verifying ? /* @__PURE__ */ jsx(Loader2, { className: "size-5 veb-spin" }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx(CheckCircle2, { className: "size-4" }),
+        " Verify & Continue"
+      ] }) }),
+      /* @__PURE__ */ jsxs("div", { className: "veb-foot", children: [
+        "Didn't get it?",
+        " ",
+        /* @__PURE__ */ jsx("button", { className: "veb-link", onClick: () => doSend(true), disabled: sending || cooldown > 0, children: cooldown > 0 ? `Resend in ${cooldown}s` : sending ? "Sending\u2026" : "Resend code" }),
+        " \xB7 ",
+        /* @__PURE__ */ jsx("button", { className: "veb-link", onClick: changeEmail, disabled: busy, children: "Change email" })
       ] })
+    ] }),
+    canClose && /* @__PURE__ */ jsx("button", { className: "veb-later", onClick: onClose, children: "Later" }),
+    !embedded && !canClose && stage === "enforced" && /* @__PURE__ */ jsxs("div", { className: "veb-wait", children: [
+      "You can continue in ",
+      wait,
+      "s"
     ] })
-  ] }) });
+  ] });
+  if (embedded) return card;
+  return /* @__PURE__ */ jsx("div", { className: "veb-overlay", children: card });
 }
 
 export { SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog };
