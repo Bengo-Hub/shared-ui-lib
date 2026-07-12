@@ -2,7 +2,7 @@
 
 import React, { useContext, useMemo, useState } from "react";
 import { Lock, Zap, X } from "lucide-react";
-import { SubscriptionContext, type FeatureCatalogEntry } from "./feature-gate";
+import { SubscriptionContext, isFeatureUnlocked, type FeatureCatalogEntry } from "./feature-gate";
 
 /**
  * FeatureLock — the canonical "show, don't hide" subscription gate.
@@ -40,7 +40,8 @@ export function useFeatureUpgrade(feature: string): {
 } {
   const e = useContext(SubscriptionContext);
   const entry = e.catalog?.[feature];
-  const locked = !e.isExempt && !e.features.includes(feature);
+  // Tier-aware: unlocked if granted OR at/below the tenant's tier (same family) OR uncatalogued.
+  const locked = !isFeatureUnlocked(e, feature);
   const tierLabel = entry?.minTierLabel || "a higher plan";
   const upgradeHref = useMemo(() => {
     const base = (e.upgradeBaseUrl || "https://pricing.codevertexitsolutions.com").replace(/\/$/, "");

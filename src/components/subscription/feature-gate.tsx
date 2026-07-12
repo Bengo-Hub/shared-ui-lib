@@ -20,6 +20,8 @@ import { Lock, Zap } from "lucide-react";
 export interface FeatureCatalogEntry {
   minPlanCode?: string;
   minTierLabel?: string;
+  /** Numeric tier rank of the cheapest unlocking plan (from GET /features/catalog minTierOrder). */
+  minTierOrder?: number;
   serviceTag?: string;
   label?: string;
 }
@@ -79,16 +81,64 @@ export function useEntitlements(): SubscriptionEntitlements {
   return useContext(SubscriptionContext);
 }
 
-/** useFeature reports whether a feature code is enabled (exempt tenants always pass). */
+/** planFamily returns a plan code's family = its first underscore segment, upper-cased
+ * (POWERSUITE_GROWTH_ONE_TIME → "POWERSUITE", ERP_STARTER_ONE_TIME → "ERP"). Mirrors the
+ * pricing UI's planGroup rule so tier ranks are only compared within the same product family. */
+function planFamily(code?: string | null): string {
+  if (!code) return "";
+  const i = code.indexOf("_");
+  return (i === -1 ? code : code.slice(0, i)).toUpperCase();
+}
+
+/**
+ * isFeatureUnlocked is the SINGLE gating decision shared by every gate (useFeature, useAnyFeature,
+ * FeatureGate, FeatureLockBanner, and FeatureLock's useFeatureUpgrade). A feature is unlocked when:
+ *   1. the tenant is exempt (platform owner / demo / service_charge), OR
+ *   2. the tenant's plan literally grants the feature code, OR
+ *   3. the app supplies a catalog and the code is NOT in it → unknown code, fail-open (never lock a
+ *      typo'd/uncatalogued code — matches the pos-ui isKnownFeature rule), OR
+ *   4. FAMILY-SCOPED TIER-RANK FALLBACK: the feature IS catalogued, the tenant's tier rank is >= the
+ *      feature's cheapest-unlocking tier, AND both plans belong to the same family. This is what
+ *      makes at/below-tier features never show an upgrade banner while a feature the tenant's suite
+ *      does not cover cannot be falsely unlocked across families.
+ * When the app supplies NO catalog (empty/absent), it falls back to strict has-code so gating is
+ * never accidentally disabled.
+ */
+export function isFeatureUnlocked(e: SubscriptionEntitlements, code: string): boolean {
+  if (e.isExempt) return true;
+  if (e.features?.includes(code)) return true;
+
+  const catalog = e.catalog;
+  const hasCatalog = !!catalog && Object.keys(catalog).length > 0;
+  if (!hasCatalog) return false; // no catalog to reason about tiers → strict has-code (unchanged)
+
+  const entry = catalog[code];
+  if (!entry) return true; // catalogued app, code absent from catalog → unknown → fail-open
+
+  if (
+    e.planCode != null &&
+    entry.minPlanCode != null &&
+    typeof e.tierOrder === "number" &&
+    typeof entry.minTierOrder === "number" &&
+    entry.minTierOrder > 0 &&
+    planFamily(e.planCode) === planFamily(entry.minPlanCode) &&
+    e.tierOrder >= entry.minTierOrder
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** useFeature reports whether a feature code is enabled (exempt + tier-aware, see isFeatureUnlocked). */
 export function useFeature(code: string): boolean {
   const e = useContext(SubscriptionContext);
-  return e.isExempt || e.features.includes(code);
+  return isFeatureUnlocked(e, code);
 }
 
 /** useAnyFeature reports whether ANY of the given feature codes is enabled. */
 export function useAnyFeature(...codes: string[]): boolean {
   const e = useContext(SubscriptionContext);
-  return e.isExempt || codes.some((c) => e.features.includes(c));
+  return e.isExempt || codes.some((c) => isFeatureUnlocked(e, c));
 }
 
 /**
@@ -135,8 +185,8 @@ export function FeatureGate({
   if (e.isLoading) return <>{loadingFallback}</>;
   const ok =
     e.isExempt ||
-    (feature ? e.features.includes(feature) : false) ||
-    (anyOf ? anyOf.some((f) => e.features.includes(f)) : false);
+    (feature ? isFeatureUnlocked(e, feature) : false) ||
+    (anyOf ? anyOf.some((f) => isFeatureUnlocked(e, f)) : false);
   return <>{ok ? children : fallback}</>;
 }
 
@@ -179,7 +229,7 @@ export function FeatureLockBanner({
 }) {
   const e = useContext(SubscriptionContext);
   if (e.isLoading) return null;
-  if (e.isExempt || e.features.includes(feature)) return null;
+  if (isFeatureUnlocked(e, feature)) return null;
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">

@@ -78,6 +78,8 @@ declare const SERVICE_TAG_LABELS: Record<ServiceTag, string>;
 interface FeatureCatalogEntry {
     minPlanCode?: string;
     minTierLabel?: string;
+    /** Numeric tier rank of the cheapest unlocking plan (from GET /features/catalog minTierOrder). */
+    minTierOrder?: number;
     serviceTag?: string;
     label?: string;
 }
@@ -108,7 +110,22 @@ declare function SubscriptionProvider({ value, children, }: {
 }): react_jsx_runtime.JSX.Element;
 /** useEntitlements returns the raw entitlement snapshot. */
 declare function useEntitlements(): SubscriptionEntitlements;
-/** useFeature reports whether a feature code is enabled (exempt tenants always pass). */
+/**
+ * isFeatureUnlocked is the SINGLE gating decision shared by every gate (useFeature, useAnyFeature,
+ * FeatureGate, FeatureLockBanner, and FeatureLock's useFeatureUpgrade). A feature is unlocked when:
+ *   1. the tenant is exempt (platform owner / demo / service_charge), OR
+ *   2. the tenant's plan literally grants the feature code, OR
+ *   3. the app supplies a catalog and the code is NOT in it → unknown code, fail-open (never lock a
+ *      typo'd/uncatalogued code — matches the pos-ui isKnownFeature rule), OR
+ *   4. FAMILY-SCOPED TIER-RANK FALLBACK: the feature IS catalogued, the tenant's tier rank is >= the
+ *      feature's cheapest-unlocking tier, AND both plans belong to the same family. This is what
+ *      makes at/below-tier features never show an upgrade banner while a feature the tenant's suite
+ *      does not cover cannot be falsely unlocked across families.
+ * When the app supplies NO catalog (empty/absent), it falls back to strict has-code so gating is
+ * never accidentally disabled.
+ */
+declare function isFeatureUnlocked(e: SubscriptionEntitlements, code: string): boolean;
+/** useFeature reports whether a feature code is enabled (exempt + tier-aware, see isFeatureUnlocked). */
 declare function useFeature(code: string): boolean;
 /** useAnyFeature reports whether ANY of the given feature codes is enabled. */
 declare function useAnyFeature(...codes: string[]): boolean;
@@ -205,4 +222,4 @@ declare function UpgradeDialog({ feature, open, onClose, title, description, }: 
 }): react_jsx_runtime.JSX.Element | null;
 declare function FeatureLock({ feature, mode, children, className, title, description }: FeatureLockProps): react_jsx_runtime.JSX.Element;
 
-export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };

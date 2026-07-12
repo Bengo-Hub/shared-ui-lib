@@ -10,6 +10,7 @@ export {
   useFeature,
   useAnyFeature,
   useLimit,
+  isFeatureUnlocked,
   type SubscriptionEntitlements,
   type FeatureCatalogEntry,
   type FeatureGateProps,

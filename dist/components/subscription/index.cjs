@@ -559,13 +559,31 @@ function SubscriptionProvider({
 function useEntitlements() {
   return react.useContext(SubscriptionContext);
 }
+function planFamily(code) {
+  if (!code) return "";
+  const i = code.indexOf("_");
+  return (i === -1 ? code : code.slice(0, i)).toUpperCase();
+}
+function isFeatureUnlocked(e, code) {
+  if (e.isExempt) return true;
+  if (e.features?.includes(code)) return true;
+  const catalog = e.catalog;
+  const hasCatalog = !!catalog && Object.keys(catalog).length > 0;
+  if (!hasCatalog) return false;
+  const entry = catalog[code];
+  if (!entry) return true;
+  if (e.planCode != null && entry.minPlanCode != null && typeof e.tierOrder === "number" && typeof entry.minTierOrder === "number" && entry.minTierOrder > 0 && planFamily(e.planCode) === planFamily(entry.minPlanCode) && e.tierOrder >= entry.minTierOrder) {
+    return true;
+  }
+  return false;
+}
 function useFeature(code) {
   const e = react.useContext(SubscriptionContext);
-  return e.isExempt || e.features.includes(code);
+  return isFeatureUnlocked(e, code);
 }
 function useAnyFeature(...codes) {
   const e = react.useContext(SubscriptionContext);
-  return e.isExempt || codes.some((c) => e.features.includes(c));
+  return e.isExempt || codes.some((c) => isFeatureUnlocked(e, c));
 }
 function useLimit(key) {
   const e = react.useContext(SubscriptionContext);
@@ -583,7 +601,7 @@ function FeatureGate({
 }) {
   const e = react.useContext(SubscriptionContext);
   if (e.isLoading) return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: loadingFallback });
-  const ok = e.isExempt || (feature ? e.features.includes(feature) : false) || (anyOf ? anyOf.some((f) => e.features.includes(f)) : false);
+  const ok = e.isExempt || (feature ? isFeatureUnlocked(e, feature) : false) || (anyOf ? anyOf.some((f) => isFeatureUnlocked(e, f)) : false);
   return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: ok ? children : fallback });
 }
 function UpgradeBadge({ label = "Upgrade", className }) {
@@ -607,7 +625,7 @@ function FeatureLockBanner({
 }) {
   const e = react.useContext(SubscriptionContext);
   if (e.isLoading) return null;
-  if (e.isExempt || e.features.includes(feature)) return null;
+  if (isFeatureUnlocked(e, feature)) return null;
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between", children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-start gap-3", children: [
       /* @__PURE__ */ jsxRuntime.jsx("span", { className: "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-500", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-4 w-4" }) }),
@@ -632,7 +650,7 @@ function FeatureLockBanner({
 function useFeatureUpgrade(feature) {
   const e = react.useContext(SubscriptionContext);
   const entry = e.catalog?.[feature];
-  const locked = !e.isExempt && !e.features.includes(feature);
+  const locked = !isFeatureUnlocked(e, feature);
   const tierLabel = entry?.minTierLabel || "a higher plan";
   const upgradeHref = react.useMemo(() => {
     const base = (e.upgradeBaseUrl || "https://pricing.codevertexitsolutions.com").replace(/\/$/, "");
@@ -807,6 +825,7 @@ exports.SubscriptionContext = SubscriptionContext;
 exports.SubscriptionProvider = SubscriptionProvider;
 exports.UpgradeBadge = UpgradeBadge;
 exports.UpgradeDialog = UpgradeDialog;
+exports.isFeatureUnlocked = isFeatureUnlocked;
 exports.useAnyFeature = useAnyFeature;
 exports.useEntitlements = useEntitlements;
 exports.useFeature = useFeature;
