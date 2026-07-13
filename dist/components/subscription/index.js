@@ -284,6 +284,7 @@ function SubscriptionBanner({
   isHydrated,
   isServiceCharge,
   isDemo,
+  isPerpetual,
   upgradeUrl,
   billingUrl,
   usageAlerts,
@@ -391,8 +392,8 @@ function SubscriptionBanner({
   }
   if (normalizedStatus === "ACTIVE") {
     const accent = brandColor || "var(--color-primary, #6366f1)";
-    const isUrgent = daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
-    const renewalText = expiresAt ? isUrgent ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}` : `Renews ${formatDate(expiresAt)}` : null;
+    const isUrgent = !isPerpetual && daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
+    const renewalText = isPerpetual ? "Lifetime licence" : expiresAt ? isUrgent ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}` : `Renews ${formatDate(expiresAt)}` : null;
     return /* @__PURE__ */ jsxs(
       "div",
       {
@@ -410,7 +411,7 @@ function SubscriptionBanner({
               renewalText
             ] }),
             /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxs(
+              !isPerpetual && /* @__PURE__ */ jsxs(
                 "a",
                 {
                   href: isUrgent ? billingUrl : upgradeUrl,
@@ -464,7 +465,11 @@ function SubscriptionBanner({
               " ",
               isUrgent ? /* @__PURE__ */ jsx("span", { className: "text-amber-700 dark:text-amber-300 font-medium", children: "Renews soon" }) : /* @__PURE__ */ jsx("span", { className: "capitalize", children: normalizedStatus.toLowerCase() })
             ] }),
-            expiresAt && /* @__PURE__ */ jsxs("span", { children: [
+            isPerpetual ? /* @__PURE__ */ jsxs("span", { children: [
+              /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Licence" }),
+              " ",
+              "One-time (lifetime) \u2014 never renews"
+            ] }) : expiresAt && /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Next renewal" }),
               " ",
               formatDate(expiresAt)
@@ -483,7 +488,7 @@ function SubscriptionBanner({
                   ]
                 }
               ),
-              /* @__PURE__ */ jsxs(
+              !isPerpetual && /* @__PURE__ */ jsxs(
                 "a",
                 {
                   href: upgradeUrl,

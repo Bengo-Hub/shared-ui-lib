@@ -28,6 +28,11 @@ export interface SubscriptionBannerProps {
   isServiceCharge?: boolean;
   /** True for demo tenant/users — subscription gating does not apply */
   isDemo?: boolean;
+  /** True for a paid ONE_TIME (perpetual) licence — it never renews or expires, so the banner
+   *  shows "Lifetime licence" instead of a renewal date and hides the Upgrade CTA (there is
+   *  nothing to upgrade a bought-outright suite to). Drive this from the tenant's real billing
+   *  data (JWT `billing_mode === 'one_time'` / subscriptions `is_perpetual`), never hardcode. */
+  isPerpetual?: boolean;
   /** Full URL to the upgrade/plans page — include ?service=<tag> for service-specific filtering */
   upgradeUrl: string;
   /** Full URL to the billing/payment management page */
@@ -340,6 +345,7 @@ export function SubscriptionBanner({
   isHydrated,
   isServiceCharge,
   isDemo,
+  isPerpetual,
   upgradeUrl,
   billingUrl,
   usageAlerts,
@@ -463,13 +469,16 @@ export function SubscriptionBanner({
   // border, chevron expand button, and full billing action links in both states.
   if (normalizedStatus === 'ACTIVE') {
     const accent = brandColor || 'var(--color-primary, #6366f1)';
-    const isUrgent = daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
+    // A perpetual (one-time) licence never renews: no urgency, no renewal date, no Upgrade CTA.
+    const isUrgent = !isPerpetual && daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
 
-    const renewalText = expiresAt
-      ? isUrgent
-        ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} · ${formatDate(expiresAt)}`
-        : `Renews ${formatDate(expiresAt)}`
-      : null;
+    const renewalText = isPerpetual
+      ? 'Lifetime licence'
+      : expiresAt
+        ? isUrgent
+          ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'} · ${formatDate(expiresAt)}`
+          : `Renews ${formatDate(expiresAt)}`
+        : null;
 
     return (
       <div
@@ -496,21 +505,23 @@ export function SubscriptionBanner({
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
-            <a
-              href={isUrgent ? billingUrl : upgradeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={[
-                'hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
-                isUrgent
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                  : 'hover:opacity-80',
-              ].join(' ')}
-              style={isUrgent ? undefined : { color: accent }}
-            >
-              {isUrgent ? 'Renew now' : 'Upgrade'}
-              <ArrowRight className="size-3" />
-            </a>
+            {!isPerpetual && (
+              <a
+                href={isUrgent ? billingUrl : upgradeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={[
+                  'hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
+                  isUrgent
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                    : 'hover:opacity-80',
+                ].join(' ')}
+                style={isUrgent ? undefined : { color: accent }}
+              >
+                {isUrgent ? 'Renew now' : 'Upgrade'}
+                <ArrowRight className="size-3" />
+              </a>
+            )}
             <button
               onClick={() => setExpanded((v) => !v)}
               className={[
@@ -553,11 +564,18 @@ export function SubscriptionBanner({
                   : <span className="capitalize">{normalizedStatus.toLowerCase()}</span>
                 }
               </span>
-              {expiresAt && (
+              {isPerpetual ? (
                 <span>
-                  <span className="font-medium text-foreground">Next renewal</span>{' '}
-                  {formatDate(expiresAt)}
+                  <span className="font-medium text-foreground">Licence</span>{' '}
+                  One-time (lifetime) — never renews
                 </span>
+              ) : (
+                expiresAt && (
+                  <span>
+                    <span className="font-medium text-foreground">Next renewal</span>{' '}
+                    {formatDate(expiresAt)}
+                  </span>
+                )
               )}
               <div className="ml-auto flex items-center gap-3">
                 <a
@@ -569,16 +587,18 @@ export function SubscriptionBanner({
                   {isUrgent ? 'Renew now' : 'Manage billing'}
                   <ExternalLink className="size-3" />
                 </a>
-                <a
-                  href={upgradeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium hover:underline underline-offset-2"
-                  style={{ color: accent }}
-                >
-                  Upgrade plan
-                  <ArrowRight className="size-3" />
-                </a>
+                {!isPerpetual && (
+                  <a
+                    href={upgradeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-medium hover:underline underline-offset-2"
+                    style={{ color: accent }}
+                  >
+                    Upgrade plan
+                    <ArrowRight className="size-3" />
+                  </a>
+                )}
               </div>
             </div>
           </div>

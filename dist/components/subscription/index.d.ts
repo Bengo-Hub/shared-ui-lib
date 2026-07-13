@@ -24,6 +24,11 @@ interface SubscriptionBannerProps {
     isServiceCharge?: boolean;
     /** True for demo tenant/users — subscription gating does not apply */
     isDemo?: boolean;
+    /** True for a paid ONE_TIME (perpetual) licence — it never renews or expires, so the banner
+     *  shows "Lifetime licence" instead of a renewal date and hides the Upgrade CTA (there is
+     *  nothing to upgrade a bought-outright suite to). Drive this from the tenant's real billing
+     *  data (JWT `billing_mode === 'one_time'` / subscriptions `is_perpetual`), never hardcode. */
+    isPerpetual?: boolean;
     /** Full URL to the upgrade/plans page — include ?service=<tag> for service-specific filtering */
     upgradeUrl: string;
     /** Full URL to the billing/payment management page */
@@ -33,7 +38,7 @@ interface SubscriptionBannerProps {
     /** Tenant brand color (hex) — used to style the active-plan bar. Falls back to primary. */
     brandColor?: string;
 }
-declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, upgradeUrl, billingUrl, usageAlerts, brandColor, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
+declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, isPerpetual, upgradeUrl, billingUrl, usageAlerts, brandColor, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
  * Canonical service tag values for all billable Codevertex services.
