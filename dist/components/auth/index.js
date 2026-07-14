@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
-import { MailWarning, AlertTriangle, ArrowRight, X, Mail, Loader2, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, RefreshCcw, Building2, ArrowRight, MailWarning, X, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 
 // src/components/auth/sso-login-modal.tsx
 function SSOLoginModal({
@@ -128,6 +128,80 @@ function SSOLoginModal({
           }
         )
       ] }) })
+    ] })
+  ] });
+}
+function cleanDescription(desc) {
+  if (!desc) return "";
+  let out = desc;
+  try {
+    out = decodeURIComponent(out);
+  } catch {
+  }
+  return out.replace(/\+/g, " ").trim();
+}
+function SSOCallbackError({
+  error,
+  errorDescription,
+  orgSlug,
+  lastKnownTenant,
+  onRetry,
+  onSwitchTenant
+}) {
+  const description = cleanDescription(errorDescription);
+  const isWrongOrg = error === "access_denied" && /member|tenant|organisation|organization/i.test(description);
+  const title = isWrongOrg ? "Wrong organisation" : "Sign-in failed";
+  const message = isWrongOrg ? `Your account does not belong to${orgSlug ? ` \u201C${orgSlug}\u201D` : " this organisation"}. Sign in again and pick one of your organisations when prompted \u2014 you won't need to retype your credentials if you're already signed in.` : description || (error === "access_denied" ? "Access was denied while signing you in." : "Something went wrong while completing your sign-in.");
+  const showRescue = !!onSwitchTenant && !!lastKnownTenant && !!orgSlug && lastKnownTenant !== orgSlug;
+  return /* @__PURE__ */ jsxs("div", { className: "sce-wrap", children: [
+    /* @__PURE__ */ jsx("style", { children: `
+        .sce-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:transparent;font-family:inherit}
+        .sce-card{max-width:420px;width:100%;border:1px solid rgba(220,90,60,.25);background:rgba(220,90,60,.05);border-radius:16px;padding:32px 28px;text-align:center}
+        .sce-icon{width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+        .sce-title{font-size:19px;font-weight:700;color:#b91c1c;margin:0 0 8px}
+        .sce-msg{font-size:14px;line-height:1.55;color:#6b7280;margin:0 0 6px}
+        .sce-code{font-size:11px;color:#9ca3af;margin:0 0 18px;word-break:break-all}
+        .sce-actions{display:flex;flex-direction:column;gap:10px}
+        .sce-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:opacity .15s}
+        .sce-btn:hover{opacity:.9}
+        .sce-btn-primary{background:#111827;color:#ffffff}
+        .sce-btn-secondary{background:transparent;color:#111827;border-color:#d1d5db}
+        @media (prefers-color-scheme: dark){
+          .sce-title{color:#f87171}
+          .sce-msg{color:#9ca3af}
+          .sce-btn-primary{background:#f9fafb;color:#111827}
+          .sce-btn-secondary{color:#f9fafb;border-color:#4b5563}
+        }
+      ` }),
+    /* @__PURE__ */ jsxs("div", { className: "sce-card", role: "alert", children: [
+      /* @__PURE__ */ jsx("div", { className: "sce-icon", children: /* @__PURE__ */ jsx(AlertTriangle, { size: 22, color: "#d97706" }) }),
+      /* @__PURE__ */ jsx("h1", { className: "sce-title", children: title }),
+      /* @__PURE__ */ jsx("p", { className: "sce-msg", children: message }),
+      error && /* @__PURE__ */ jsxs("p", { className: "sce-code", children: [
+        "(",
+        error,
+        ")"
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "sce-actions", children: [
+        /* @__PURE__ */ jsxs("button", { type: "button", className: "sce-btn sce-btn-primary", onClick: onRetry, children: [
+          /* @__PURE__ */ jsx(RefreshCcw, { size: 15 }),
+          "Sign in again"
+        ] }),
+        showRescue && /* @__PURE__ */ jsxs(
+          "button",
+          {
+            type: "button",
+            className: "sce-btn sce-btn-secondary",
+            onClick: () => onSwitchTenant(lastKnownTenant),
+            children: [
+              /* @__PURE__ */ jsx(Building2, { size: 15 }),
+              "Continue to ",
+              lastKnownTenant,
+              /* @__PURE__ */ jsx(ArrowRight, { size: 15 })
+            ]
+          }
+        )
+      ] })
     ] })
   ] });
 }
@@ -484,6 +558,6 @@ function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClos
   return /* @__PURE__ */ jsx("div", { className: "veb-overlay", children: card });
 }
 
-export { SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog };
+export { SSOCallbackError, SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

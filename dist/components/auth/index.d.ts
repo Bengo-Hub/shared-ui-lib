@@ -2,6 +2,42 @@ export { S as SSOLoginModal, a as SSOLoginModalProps, b as SSOLoginResult } from
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
 /**
+ * Uniform SSO callback error card.
+ *
+ * Every service UI's /auth/callback must render THIS component whenever the SSO
+ * redirect carries `?error=` (or the token exchange fails) instead of hanging on
+ * a spinner, looping, or dead-ending on a raw `access_denied` code. Before this,
+ * the eight frontends had eight divergent behaviours (infinite spinner, silent
+ * redirect loop, misleading copy…) and a wrong-organisation error was
+ * unrecoverable without hand-editing the URL.
+ *
+ * Behaviour:
+ *  - `access_denied` + a "not a member" description renders wrong-organisation
+ *    copy. "Sign in again" restarts the SSO flow — auth-api then routes the user
+ *    through the accounts organisation picker, so the retry genuinely recovers.
+ *  - When a previously-used tenant slug is remembered (`lastKnownTenant`) and it
+ *    differs from the URL slug, a rescue button offers to continue there.
+ *
+ * Styling is fully self-contained (scoped `sce-` CSS) — it must NOT depend on
+ * the host app's Tailwind palette (see verify-email-banner for the precedent).
+ */
+interface SSOCallbackErrorProps {
+    /** OAuth error code from the callback query string (e.g. "access_denied"). */
+    error?: string | null;
+    /** Human-readable `error_description` from the callback query string. */
+    errorDescription?: string | null;
+    /** Tenant slug from the current URL path, when the app is tenant-scoped. */
+    orgSlug?: string | null;
+    /** Remembered tenant slug from a previous successful login (e.g. localStorage). */
+    lastKnownTenant?: string | null;
+    /** Restart the SSO login flow for the current org (fresh PKCE + authorize). */
+    onRetry: () => void;
+    /** Navigate to the remembered tenant's login (rescue path). */
+    onSwitchTenant?: (slug: string) => void;
+}
+declare function SSOCallbackError({ error, errorDescription, orgSlug, lastKnownTenant, onRetry, onSwitchTenant, }: SSOCallbackErrorProps): react_jsx_runtime.JSX.Element;
+
+/**
  * Graduated email-verification prompt.
  *
  * Existing SSO accounts are not silently trusted: they must prove their email. Access is
@@ -69,4 +105,4 @@ interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerifie
 }
 declare function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose, embedded }: VerifyEmailDialogProps): react_jsx_runtime.JSX.Element;
 
-export { type EmailVerificationState, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage };
+export { type EmailVerificationState, SSOCallbackError, type SSOCallbackErrorProps, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage };

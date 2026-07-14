@@ -1,4 +1,5 @@
 export { SSOLoginModal, type SSOLoginModalProps, type SSOLoginResult } from './sso-login-modal';
+export { SSOCallbackError, type SSOCallbackErrorProps } from './sso-callback-error';
 export {
   VerifyEmailBanner,
   VerifyEmailDialog,
