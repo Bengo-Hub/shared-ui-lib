@@ -4,5 +4,6 @@ export { TrackingIframeModal, TrackingIframeModalProps } from './components/trac
 export { D as DocumentPreviewProps, O as OpenPreviewOptions, P as PdfPreview, a as PdfPreviewProps, u as useDocumentPreview } from './use-document-preview-Ch4RIS8N.cjs';
 export { OfflineBar, OfflineBarProps, OfflineSyncBanner, OfflineSyncBannerProps, OfflineSyncState, PwaUpdater, PwaUpdaterProps, SyncedConfirmation, UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus } from './components/offline/index.cjs';
 export { CreatedSupplier, SupplierBankFieldRenderArgs, SupplierForm, SupplierFormProps, SupplierFormValues, SupplierPaymentMethod } from './components/suppliers/index.cjs';
+export { ComboboxOption, SearchableCombobox, SearchableComboboxProps } from './components/combobox/index.cjs';
 import 'react/jsx-runtime';
 import 'react';

@@ -30,3 +30,8 @@ export {
   type CreatedSupplier,
   type SupplierBankFieldRenderArgs,
 } from './components/suppliers';
+export {
+  SearchableCombobox,
+  type ComboboxOption,
+  type SearchableComboboxProps,
+} from './components/combobox';

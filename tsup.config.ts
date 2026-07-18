@@ -10,6 +10,7 @@ export default defineConfig({
     "src/components/documents/index.ts",
     "src/components/offline/index.ts",
     "src/components/suppliers/index.ts",
+    "src/components/combobox/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
