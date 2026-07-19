@@ -67,10 +67,13 @@ interface PwaUpdaterProps {
  * PWA update banner — uniform across every Codevertex frontend.
  *
  * The fleet ships a committed static service worker whose bytes don't change per deploy, so the
- * browser's SW-update lifecycle can't detect new releases. Instead this polls the server for the
- * current Next.js build id (embedded in the _buildManifest asset path) and compares it to the one
- * this tab loaded. When the deployed build is newer, it shows "Update now" → clears caches,
- * unregisters the SW, and hard-reloads to pull the latest version.
+ * browser's SW-update lifecycle can't detect new releases. Instead this polls the server for a
+ * per-deploy fingerprint — the Next.js build id embedded in the _buildManifest asset path on
+ * webpack/Pages-Router builds, or the full sorted set of /_next/static/ script src values as a
+ * fallback (Turbopack/App Router builds never reference _buildManifest in the served HTML at all,
+ * so the build-id lookup alone always returned null and the banner could never fire on those
+ * apps) — and compares it to the one this tab loaded. When the deployed build differs, it shows
+ * "Update now" → clears caches, unregisters the SW, and hard-reloads to pull the latest version.
  */
 declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 

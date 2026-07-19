@@ -9,10 +9,27 @@ export interface PwaUpdaterProps {
   className?: string;
 }
 
-/** Extract the Next.js build id from a page's _buildManifest/_ssgManifest asset path. */
+/** Extract the Next.js build id from a page's _buildManifest/_ssgManifest asset path. Only
+ *  present for webpack (Pages Router-style) builds — Turbopack/App Router never emits this. */
 function buildIdFrom(html: string): string | null {
   const m = html.match(/\/_next\/static\/([^/"']+)\/_(?:build|ssg)Manifest/);
   return m ? m[1] : null;
+}
+
+/** Fallback fingerprint for Turbopack/App Router builds, which don't reference a _buildManifest
+ *  path anywhere in the served HTML (chunk filenames live under /_next/static/chunks/ instead,
+ *  content-hashed but not build-id-scoped) — the old buildIdFrom() always returned null for these
+ *  apps, so the updater could never detect a new deploy. Every deploy changes at least the
+ *  entrypoint/layout chunk hashes, so the full sorted set of /_next/static/ script src values is a
+ *  reliable per-deploy fingerprint regardless of bundler. */
+function scriptFingerprintFrom(html: string): string | null {
+  const matches = Array.from(html.matchAll(/<script[^>]+src="([^"]*\/_next\/static\/[^"]+)"/g)).map((m) => m[1]);
+  if (matches.length === 0) return null;
+  return matches.sort().join('|');
+}
+
+function fingerprintFrom(html: string): string | null {
+  return buildIdFrom(html) ?? scriptFingerprintFrom(html);
 }
 
 function currentBuildId(): string | null {
@@ -21,18 +38,22 @@ function currentBuildId(): string | null {
   const src = el?.getAttribute('src') || el?.getAttribute('href') || '';
   const fromEl = buildIdFrom(src);
   if (fromEl) return fromEl;
-  // Fallback: scan inline scripts / the document HTML.
-  return buildIdFrom(document.documentElement.outerHTML);
+  // Fallback: scan the full document (covers both the buildManifest pattern in inline scripts and
+  // the Turbopack script-fingerprint fallback).
+  return fingerprintFrom(document.documentElement.outerHTML);
 }
 
 /**
  * PWA update banner — uniform across every Codevertex frontend.
  *
  * The fleet ships a committed static service worker whose bytes don't change per deploy, so the
- * browser's SW-update lifecycle can't detect new releases. Instead this polls the server for the
- * current Next.js build id (embedded in the _buildManifest asset path) and compares it to the one
- * this tab loaded. When the deployed build is newer, it shows "Update now" → clears caches,
- * unregisters the SW, and hard-reloads to pull the latest version.
+ * browser's SW-update lifecycle can't detect new releases. Instead this polls the server for a
+ * per-deploy fingerprint — the Next.js build id embedded in the _buildManifest asset path on
+ * webpack/Pages-Router builds, or the full sorted set of /_next/static/ script src values as a
+ * fallback (Turbopack/App Router builds never reference _buildManifest in the served HTML at all,
+ * so the build-id lookup alone always returned null and the banner could never fire on those
+ * apps) — and compares it to the one this tab loaded. When the deployed build differs, it shows
+ * "Update now" → clears caches, unregisters the SW, and hard-reloads to pull the latest version.
  */
 export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpdaterProps) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -47,7 +68,7 @@ export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpda
       try {
         const res = await fetch(window.location.href, { cache: 'no-store', credentials: 'same-origin' });
         if (!res.ok) return;
-        const server = buildIdFrom(await res.text());
+        const server = fingerprintFrom(await res.text());
         if (!stopped && server && server !== mine) setUpdateAvailable(true);
       } catch {
         /* offline / cross-origin redirect — ignore, no false positive */

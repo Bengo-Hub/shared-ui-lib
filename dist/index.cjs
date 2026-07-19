@@ -845,13 +845,21 @@ function buildIdFrom(html) {
   const m = html.match(/\/_next\/static\/([^/"']+)\/_(?:build|ssg)Manifest/);
   return m ? m[1] : null;
 }
+function scriptFingerprintFrom(html) {
+  const matches = Array.from(html.matchAll(/<script[^>]+src="([^"]*\/_next\/static\/[^"]+)"/g)).map((m) => m[1]);
+  if (matches.length === 0) return null;
+  return matches.sort().join("|");
+}
+function fingerprintFrom(html) {
+  return buildIdFrom(html) ?? scriptFingerprintFrom(html);
+}
 function currentBuildId() {
   if (typeof document === "undefined") return null;
   const el = document.querySelector('script[src*="_buildManifest"], link[href*="_buildManifest"]');
   const src = el?.getAttribute("src") || el?.getAttribute("href") || "";
   const fromEl = buildIdFrom(src);
   if (fromEl) return fromEl;
-  return buildIdFrom(document.documentElement.outerHTML);
+  return fingerprintFrom(document.documentElement.outerHTML);
 }
 function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
   const [updateAvailable, setUpdateAvailable] = react.useState(false);
@@ -864,7 +872,7 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
       try {
         const res = await fetch(window.location.href, { cache: "no-store", credentials: "same-origin" });
         if (!res.ok) return;
-        const server = buildIdFrom(await res.text());
+        const server = fingerprintFrom(await res.text());
         if (!stopped && server && server !== mine) setUpdateAvailable(true);
       } catch {
       }
