@@ -35,3 +35,21 @@ export {
   type ComboboxOption,
   type SearchableComboboxProps,
 } from './components/combobox';
+export {
+  DataTable,
+  type DataTableProps,
+  Checkbox,
+  BulkActionBar,
+  SortButton,
+  FunnelFilter,
+  ColumnVisibilityButton,
+  TableFooter,
+  exportRowsAsCsv,
+  type BulkAction,
+  type ColumnFilterState,
+  type DataTableColumn,
+  type FilterMap,
+  type FilterOption,
+  type SortDir,
+  type SortState,
+} from './components/data-table';
