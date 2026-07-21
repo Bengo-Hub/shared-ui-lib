@@ -370,6 +370,7 @@ var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa code (sighted)", requ
 var BANK = { value: "bank", label: "Bank transfer", requiresReference: true };
 var CHEQUE = { value: "cheque", label: "Cheque", requiresReference: true };
 var CARD = { value: "card", label: "Card" };
+var CARD_MANUAL = { value: "card_manual", label: "Card (PDQ)", requiresReference: true };
 var PAYSTACK = { value: "paystack", label: "Paystack" };
 var STORE_CREDIT = { value: "store_credit", label: "Store credit" };
 var CUSTOMER_ADVANCE = { value: "customer_advance", label: "Customer advance" };
@@ -378,6 +379,7 @@ var MPESA_B2B = { value: "mpesa_b2b", label: "M-Pesa (send to supplier till/payb
 var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT];
 var PAYOUT_METHODS = [CASH, MPESA_B2C, BANK, CHEQUE];
 var PAY_SUPPLIER_METHODS = [CASH, MPESA_B2B, BANK, CHEQUE, CARD];
+var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK];
 function SettlementModal({
   open,
   mode,
@@ -2432,6 +2434,7 @@ function FragmentRow({ children }) {
 exports.BANK = BANK;
 exports.BulkActionBar = BulkActionBar;
 exports.CARD = CARD;
+exports.CARD_MANUAL = CARD_MANUAL;
 exports.CASH = CASH;
 exports.CHEQUE = CHEQUE;
 exports.CUSTOMER_ADVANCE = CUSTOMER_ADVANCE;
@@ -2451,6 +2454,7 @@ exports.PAY_SUPPLIER_METHODS = PAY_SUPPLIER_METHODS;
 exports.PdfPreview = PdfPreview;
 exports.PwaUpdater = PwaUpdater;
 exports.RECEIVE_METHODS = RECEIVE_METHODS;
+exports.SETTLE_CREDIT_SALE_METHODS = SETTLE_CREDIT_SALE_METHODS;
 exports.SSOLoginModal = SSOLoginModal;
 exports.STORE_CREDIT = STORE_CREDIT;
 exports.SearchableCombobox = SearchableCombobox;

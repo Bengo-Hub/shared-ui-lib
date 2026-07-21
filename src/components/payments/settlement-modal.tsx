@@ -22,6 +22,7 @@ export const MPESA_MANUAL: SettlementMethod = { value: 'mpesa_manual', label: 'M
 export const BANK: SettlementMethod = { value: 'bank', label: 'Bank transfer', requiresReference: true };
 export const CHEQUE: SettlementMethod = { value: 'cheque', label: 'Cheque', requiresReference: true };
 export const CARD: SettlementMethod = { value: 'card', label: 'Card' };
+export const CARD_MANUAL: SettlementMethod = { value: 'card_manual', label: 'Card (PDQ)', requiresReference: true };
 export const PAYSTACK: SettlementMethod = { value: 'paystack', label: 'Paystack' };
 export const STORE_CREDIT: SettlementMethod = { value: 'store_credit', label: 'Store credit' };
 export const CUSTOMER_ADVANCE: SettlementMethod = { value: 'customer_advance', label: 'Customer advance' };
@@ -34,6 +35,9 @@ export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUA
 export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_B2C, BANK, CHEQUE];
 /** Paying a supplier — offline references + online dispatch methods. */
 export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_B2B, BANK, CHEQUE, CARD];
+/** Settling a completed on-account (credit) sale at the till — recording money already
+ *  collected offline, never a live STK push (that's a separate checkout-time tender). */
+export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK];
 
 export type SettlementMode = 'receive' | 'payout' | 'apply_to_debt' | 'pay_supplier' | 'record_refund';
 

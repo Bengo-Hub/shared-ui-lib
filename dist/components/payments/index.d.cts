@@ -55,6 +55,7 @@ declare const MPESA_MANUAL: SettlementMethod;
 declare const BANK: SettlementMethod;
 declare const CHEQUE: SettlementMethod;
 declare const CARD: SettlementMethod;
+declare const CARD_MANUAL: SettlementMethod;
 declare const PAYSTACK: SettlementMethod;
 declare const STORE_CREDIT: SettlementMethod;
 declare const CUSTOMER_ADVANCE: SettlementMethod;
@@ -66,6 +67,9 @@ declare const RECEIVE_METHODS: SettlementMethod[];
 declare const PAYOUT_METHODS: SettlementMethod[];
 /** Paying a supplier — offline references + online dispatch methods. */
 declare const PAY_SUPPLIER_METHODS: SettlementMethod[];
+/** Settling a completed on-account (credit) sale at the till — recording money already
+ *  collected offline, never a live STK push (that's a separate checkout-time tender). */
+declare const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[];
 type SettlementMode = 'receive' | 'payout' | 'apply_to_debt' | 'pay_supplier' | 'record_refund';
 interface SettlementSubmitInput {
     amount: number;
@@ -105,4 +109,4 @@ interface SettlementModalProps {
  */
 declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, methods, onSubmit, onClose, isPending, extraFields, }: SettlementModalProps): React$1.ReactPortal | null;
 
-export { BANK, CARD, CASH, CHEQUE, CUSTOMER_ADVANCE, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, STORE_CREDIT, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps };
+export { BANK, CARD, CARD_MANUAL, CASH, CHEQUE, CUSTOMER_ADVANCE, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps };

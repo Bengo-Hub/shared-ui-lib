@@ -240,6 +240,7 @@ var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa code (sighted)", requ
 var BANK = { value: "bank", label: "Bank transfer", requiresReference: true };
 var CHEQUE = { value: "cheque", label: "Cheque", requiresReference: true };
 var CARD = { value: "card", label: "Card" };
+var CARD_MANUAL = { value: "card_manual", label: "Card (PDQ)", requiresReference: true };
 var PAYSTACK = { value: "paystack", label: "Paystack" };
 var STORE_CREDIT = { value: "store_credit", label: "Store credit" };
 var CUSTOMER_ADVANCE = { value: "customer_advance", label: "Customer advance" };
@@ -248,6 +249,7 @@ var MPESA_B2B = { value: "mpesa_b2b", label: "M-Pesa (send to supplier till/payb
 var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT];
 var PAYOUT_METHODS = [CASH, MPESA_B2C, BANK, CHEQUE];
 var PAY_SUPPLIER_METHODS = [CASH, MPESA_B2B, BANK, CHEQUE, CARD];
+var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK];
 function SettlementModal({
   open,
   mode,
@@ -394,6 +396,6 @@ function SettlementModal({
   );
 }
 
-export { BANK, CARD, CASH, CHEQUE, CUSTOMER_ADVANCE, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, RECEIVE_METHODS, STORE_CREDIT, SettlementModal, TreasuryPaymentModal };
+export { BANK, CARD, CARD_MANUAL, CASH, CHEQUE, CUSTOMER_ADVANCE, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SettlementModal, TreasuryPaymentModal };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
