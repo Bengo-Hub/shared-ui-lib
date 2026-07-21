@@ -1,1 +1,22 @@
 export { TreasuryPaymentModal, type PaymentResult, type TreasuryPaymentModalProps } from './treasury-payment-modal';
+export {
+  SettlementModal,
+  type SettlementMode,
+  type SettlementMethod,
+  type SettlementModalProps,
+  type SettlementSubmitInput,
+  RECEIVE_METHODS,
+  PAYOUT_METHODS,
+  PAY_SUPPLIER_METHODS,
+  CASH,
+  MPESA_STK,
+  MPESA_MANUAL,
+  BANK,
+  CHEQUE,
+  CARD,
+  PAYSTACK,
+  STORE_CREDIT,
+  CUSTOMER_ADVANCE,
+  MPESA_B2C,
+  MPESA_B2B,
+} from './settlement-modal';

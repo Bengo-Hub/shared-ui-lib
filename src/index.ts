@@ -1,5 +1,26 @@
 export { SSOLoginModal, type SSOLoginModalProps, type SSOLoginResult } from './components/auth/sso-login-modal';
 export { TreasuryPaymentModal, type PaymentResult, type TreasuryPaymentModalProps } from './components/payments/treasury-payment-modal';
+export {
+  SettlementModal,
+  type SettlementMode,
+  type SettlementMethod,
+  type SettlementModalProps,
+  type SettlementSubmitInput,
+  RECEIVE_METHODS,
+  PAYOUT_METHODS,
+  PAY_SUPPLIER_METHODS,
+  CASH,
+  MPESA_STK,
+  MPESA_MANUAL,
+  BANK,
+  CHEQUE,
+  CARD,
+  PAYSTACK,
+  STORE_CREDIT,
+  CUSTOMER_ADVANCE,
+  MPESA_B2C,
+  MPESA_B2B,
+} from './components/payments/settlement-modal';
 export { TrackingIframeModal, type TrackingIframeModalProps } from './components/tracking/tracking-iframe-modal';
 export {
   PdfPreview,
