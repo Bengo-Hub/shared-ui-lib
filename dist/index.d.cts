@@ -12,10 +12,12 @@ import 'react';
 interface PoweredByBadgeProps {
     /** Override the icon (defaults to the Codevertex Africa Limited icon). */
     iconUrl?: string;
-    /** 'card' (default) — the creamy bordered card used on brand panels/footers.
+    /** 'card' (default) — the thin creamy pill used on brand panels/footers.
      *  'inline' — a bare, no-background row for tight spaces. */
     variant?: 'card' | 'inline';
-    /** Icon box size in px-equivalent Tailwind units, e.g. 'h-11 w-11' (default). */
+    /** Icon size — this drives the pill's height (thin padding, not a fixed tall box), so pass a
+     *  bigger size (e.g. 'h-10 w-10') for a more prominent placement and it stays proportioned.
+     *  Defaults to a compact 'h-7 w-7' sized for a one-line footer badge. */
     iconClassName?: string;
     href?: string;
     className?: string;

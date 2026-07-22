@@ -74,6 +74,16 @@ interface PwaUpdaterProps {
  * so the build-id lookup alone always returned null and the banner could never fire on those
  * apps) — and compares it to the one this tab loaded. When the deployed build differs, it shows
  * "Update now" → clears caches, unregisters the SW, and hard-reloads to pull the latest version.
+ *
+ * Both the baseline and every later check fetch the SAME pinned URL (the one this tab was on when
+ * the updater mounted) via the SAME method (a fresh `fetch`, never the live DOM). Two earlier bugs
+ * made the banner reappear forever even right after a real update: (1) the baseline was read from
+ * `document.documentElement.outerHTML` — the live, hydrated DOM — while later checks fetched raw
+ * server HTML, an apples-to-oranges comparison that could mismatch even on an unchanged build; and
+ * (2) later checks re-read `window.location.href` on every tick, so client-side SPA navigation to a
+ * different route changed the URL being polled — each App Router route embeds a different subset
+ * of `/_next/static/` chunk paths, so the fingerprint "changed" purely from navigating, not from a
+ * new deploy. Pinning both the URL and the fetch-based method eliminates both false positives.
  */
 declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 

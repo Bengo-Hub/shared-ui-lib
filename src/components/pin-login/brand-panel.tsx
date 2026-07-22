@@ -36,7 +36,7 @@ export function PinLoginBrandPanel({
         <img
           src={tenantLogoUrl}
           alt={tenantName}
-          className="max-h-28 sm:max-h-36 max-w-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+          className="max-h-28 sm:max-h-36 max-w-[85%] object-contain rounded-2xl drop-shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
         />
       ) : (
         <p className="text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]">{tenantName}</p>

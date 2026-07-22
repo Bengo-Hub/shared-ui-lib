@@ -32,17 +32,6 @@ function fingerprintFrom(html: string): string | null {
   return buildIdFrom(html) ?? scriptFingerprintFrom(html);
 }
 
-function currentBuildId(): string | null {
-  if (typeof document === 'undefined') return null;
-  const el = document.querySelector('script[src*="_buildManifest"], link[href*="_buildManifest"]');
-  const src = el?.getAttribute('src') || el?.getAttribute('href') || '';
-  const fromEl = buildIdFrom(src);
-  if (fromEl) return fromEl;
-  // Fallback: scan the full document (covers both the buildManifest pattern in inline scripts and
-  // the Turbopack script-fingerprint fallback).
-  return fingerprintFrom(document.documentElement.outerHTML);
-}
-
 /**
  * PWA update banner — uniform across every Codevertex frontend.
  *
@@ -54,26 +43,42 @@ function currentBuildId(): string | null {
  * so the build-id lookup alone always returned null and the banner could never fire on those
  * apps) — and compares it to the one this tab loaded. When the deployed build differs, it shows
  * "Update now" → clears caches, unregisters the SW, and hard-reloads to pull the latest version.
+ *
+ * Both the baseline and every later check fetch the SAME pinned URL (the one this tab was on when
+ * the updater mounted) via the SAME method (a fresh `fetch`, never the live DOM). Two earlier bugs
+ * made the banner reappear forever even right after a real update: (1) the baseline was read from
+ * `document.documentElement.outerHTML` — the live, hydrated DOM — while later checks fetched raw
+ * server HTML, an apples-to-oranges comparison that could mismatch even on an unchanged build; and
+ * (2) later checks re-read `window.location.href` on every tick, so client-side SPA navigation to a
+ * different route changed the URL being polled — each App Router route embeds a different subset
+ * of `/_next/static/` chunk paths, so the fingerprint "changed" purely from navigating, not from a
+ * new deploy. Pinning both the URL and the fetch-based method eliminates both false positives.
  */
 export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpdaterProps) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mine = currentBuildId();
-    if (!mine) return; // can't establish a baseline → don't risk false prompts
-
+    const url = window.location.href;
     let stopped = false;
+    let mine: string | null = null;
+
     const check = async () => {
       try {
-        const res = await fetch(window.location.href, { cache: 'no-store', credentials: 'same-origin' });
+        const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
         if (!res.ok) return;
-        const server = fingerprintFrom(await res.text());
-        if (!stopped && server && server !== mine) setUpdateAvailable(true);
+        const fp = fingerprintFrom(await res.text());
+        if (stopped || !fp) return;
+        if (mine === null) {
+          mine = fp; // first successful fetch establishes the baseline for this tab's session
+        } else if (fp !== mine) {
+          setUpdateAvailable(true);
+        }
       } catch {
         /* offline / cross-origin redirect — ignore, no false positive */
       }
     };
+    void check(); // establish the baseline immediately, the same way every later check works
     const id = setInterval(check, checkIntervalMs);
     // Also check when the tab regains focus / comes back online.
     const onFocus = () => void check();

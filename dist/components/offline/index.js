@@ -83,30 +83,28 @@ function scriptFingerprintFrom(html) {
 function fingerprintFrom(html) {
   return buildIdFrom(html) ?? scriptFingerprintFrom(html);
 }
-function currentBuildId() {
-  if (typeof document === "undefined") return null;
-  const el = document.querySelector('script[src*="_buildManifest"], link[href*="_buildManifest"]');
-  const src = el?.getAttribute("src") || el?.getAttribute("href") || "";
-  const fromEl = buildIdFrom(src);
-  if (fromEl) return fromEl;
-  return fingerprintFrom(document.documentElement.outerHTML);
-}
 function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const mine = currentBuildId();
-    if (!mine) return;
+    const url = window.location.href;
     let stopped = false;
+    let mine = null;
     const check = async () => {
       try {
-        const res = await fetch(window.location.href, { cache: "no-store", credentials: "same-origin" });
+        const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
         if (!res.ok) return;
-        const server = fingerprintFrom(await res.text());
-        if (!stopped && server && server !== mine) setUpdateAvailable(true);
+        const fp = fingerprintFrom(await res.text());
+        if (stopped || !fp) return;
+        if (mine === null) {
+          mine = fp;
+        } else if (fp !== mine) {
+          setUpdateAvailable(true);
+        }
       } catch {
       }
     };
+    void check();
     const id = setInterval(check, checkIntervalMs);
     const onFocus = () => void check();
     window.addEventListener("focus", onFocus);

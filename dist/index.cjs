@@ -1014,30 +1014,28 @@ function scriptFingerprintFrom(html) {
 function fingerprintFrom(html) {
   return buildIdFrom(html) ?? scriptFingerprintFrom(html);
 }
-function currentBuildId() {
-  if (typeof document === "undefined") return null;
-  const el = document.querySelector('script[src*="_buildManifest"], link[href*="_buildManifest"]');
-  const src = el?.getAttribute("src") || el?.getAttribute("href") || "";
-  const fromEl = buildIdFrom(src);
-  if (fromEl) return fromEl;
-  return fingerprintFrom(document.documentElement.outerHTML);
-}
 function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
   const [updateAvailable, setUpdateAvailable] = react.useState(false);
   react.useEffect(() => {
     if (typeof window === "undefined") return;
-    const mine = currentBuildId();
-    if (!mine) return;
+    const url = window.location.href;
     let stopped = false;
+    let mine = null;
     const check = async () => {
       try {
-        const res = await fetch(window.location.href, { cache: "no-store", credentials: "same-origin" });
+        const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
         if (!res.ok) return;
-        const server = fingerprintFrom(await res.text());
-        if (!stopped && server && server !== mine) setUpdateAvailable(true);
+        const fp = fingerprintFrom(await res.text());
+        if (stopped || !fp) return;
+        if (mine === null) {
+          mine = fp;
+        } else if (fp !== mine) {
+          setUpdateAvailable(true);
+        }
       } catch {
       }
     };
+    void check();
     const id = setInterval(check, checkIntervalMs);
     const onFocus = () => void check();
     window.addEventListener("focus", onFocus);
@@ -1726,7 +1724,7 @@ var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
-  iconClassName = "h-11 w-11",
+  iconClassName = "h-7 w-7",
   href = "https://codevertexitsolutions.com",
   className
 }) {
@@ -1737,15 +1735,15 @@ function PoweredByBadge({
       target: "_blank",
       rel: "noopener noreferrer",
       className: cx2(
-        "inline-flex items-center gap-3 transition-shadow",
-        variant === "card" && "rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5 hover:shadow-xl",
+        "inline-flex items-center gap-2 transition-shadow",
+        variant === "card" && "rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg",
         className
       ),
       children: [
         /* @__PURE__ */ jsxRuntime.jsx("img", { src: iconUrl, alt: "Codevertex", className: cx2(iconClassName, "shrink-0 object-contain") }),
-        /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-left leading-tight", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-[9px] font-bold uppercase tracking-widest text-muted-foreground", children: "Powered by" }),
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-sm font-black text-foreground whitespace-nowrap", children: "Codevertex Africa Limited" })
+        /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-bold text-foreground whitespace-nowrap", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-muted-foreground font-semibold", children: "Powered by" }),
+          " Codevertex Africa Limited"
         ] })
       ]
     }

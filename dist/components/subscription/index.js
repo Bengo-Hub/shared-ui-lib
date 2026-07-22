@@ -1,4 +1,4 @@
-import { WifiOff, AlertTriangle, Clock, TrendingUp, RefreshCw, Zap, ArrowRight, ChevronDown, ChevronRight, X, ExternalLink, Lock, ShieldAlert } from 'lucide-react';
+import { WifiOff, AlertTriangle, Clock, TrendingUp, ShieldAlert, RefreshCw, ArrowRight, ChevronDown, ChevronRight, X, ExternalLink, Lock, Zap } from 'lucide-react';
 import { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
@@ -392,38 +392,35 @@ function SubscriptionBanner({
   }
   if (normalizedStatus === "ACTIVE") {
     const accent = brandColor || "var(--color-primary, #6366f1)";
-    const isUrgent = !isPerpetual && daysUntilExpiry !== null && daysUntilExpiry <= 7 && expiresAt !== null;
-    const renewalText = isPerpetual ? "Lifetime licence" : expiresAt ? isUrgent ? `Renews in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}` : `Renews ${formatDate(expiresAt)}` : null;
+    const daysLeft = daysUntilExpiry;
+    const inRenewalWindow = !isPerpetual && daysLeft !== null && daysLeft <= 7 && expiresAt !== null;
+    if (!inRenewalWindow) return null;
+    const isDanger = daysLeft !== null && daysLeft <= 2;
+    const severityClasses = isDanger ? { border: "border-red-200 dark:border-red-800", bg: "bg-red-50/80 dark:bg-red-950/30", text: "text-red-900 dark:text-red-100", subtext: "text-red-700 dark:text-red-300", icon: "text-red-600 dark:text-red-400", action: "bg-red-600 hover:bg-red-700 text-white", hover: "hover:bg-red-100 dark:hover:bg-red-900/40", divider: "border-red-200 dark:border-red-800" } : { border: "border-amber-200 dark:border-amber-800", bg: "bg-amber-50/80 dark:bg-amber-950/30", text: "text-amber-900 dark:text-amber-100", subtext: "text-amber-700 dark:text-amber-300", icon: "text-amber-600 dark:text-amber-400", action: "bg-amber-600 hover:bg-amber-700 text-white", hover: "hover:bg-amber-100 dark:hover:bg-amber-900/40", divider: "border-amber-200 dark:border-amber-800" };
+    const renewalText = `Renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}`;
     return /* @__PURE__ */ jsxs(
       "div",
       {
-        className: [
-          "border-b",
-          isUrgent ? "border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-950/30" : "border-border bg-card"
-        ].join(" "),
-        style: { borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: accent },
+        className: ["border-b", severityClasses.border, severityClasses.bg].join(" "),
+        style: { borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: isDanger ? "#dc2626" : "#d97706" },
         children: [
           /* @__PURE__ */ jsxs("div", { className: "mx-auto flex max-w-6xl items-center gap-3 px-4 py-2", children: [
-            isUrgent ? /* @__PURE__ */ jsx(RefreshCw, { className: "size-3.5 shrink-0", style: { color: accent } }) : /* @__PURE__ */ jsx(Zap, { className: "size-3.5 shrink-0", style: { color: accent } }),
-            /* @__PURE__ */ jsx("span", { className: ["text-sm font-semibold", isUrgent ? "text-amber-900 dark:text-amber-100" : "text-foreground"].join(" "), children: planLabel }),
-            renewalText && /* @__PURE__ */ jsxs("span", { className: ["text-xs hidden sm:inline", isUrgent ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"].join(" "), children: [
+            isDanger ? /* @__PURE__ */ jsx(ShieldAlert, { className: ["size-3.5 shrink-0", severityClasses.icon].join(" ") }) : /* @__PURE__ */ jsx(RefreshCw, { className: ["size-3.5 shrink-0", severityClasses.icon].join(" ") }),
+            /* @__PURE__ */ jsx("span", { className: ["text-sm font-semibold", severityClasses.text].join(" "), children: planLabel }),
+            /* @__PURE__ */ jsxs("span", { className: ["text-xs hidden sm:inline", severityClasses.subtext].join(" "), children: [
               "\xB7 ",
               renewalText
             ] }),
             /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
-              !isPerpetual && /* @__PURE__ */ jsxs(
+              /* @__PURE__ */ jsxs(
                 "a",
                 {
-                  href: isUrgent ? billingUrl : upgradeUrl,
+                  href: billingUrl,
                   target: "_blank",
                   rel: "noopener noreferrer",
-                  className: [
-                    "hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
-                    isUrgent ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:opacity-80"
-                  ].join(" "),
-                  style: isUrgent ? void 0 : { color: accent },
+                  className: ["hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors", severityClasses.action].join(" "),
                   children: [
-                    isUrgent ? "Renew now" : "Upgrade",
+                    "Renew now",
                     /* @__PURE__ */ jsx(ArrowRight, { className: "size-3" })
                   ]
                 }
@@ -432,10 +429,7 @@ function SubscriptionBanner({
                 "button",
                 {
                   onClick: () => setExpanded((v) => !v),
-                  className: [
-                    "rounded p-1 transition",
-                    isUrgent ? "text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40" : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  ].join(" "),
+                  className: ["rounded p-1 transition", severityClasses.subtext, severityClasses.hover].join(" "),
                   "aria-label": expanded ? "Collapse plan details" : "Expand plan details",
                   children: expanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "size-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "size-4" })
                 }
@@ -444,17 +438,14 @@ function SubscriptionBanner({
                 "button",
                 {
                   onClick: () => setDismissed(true),
-                  className: [
-                    "rounded p-1 transition",
-                    isUrgent ? "text-amber-600/60 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent"
-                  ].join(" "),
+                  className: ["rounded p-1 transition opacity-60 hover:opacity-100", severityClasses.subtext, severityClasses.hover].join(" "),
                   "aria-label": "Dismiss",
                   children: /* @__PURE__ */ jsx(X, { className: "size-3.5" })
                 }
               )
             ] })
           ] }),
-          expanded && /* @__PURE__ */ jsx("div", { className: ["mx-auto max-w-6xl border-t px-4 py-3", isUrgent ? "border-amber-200 dark:border-amber-800" : "border-border/50"].join(" "), children: /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground", children: [
+          expanded && /* @__PURE__ */ jsx("div", { className: ["mx-auto max-w-6xl border-t px-4 py-3", severityClasses.divider].join(" "), children: /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground", children: [
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Plan" }),
               " ",
@@ -463,13 +454,9 @@ function SubscriptionBanner({
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Status" }),
               " ",
-              isUrgent ? /* @__PURE__ */ jsx("span", { className: "text-amber-700 dark:text-amber-300 font-medium", children: "Renews soon" }) : /* @__PURE__ */ jsx("span", { className: "capitalize", children: normalizedStatus.toLowerCase() })
+              /* @__PURE__ */ jsx("span", { className: [severityClasses.subtext, "font-medium"].join(" "), children: isDanger ? "Renews very soon" : "Renews soon" })
             ] }),
-            isPerpetual ? /* @__PURE__ */ jsxs("span", { children: [
-              /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Licence" }),
-              " ",
-              "One-time (lifetime) \u2014 never renews"
-            ] }) : expiresAt && /* @__PURE__ */ jsxs("span", { children: [
+            /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Next renewal" }),
               " ",
               formatDate(expiresAt)
@@ -483,12 +470,12 @@ function SubscriptionBanner({
                   rel: "noopener noreferrer",
                   className: "inline-flex items-center gap-1 font-medium text-foreground hover:underline underline-offset-2",
                   children: [
-                    isUrgent ? "Renew now" : "Manage billing",
+                    "Renew now",
                     /* @__PURE__ */ jsx(ExternalLink, { className: "size-3" })
                   ]
                 }
               ),
-              !isPerpetual && /* @__PURE__ */ jsxs(
+              /* @__PURE__ */ jsxs(
                 "a",
                 {
                   href: upgradeUrl,

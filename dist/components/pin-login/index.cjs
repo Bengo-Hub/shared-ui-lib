@@ -422,7 +422,7 @@ var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
-  iconClassName = "h-11 w-11",
+  iconClassName = "h-7 w-7",
   href = "https://codevertexitsolutions.com",
   className
 }) {
@@ -433,15 +433,15 @@ function PoweredByBadge({
       target: "_blank",
       rel: "noopener noreferrer",
       className: cx(
-        "inline-flex items-center gap-3 transition-shadow",
-        variant === "card" && "rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5 hover:shadow-xl",
+        "inline-flex items-center gap-2 transition-shadow",
+        variant === "card" && "rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg",
         className
       ),
       children: [
         /* @__PURE__ */ jsxRuntime.jsx("img", { src: iconUrl, alt: "Codevertex", className: cx(iconClassName, "shrink-0 object-contain") }),
-        /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-left leading-tight", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-[9px] font-bold uppercase tracking-widest text-muted-foreground", children: "Powered by" }),
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-sm font-black text-foreground whitespace-nowrap", children: "Codevertex Africa Limited" })
+        /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-bold text-foreground whitespace-nowrap", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-muted-foreground font-semibold", children: "Powered by" }),
+          " Codevertex Africa Limited"
         ] })
       ]
     }
@@ -460,7 +460,7 @@ function PinLoginBrandPanel({
       {
         src: tenantLogoUrl,
         alt: tenantName,
-        className: "max-h-28 sm:max-h-36 max-w-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+        className: "max-h-28 sm:max-h-36 max-w-[85%] object-contain rounded-2xl drop-shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
       }
     ) : /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]", children: tenantName }),
     /* @__PURE__ */ jsxRuntime.jsx(WorkflowIllustration, { steps: workflowSteps }),
