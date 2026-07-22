@@ -15,7 +15,7 @@ interface PwaInstallPromptProps {
     /** Ms before a dismissed prompt is offered again (default 24h, uniform fleet-wide). */
     repromptMs?: number;
     /** Called after the user accepts the native install prompt (e.g. request notification/camera permissions). */
-    onInstalled?: () => void | Promise<void>;
+    onInstalled?: () => unknown | Promise<unknown>;
     className?: string;
 }
 declare function PwaInstallPrompt({ appName, logoUrl, tagline, dismissKey, delayMs, repromptMs, onInstalled, className, }: PwaInstallPromptProps): react_jsx_runtime.JSX.Element | null;
