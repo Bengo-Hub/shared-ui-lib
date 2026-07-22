@@ -58,8 +58,8 @@ export function PinLoginLayout({ header, brandPanel, card, footer, backdropUrl, 
         {header}
         <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(260px,340px)_1fr]">
           {brandPanel && <div className="hidden lg:flex min-h-0">{brandPanel}</div>}
-          <div className="min-h-0 flex items-stretch justify-center p-3 sm:p-5 lg:p-6">
-            <div className="w-full max-w-5xl bg-card rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden">
+          <div className="min-h-0 flex items-stretch justify-center p-2 sm:p-5 lg:p-6">
+            <div className="w-full max-w-5xl bg-card rounded-2xl sm:rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden">
               {card}
             </div>
           </div>

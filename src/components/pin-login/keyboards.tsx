@@ -107,8 +107,8 @@ export function PinKeypad({
         data-testid="pin-key-clear"
         className={cx(
           KEY_BASE,
-          'w-full bg-destructive/10 border border-destructive/25 text-destructive text-sm font-black uppercase tracking-wider',
-          'hover:bg-destructive/15 hover:border-destructive/40'
+          'w-full h-11 sm:h-12 bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm',
+          'hover:brightness-110'
         )}
       >
         Clear
@@ -181,7 +181,7 @@ export function QwertyKeyboard({
 
   return (
     <div className="flex w-full flex-col gap-1.5 sm:gap-2">
-      <div className="flex gap-1.5 sm:gap-2">
+      <div className="flex gap-1 sm:gap-2">
         {QWERTY_ROWS[0].map((c) => (
           <KbdKey key={c} char={c} label={cased(c)} disabled={disabled} onPress={() => onKey(cased(c))} />
         ))}
@@ -194,7 +194,7 @@ export function QwertyKeyboard({
         />
       </div>
 
-      <div className="flex gap-1.5 sm:gap-2 px-3">
+      <div className="flex gap-1 sm:gap-2 px-1 sm:px-3">
         {QWERTY_ROWS[1].map((c) => (
           <KbdKey key={c} char={c} label={cased(c)} disabled={disabled} onPress={() => onKey(cased(c))} />
         ))}
@@ -208,7 +208,7 @@ export function QwertyKeyboard({
         />
       </div>
 
-      <div className="flex gap-1.5 sm:gap-2">
+      <div className="flex gap-1 sm:gap-2">
         <KbdKey
           char="shift-l"
           label={<ArrowBigUp className="h-4 w-4" />}
@@ -230,7 +230,7 @@ export function QwertyKeyboard({
         />
       </div>
 
-      <div className="flex gap-1.5 sm:gap-2">
+      <div className="flex gap-1 sm:gap-2">
         {showToggle && (
           <button
             type="button"

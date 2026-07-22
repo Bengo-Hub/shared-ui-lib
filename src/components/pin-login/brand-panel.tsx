@@ -12,17 +12,25 @@
  */
 
 import React from 'react';
-import { CodevertexMark, WorkflowIllustration } from './brand-mark';
+import { WorkflowIllustration } from './brand-mark';
 import type { WorkflowStep } from './types';
+
+/** The Codevertex Africa Limited platform's own public logo (accounts/auth-ui hosted) — the same
+ *  asset used platform-wide, not tenant-specific, so it's a stable default here. */
+const CODEVERTEX_LOGO_URL = 'https://accounts.codevertexitsolutions.com/images/logo/codevertex.png';
 
 export interface PinLoginBrandPanelProps {
   tenantName: string;
   tenantLogoUrl?: string | null;
   workflowSteps: WorkflowStep[];
+  /** Override the platform "Powered by" logo (defaults to the Codevertex Africa Limited logo). */
+  poweredByLogoUrl?: string;
   className?: string;
 }
 
-export function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, className }: PinLoginBrandPanelProps) {
+export function PinLoginBrandPanel({
+  tenantName, tenantLogoUrl, workflowSteps, poweredByLogoUrl = CODEVERTEX_LOGO_URL, className,
+}: PinLoginBrandPanelProps) {
   return (
     <div className={`flex flex-col items-center justify-center gap-8 px-6 py-8 text-center ${className ?? ''}`}>
       {/* Tenant logo — no background, blends with the brand-tinted panel. Falls back to a plain
@@ -37,9 +45,21 @@ export function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, c
         <p className="text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]">{tenantName}</p>
       )}
 
-      <div className="flex flex-col items-center gap-4">
-        <WorkflowIllustration steps={workflowSteps} />
-        <CodevertexMark className="text-white/50" />
+      <WorkflowIllustration steps={workflowSteps} />
+
+      {/* Platform attribution — a real card (creamy, same tone as the main login card), not a
+          faint text mark, so "Powered by Codevertex Africa Limited" reads clearly against the
+          brand-tinted panel. */}
+      <div className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-lg ring-1 ring-black/5">
+        <img
+          src={poweredByLogoUrl}
+          alt="Codevertex Africa Limited"
+          className="h-9 w-9 rounded-lg object-contain shrink-0"
+        />
+        <div className="text-left leading-tight">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Powered by</p>
+          <p className="text-sm font-black text-foreground whitespace-nowrap">Codevertex Africa Limited</p>
+        </div>
       </div>
     </div>
   );

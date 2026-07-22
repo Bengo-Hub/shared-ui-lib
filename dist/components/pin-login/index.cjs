@@ -94,8 +94,8 @@ function PinKeypad({
         "data-testid": "pin-key-clear",
         className: cx(
           KEY_BASE,
-          "w-full bg-destructive/10 border border-destructive/25 text-destructive text-sm font-black uppercase tracking-wider",
-          "hover:bg-destructive/15 hover:border-destructive/40"
+          "w-full h-11 sm:h-12 bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm",
+          "hover:brightness-110"
         ),
         children: "Clear"
       }
@@ -149,7 +149,7 @@ function QwertyKeyboard({
 }) {
   const cased = (c) => shift ? c.toUpperCase() : c;
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex w-full flex-col gap-1.5 sm:gap-2", children: [
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1.5 sm:gap-2", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1 sm:gap-2", children: [
       QWERTY_ROWS[0].map((c) => /* @__PURE__ */ jsxRuntime.jsx(KbdKey, { char: c, label: cased(c), disabled, onPress: () => onKey(cased(c)) }, c)),
       /* @__PURE__ */ jsxRuntime.jsx(
         KbdKey,
@@ -162,7 +162,7 @@ function QwertyKeyboard({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1.5 sm:gap-2 px-3", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1 sm:gap-2 px-1 sm:px-3", children: [
       QWERTY_ROWS[1].map((c) => /* @__PURE__ */ jsxRuntime.jsx(KbdKey, { char: c, label: cased(c), disabled, onPress: () => onKey(cased(c)) }, c)),
       /* @__PURE__ */ jsxRuntime.jsx(
         KbdKey,
@@ -179,7 +179,7 @@ function QwertyKeyboard({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1.5 sm:gap-2", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1 sm:gap-2", children: [
       /* @__PURE__ */ jsxRuntime.jsx(
         KbdKey,
         {
@@ -204,7 +204,7 @@ function QwertyKeyboard({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1.5 sm:gap-2", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-1 sm:gap-2", children: [
       showToggle && /* @__PURE__ */ jsxRuntime.jsx(
         "button",
         {
@@ -377,14 +377,14 @@ function PinLoginHeader({
   rightSlot,
   className
 }) {
-  return /* @__PURE__ */ jsxRuntime.jsx("div", { className: cx("relative z-10 px-5 sm:px-8 pt-5 pb-4 shrink-0", className), children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-start justify-between gap-4", children: [
+  return /* @__PURE__ */ jsxRuntime.jsx("div", { className: cx("relative z-10 px-4 sm:px-8 pt-4 sm:pt-8 pb-3.5 sm:pb-5 shrink-0", className), children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-start justify-between gap-3", children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "min-w-0", children: [
-      /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-[10px] font-bold uppercase tracking-[0.25em] text-white/65", children: serviceName }),
-      /* @__PURE__ */ jsxRuntime.jsx("h1", { className: "text-xl sm:text-2xl font-black text-white tracking-tight leading-tight truncate", children: tenantName }),
-      (outletName || showSwitchOutlet) && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-2 flex-wrap mt-1.5", children: [
-        outletName && /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm font-semibold text-white/85 truncate max-w-[16rem]", children: outletName }),
-        isHQ && /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white ring-1 ring-inset ring-white/20", children: [
-          /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Building2, { className: "h-2.5 w-2.5" }),
+      /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/75 truncate", children: serviceName }),
+      /* @__PURE__ */ jsxRuntime.jsx("h1", { className: "mt-0.5 sm:mt-1 text-xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight truncate", children: tenantName }),
+      (outletName || showSwitchOutlet) && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-2 flex-wrap mt-1 sm:mt-2", children: [
+        outletName && /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm sm:text-lg font-bold text-white/90 truncate max-w-[10rem] sm:max-w-[16rem]", children: outletName }),
+        isHQ && /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-white/15 text-white ring-1 ring-inset ring-white/20", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Building2, { className: "h-2.5 w-2.5 sm:h-3 sm:w-3" }),
           "HQ"
         ] }),
         showSwitchOutlet && onSwitchOutlet && /* @__PURE__ */ jsxRuntime.jsxs(
@@ -392,16 +392,16 @@ function PinLoginHeader({
           {
             type: "button",
             onClick: onSwitchOutlet,
-            className: "inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/12 hover:bg-white/20 ring-1 ring-inset ring-white/25 text-[11px] font-bold text-white transition-colors",
+            className: "inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/15 hover:bg-white/25 ring-1 ring-inset ring-white/30 text-[10px] sm:text-xs font-bold text-white transition-colors",
             children: [
               "Switch",
-              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.ChevronRight, { className: "h-3 w-3" })
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.ChevronRight, { className: "h-3 w-3 sm:h-3.5 sm:w-3.5" })
             ]
           }
         )
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-2 shrink-0", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 shrink-0", children: [
       !isOnline && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-400/20 ring-1 ring-inset ring-amber-200/40 text-amber-100 text-[11px] font-semibold", children: [
         /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "h-3 w-3" }),
         /* @__PURE__ */ jsxRuntime.jsx("span", { className: "hidden sm:inline", children: "Offline" })
@@ -410,7 +410,14 @@ function PinLoginHeader({
     ] })
   ] }) });
 }
-function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, className }) {
+var CODEVERTEX_LOGO_URL = "https://accounts.codevertexitsolutions.com/images/logo/codevertex.png";
+function PinLoginBrandPanel({
+  tenantName,
+  tenantLogoUrl,
+  workflowSteps,
+  poweredByLogoUrl = CODEVERTEX_LOGO_URL,
+  className
+}) {
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `flex flex-col items-center justify-center gap-8 px-6 py-8 text-center ${className ?? ""}`, children: [
     tenantLogoUrl ? /* @__PURE__ */ jsxRuntime.jsx(
       "img",
@@ -420,9 +427,20 @@ function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, classNam
         className: "max-h-28 sm:max-h-36 max-w-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
       }
     ) : /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]", children: tenantName }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center gap-4", children: [
-      /* @__PURE__ */ jsxRuntime.jsx(WorkflowIllustration, { steps: workflowSteps }),
-      /* @__PURE__ */ jsxRuntime.jsx(CodevertexMark, { className: "text-white/50" })
+    /* @__PURE__ */ jsxRuntime.jsx(WorkflowIllustration, { steps: workflowSteps }),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-lg ring-1 ring-black/5", children: [
+      /* @__PURE__ */ jsxRuntime.jsx(
+        "img",
+        {
+          src: poweredByLogoUrl,
+          alt: "Codevertex Africa Limited",
+          className: "h-9 w-9 rounded-lg object-contain shrink-0"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "text-left leading-tight", children: [
+        /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-[9px] font-bold uppercase tracking-widest text-muted-foreground", children: "Powered by" }),
+        /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm font-black text-foreground whitespace-nowrap", children: "Codevertex Africa Limited" })
+      ] })
     ] })
   ] });
 }
@@ -476,6 +494,36 @@ function PasscodeField({
     )
   ] });
 }
+function PinLoginSSOButton({ onClick, tall, label = "SSO Login", className }) {
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "button",
+    {
+      type: "button",
+      onClick,
+      className: cx(
+        "flex items-center justify-center rounded-2xl",
+        "text-primary-foreground font-bold shadow-md ring-1 ring-inset ring-white/15",
+        "active:scale-[0.98] transition-all duration-150 hover:brightness-105",
+        tall ? "flex-1 flex-col gap-2 py-6" : "w-full gap-2.5 py-2.5",
+        className
+      ),
+      style: { background: "linear-gradient(160deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark, var(--primary))) 100%)" },
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "span",
+          {
+            className: cx(
+              "rounded-xl bg-white/20 ring-1 ring-inset ring-white/25 flex items-center justify-center shrink-0",
+              tall ? "h-10 w-10 sm:h-12 sm:w-12 rounded-2xl" : "h-7 w-7"
+            ),
+            children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.ExternalLink, { className: tall ? "h-5 w-5 sm:h-6 sm:w-6" : "h-3.5 w-3.5" })
+          }
+        ),
+        /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm", children: label })
+      ]
+    }
+  );
+}
 function DemoHints({ title = "Demo PINs", subtitle, hints }) {
   if (hints.length === 0) return null;
   return /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute bottom-4 right-4 z-30 hidden sm:block", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "rounded-2xl border border-border bg-card/90 backdrop-blur-xl shadow-lg p-3 max-w-[220px]", children: [
@@ -520,7 +568,7 @@ function PinLoginLayout({ header, brandPanel, card, footer, backdropUrl, classNa
           header,
           /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(260px,340px)_1fr]", children: [
             brandPanel && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "hidden lg:flex min-h-0", children: brandPanel }),
-            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-h-0 flex items-stretch justify-center p-3 sm:p-5 lg:p-6", children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-5xl bg-card rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden", children: card }) })
+            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-h-0 flex items-stretch justify-center p-2 sm:p-5 lg:p-6", children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-5xl bg-card rounded-2xl sm:rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden", children: card }) })
           ] })
         ] }),
         footer
@@ -537,6 +585,7 @@ exports.PinKeypad = PinKeypad;
 exports.PinLoginBrandPanel = PinLoginBrandPanel;
 exports.PinLoginHeader = PinLoginHeader;
 exports.PinLoginLayout = PinLoginLayout;
+exports.PinLoginSSOButton = PinLoginSSOButton;
 exports.QwertyKeyboard = QwertyKeyboard;
 exports.USE_CASE_COLORS = USE_CASE_COLORS;
 exports.USE_CASE_ICONS = USE_CASE_ICONS;

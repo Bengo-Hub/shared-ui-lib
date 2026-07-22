@@ -118,9 +118,11 @@ interface PinLoginBrandPanelProps {
     tenantName: string;
     tenantLogoUrl?: string | null;
     workflowSteps: WorkflowStep[];
+    /** Override the platform "Powered by" logo (defaults to the Codevertex Africa Limited logo). */
+    poweredByLogoUrl?: string;
     className?: string;
 }
-declare function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, className }: PinLoginBrandPanelProps): react_jsx_runtime.JSX.Element;
+declare function PinLoginBrandPanel({ tenantName, tenantLogoUrl, workflowSteps, poweredByLogoUrl, className, }: PinLoginBrandPanelProps): react_jsx_runtime.JSX.Element;
 
 interface PasscodeFieldProps {
     /** Current entered value (digits and/or letters) — only its length is rendered (masked dots). */
@@ -136,6 +138,14 @@ interface PasscodeFieldProps {
     className?: string;
 }
 declare function PasscodeField({ value, error, shake, onSubmit, isSubmitting, placeholder, submitLabel, submittingLabel, className, }: PasscodeFieldProps): react_jsx_runtime.JSX.Element;
+
+interface PinLoginSSOButtonProps {
+    onClick: () => void;
+    tall?: boolean;
+    label?: string;
+    className?: string;
+}
+declare function PinLoginSSOButton({ onClick, tall, label, className }: PinLoginSSOButtonProps): react_jsx_runtime.JSX.Element;
 
 declare function DemoHints({ title, subtitle, hints }: {
     title?: string;
@@ -157,4 +167,4 @@ interface PinLoginLayoutProps {
 }
 declare function PinLoginLayout({ header, brandPanel, card, footer, backdropUrl, className }: PinLoginLayoutProps): react_jsx_runtime.JSX.Element;
 
-export { type BrandIcon, CodevertexMark, type DemoHint, DemoHints, OutletCard, PasscodeField, type PasscodeFieldProps, PinKeypad, type PinKeypadProps, type PinLoginBrandColor, PinLoginBrandPanel, type PinLoginBrandPanelProps, type PinLoginFooterSlotProps, PinLoginHeader, type PinLoginHeaderProps, PinLoginLayout, type PinLoginLayoutProps, type PinLoginOutlet, QwertyKeyboard, type QwertyKeyboardProps, USE_CASE_COLORS, USE_CASE_ICONS, USE_CASE_LABELS, WorkflowIllustration, type WorkflowStep };
+export { type BrandIcon, CodevertexMark, type DemoHint, DemoHints, OutletCard, PasscodeField, type PasscodeFieldProps, PinKeypad, type PinKeypadProps, type PinLoginBrandColor, PinLoginBrandPanel, type PinLoginBrandPanelProps, type PinLoginFooterSlotProps, PinLoginHeader, type PinLoginHeaderProps, PinLoginLayout, type PinLoginLayoutProps, type PinLoginOutlet, PinLoginSSOButton, type PinLoginSSOButtonProps, QwertyKeyboard, type QwertyKeyboardProps, USE_CASE_COLORS, USE_CASE_ICONS, USE_CASE_LABELS, WorkflowIllustration, type WorkflowStep };

@@ -5,5 +5,6 @@ export * from './brand-mark';
 export * from './header';
 export * from './brand-panel';
 export * from './passcode-field';
+export * from './sso-button';
 export * from './demo-hints';
 export * from './layout';
