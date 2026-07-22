@@ -47,7 +47,7 @@ export function PinLoginBrandPanel({
       {/* Platform attribution — a real card (creamy, same tone as the main login card), not a
           faint text mark, so "Powered by Codevertex Africa Limited" reads clearly against the
           brand-tinted panel. Same badge every app's footer uses. */}
-      <PoweredByBadge iconUrl={poweredByLogoUrl} iconClassName="h-12 w-12" />
+      <PoweredByBadge iconUrl={poweredByLogoUrl} layout="stacked" iconClassName="h-12 w-12" />
     </div>
   );
 }

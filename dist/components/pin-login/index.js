@@ -413,13 +413,16 @@ function PinLoginHeader({
   ] }) });
 }
 var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
+var BRAND_PURPLE = "#9100B0";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
-  iconClassName = "h-7 w-7",
+  layout = "row",
+  iconClassName,
   href = "https://codevertexitsolutions.com",
   className
 }) {
+  const stacked = layout === "stacked";
   return /* @__PURE__ */ jsxs(
     "a",
     {
@@ -427,14 +430,32 @@ function PoweredByBadge({
       target: "_blank",
       rel: "noopener noreferrer",
       className: cx(
-        "inline-flex items-center gap-2 transition-shadow",
-        variant === "card" && "rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg",
+        "inline-flex items-center transition-shadow",
+        stacked ? "gap-3" : "gap-2",
+        variant === "card" && (stacked ? "rounded-2xl bg-card px-4 py-2.5 shadow-md ring-1 ring-black/5 hover:shadow-lg" : "rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg"),
         className
       ),
       children: [
-        /* @__PURE__ */ jsx("img", { src: iconUrl, alt: "Codevertex", className: cx(iconClassName, "shrink-0 object-contain") }),
-        /* @__PURE__ */ jsxs("span", { className: "text-xs font-bold text-foreground whitespace-nowrap", children: [
-          /* @__PURE__ */ jsx("span", { className: "text-muted-foreground font-semibold", children: "Powered by" }),
+        /* @__PURE__ */ jsx(
+          "img",
+          {
+            src: iconUrl,
+            alt: "Codevertex",
+            className: cx(iconClassName ?? (stacked ? "h-11 w-11" : "h-7 w-7"), "shrink-0 object-contain")
+          }
+        ),
+        stacked ? /* @__PURE__ */ jsxs("span", { className: "flex flex-col items-start leading-tight text-left", children: [
+          /* @__PURE__ */ jsx(
+            "span",
+            {
+              className: "text-[10px] font-bold uppercase tracking-wider",
+              style: { color: BRAND_PURPLE, opacity: 0.65 },
+              children: "Powered by"
+            }
+          ),
+          /* @__PURE__ */ jsx("span", { className: "text-sm font-extrabold whitespace-nowrap", style: { color: BRAND_PURPLE }, children: "Codevertex Africa Limited" })
+        ] }) : /* @__PURE__ */ jsxs("span", { className: "text-xs font-bold whitespace-nowrap", style: { color: BRAND_PURPLE }, children: [
+          /* @__PURE__ */ jsx("span", { className: "font-semibold", style: { opacity: 0.65 }, children: "Powered by" }),
           " Codevertex Africa Limited"
         ] })
       ]
@@ -458,7 +479,7 @@ function PinLoginBrandPanel({
       }
     ) : /* @__PURE__ */ jsx("p", { className: "text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]", children: tenantName }),
     /* @__PURE__ */ jsx(WorkflowIllustration, { steps: workflowSteps }),
-    /* @__PURE__ */ jsx(PoweredByBadge, { iconUrl: poweredByLogoUrl, iconClassName: "h-12 w-12" })
+    /* @__PURE__ */ jsx(PoweredByBadge, { iconUrl: poweredByLogoUrl, layout: "stacked", iconClassName: "h-12 w-12" })
   ] });
 }
 function PasscodeField({

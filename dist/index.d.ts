@@ -12,16 +12,20 @@ import 'react';
 interface PoweredByBadgeProps {
     /** Override the icon (defaults to the Codevertex Africa Limited icon). */
     iconUrl?: string;
-    /** 'card' (default) — the thin creamy pill used on brand panels/footers.
+    /** 'card' (default) — the creamy pill/card used on brand panels/footers.
      *  'inline' — a bare, no-background row for tight spaces. */
     variant?: 'card' | 'inline';
-    /** Icon size — this drives the pill's height (thin padding, not a fixed tall box), so pass a
-     *  bigger size (e.g. 'h-10 w-10') for a more prominent placement and it stays proportioned.
-     *  Defaults to a compact 'h-7 w-7' sized for a one-line footer badge. */
+    /** 'row' (default) — thin one-line "Powered by Codevertex Africa Limited" pill, for app
+     *  footers. 'stacked' — the taller two-line card (uppercase "POWERED BY" label over a bold
+     *  name), for the prominent PIN-login brand panel placement. */
+    layout?: 'row' | 'stacked';
+    /** Icon size — for `layout="row"` this drives the pill's height (thin padding, not a fixed tall
+     *  box), so pass a bigger size for a more prominent placement and it stays proportioned.
+     *  Defaults to a compact 'h-7 w-7' for `row`, 'h-11 w-11' for `stacked`. */
     iconClassName?: string;
     href?: string;
     className?: string;
 }
-declare function PoweredByBadge({ iconUrl, variant, iconClassName, href, className, }: PoweredByBadgeProps): react_jsx_runtime.JSX.Element;
+declare function PoweredByBadge({ iconUrl, variant, layout, iconClassName, href, className, }: PoweredByBadgeProps): react_jsx_runtime.JSX.Element;
 
 export { PoweredByBadge, type PoweredByBadgeProps };
