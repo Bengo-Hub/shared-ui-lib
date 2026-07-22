@@ -48,6 +48,23 @@ function PinKeypad({
     },
     key
   );
+  const ClearKey = (full) => /* @__PURE__ */ jsxRuntime.jsx(
+    "button",
+    {
+      type: "button",
+      onClick: onClear,
+      disabled: disabled || digitsLength === 0,
+      "aria-label": "Clear",
+      "data-testid": "pin-key-clear",
+      className: cx(
+        KEY_BASE,
+        full && "w-full h-11 sm:h-12",
+        "bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm",
+        "hover:brightness-110"
+      ),
+      children: "Clear"
+    }
+  );
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex w-full flex-col gap-2.5 sm:gap-3", children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-3 gap-2.5 sm:gap-3", children: [
       NUMBER_ROWS.flat().map(NumberKey),
@@ -66,7 +83,13 @@ function PinKeypad({
           ),
           children: "ABC"
         }
-      ) : /* @__PURE__ */ jsxRuntime.jsx("div", { "aria-hidden": true }),
+      ) : (
+        // Large-screen 3-zone layout: Clear takes the toggle's slot (last row, same row as the
+        // QWERTY keyboard's Space bar) instead of an extra full-width row below — otherwise the
+        // numeric column runs one row taller than the QWERTY column and Clear ends up lower/cut
+        // off relative to Space.
+        ClearKey()
+      ),
       NumberKey("0"),
       /* @__PURE__ */ jsxRuntime.jsx(
         "button",
@@ -84,22 +107,7 @@ function PinKeypad({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsx(
-      "button",
-      {
-        type: "button",
-        onClick: onClear,
-        disabled: disabled || digitsLength === 0,
-        "aria-label": "Clear",
-        "data-testid": "pin-key-clear",
-        className: cx(
-          KEY_BASE,
-          "w-full h-11 sm:h-12 bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm",
-          "hover:brightness-110"
-        ),
-        children: "Clear"
-      }
-    )
+    showToggle && ClearKey(true)
   ] });
 }
 var QWERTY_ROWS = [
@@ -418,7 +426,7 @@ function PinLoginBrandPanel({
   poweredByLogoUrl = CODEVERTEX_LOGO_URL,
   className
 }) {
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `flex flex-col items-center justify-center gap-8 px-6 py-8 text-center ${className ?? ""}`, children: [
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `h-full flex flex-col items-center justify-center gap-7 px-6 py-8 text-center ${className ?? ""}`, children: [
     tenantLogoUrl ? /* @__PURE__ */ jsxRuntime.jsx(
       "img",
       {
@@ -428,13 +436,13 @@ function PinLoginBrandPanel({
       }
     ) : /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-3xl sm:text-4xl font-black text-white tracking-tight max-w-[85%]", children: tenantName }),
     /* @__PURE__ */ jsxRuntime.jsx(WorkflowIllustration, { steps: workflowSteps }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-lg ring-1 ring-black/5", children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5", children: [
       /* @__PURE__ */ jsxRuntime.jsx(
         "img",
         {
           src: poweredByLogoUrl,
           alt: "Codevertex Africa Limited",
-          className: "h-9 w-9 rounded-lg object-contain shrink-0"
+          className: "h-12 w-12 rounded-lg object-contain shrink-0"
         }
       ),
       /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "text-left leading-tight", children: [
@@ -567,8 +575,8 @@ function PinLoginLayout({ header, brandPanel, card, footer, backdropUrl, classNa
         /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative z-10 flex flex-col h-full min-h-0", children: [
           header,
           /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(260px,340px)_1fr]", children: [
-            brandPanel && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "hidden lg:flex min-h-0", children: brandPanel }),
-            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-h-0 flex items-stretch justify-center p-2 sm:p-5 lg:p-6", children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-5xl bg-card rounded-2xl sm:rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden", children: card }) })
+            brandPanel && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "hidden lg:flex min-h-0 h-full", children: brandPanel }),
+            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-h-0 flex items-stretch justify-center p-2 sm:p-4 lg:p-5", children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-6xl bg-card rounded-2xl sm:rounded-3xl shadow-2xl ring-1 ring-black/5 flex flex-col min-h-0 overflow-hidden", children: card }) })
           ] })
         ] }),
         footer

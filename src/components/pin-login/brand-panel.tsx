@@ -32,7 +32,7 @@ export function PinLoginBrandPanel({
   tenantName, tenantLogoUrl, workflowSteps, poweredByLogoUrl = CODEVERTEX_LOGO_URL, className,
 }: PinLoginBrandPanelProps) {
   return (
-    <div className={`flex flex-col items-center justify-center gap-8 px-6 py-8 text-center ${className ?? ''}`}>
+    <div className={`h-full flex flex-col items-center justify-center gap-7 px-6 py-8 text-center ${className ?? ''}`}>
       {/* Tenant logo — no background, blends with the brand-tinted panel. Falls back to a plain
           tenant-name wordmark when no logo is configured. */}
       {tenantLogoUrl ? (
@@ -50,11 +50,11 @@ export function PinLoginBrandPanel({
       {/* Platform attribution — a real card (creamy, same tone as the main login card), not a
           faint text mark, so "Powered by Codevertex Africa Limited" reads clearly against the
           brand-tinted panel. */}
-      <div className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-lg ring-1 ring-black/5">
+      <div className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5">
         <img
           src={poweredByLogoUrl}
           alt="Codevertex Africa Limited"
-          className="h-9 w-9 rounded-lg object-contain shrink-0"
+          className="h-12 w-12 rounded-lg object-contain shrink-0"
         />
         <div className="text-left leading-tight">
           <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Powered by</p>

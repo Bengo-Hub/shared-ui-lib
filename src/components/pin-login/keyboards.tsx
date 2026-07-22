@@ -60,6 +60,24 @@ export function PinKeypad({
     </button>
   );
 
+  const ClearKey = (full?: boolean) => (
+    <button
+      type="button"
+      onClick={onClear}
+      disabled={disabled || digitsLength === 0}
+      aria-label="Clear"
+      data-testid="pin-key-clear"
+      className={cx(
+        KEY_BASE,
+        full && 'w-full h-11 sm:h-12',
+        'bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm',
+        'hover:brightness-110'
+      )}
+    >
+      Clear
+    </button>
+  );
+
   return (
     <div className="flex w-full flex-col gap-2.5 sm:gap-3">
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
@@ -81,7 +99,11 @@ export function PinKeypad({
             ABC
           </button>
         ) : (
-          <div aria-hidden />
+          // Large-screen 3-zone layout: Clear takes the toggle's slot (last row, same row as the
+          // QWERTY keyboard's Space bar) instead of an extra full-width row below — otherwise the
+          // numeric column runs one row taller than the QWERTY column and Clear ends up lower/cut
+          // off relative to Space.
+          ClearKey()
         )}
         {NumberKey('0')}
         <button
@@ -99,20 +121,7 @@ export function PinKeypad({
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onClear}
-        disabled={disabled || digitsLength === 0}
-        aria-label="Clear"
-        data-testid="pin-key-clear"
-        className={cx(
-          KEY_BASE,
-          'w-full h-11 sm:h-12 bg-destructive border border-destructive text-white text-sm font-black uppercase tracking-wider shadow-sm',
-          'hover:brightness-110'
-        )}
-      >
-        Clear
-      </button>
+      {showToggle && ClearKey(true)}
     </div>
   );
 }
