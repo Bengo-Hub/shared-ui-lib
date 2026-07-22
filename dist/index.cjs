@@ -1722,6 +1722,35 @@ function compareValues(a, b) {
 function cx2(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
+function PoweredByBadge({
+  iconUrl = CODEVERTEX_ICON_URL,
+  variant = "card",
+  iconClassName = "h-11 w-11",
+  href = "https://codevertexitsolutions.com",
+  className
+}) {
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "a",
+    {
+      href,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      className: cx2(
+        "inline-flex items-center gap-3 transition-shadow",
+        variant === "card" && "rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5 hover:shadow-xl",
+        className
+      ),
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("img", { src: iconUrl, alt: "Codevertex", className: cx2(iconClassName, "shrink-0 object-contain") }),
+        /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-left leading-tight", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-[9px] font-bold uppercase tracking-widest text-muted-foreground", children: "Powered by" }),
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "block text-sm font-black text-foreground whitespace-nowrap", children: "Codevertex Africa Limited" })
+        ] })
+      ]
+    }
+  );
+}
 function BulkActionBar({
   selectedKeys,
   actions,
@@ -2452,6 +2481,7 @@ exports.PAYOUT_METHODS = PAYOUT_METHODS;
 exports.PAYSTACK = PAYSTACK;
 exports.PAY_SUPPLIER_METHODS = PAY_SUPPLIER_METHODS;
 exports.PdfPreview = PdfPreview;
+exports.PoweredByBadge = PoweredByBadge;
 exports.PwaUpdater = PwaUpdater;
 exports.RECEIVE_METHODS = RECEIVE_METHODS;
 exports.SETTLE_CREDIT_SALE_METHODS = SETTLE_CREDIT_SALE_METHODS;

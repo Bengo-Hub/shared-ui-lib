@@ -5,6 +5,21 @@ export { D as DocumentPreviewProps, O as OpenPreviewOptions, P as PdfPreview, a 
 export { OfflineBar, OfflineBarProps, OfflineSyncBanner, OfflineSyncBannerProps, OfflineSyncState, PwaUpdater, PwaUpdaterProps, SyncedConfirmation, UseOfflineSyncOptions, registerServiceWorker, useOfflineSync, useOnlineStatus } from './components/offline/index.cjs';
 export { CreatedSupplier, SupplierBankFieldRenderArgs, SupplierForm, SupplierFormProps, SupplierFormValues, SupplierPaymentMethod } from './components/suppliers/index.cjs';
 export { ComboboxOption, SearchableCombobox, SearchableComboboxProps } from './components/combobox/index.cjs';
+import * as react_jsx_runtime from 'react/jsx-runtime';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export-C2Eni2VG.cjs';
-import 'react/jsx-runtime';
 import 'react';
+
+interface PoweredByBadgeProps {
+    /** Override the icon (defaults to the Codevertex Africa Limited icon). */
+    iconUrl?: string;
+    /** 'card' (default) — the creamy bordered card used on brand panels/footers.
+     *  'inline' — a bare, no-background row for tight spaces. */
+    variant?: 'card' | 'inline';
+    /** Icon box size in px-equivalent Tailwind units, e.g. 'h-11 w-11' (default). */
+    iconClassName?: string;
+    href?: string;
+    className?: string;
+}
+declare function PoweredByBadge({ iconUrl, variant, iconClassName, href, className, }: PoweredByBadgeProps): react_jsx_runtime.JSX.Element;
+
+export { PoweredByBadge, type PoweredByBadgeProps };

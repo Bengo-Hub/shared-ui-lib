@@ -13,23 +13,20 @@
 
 import React from 'react';
 import { WorkflowIllustration } from './brand-mark';
+import { PoweredByBadge } from '../branding/powered-by';
 import type { WorkflowStep } from './types';
-
-/** The Codevertex Africa Limited platform's own public logo (accounts/auth-ui hosted) — the same
- *  asset used platform-wide, not tenant-specific, so it's a stable default here. */
-const CODEVERTEX_LOGO_URL = 'https://accounts.codevertexitsolutions.com/images/logo/codevertex.png';
 
 export interface PinLoginBrandPanelProps {
   tenantName: string;
   tenantLogoUrl?: string | null;
   workflowSteps: WorkflowStep[];
-  /** Override the platform "Powered by" logo (defaults to the Codevertex Africa Limited logo). */
+  /** Override the platform "Powered by" icon (defaults to the Codevertex icon). */
   poweredByLogoUrl?: string;
   className?: string;
 }
 
 export function PinLoginBrandPanel({
-  tenantName, tenantLogoUrl, workflowSteps, poweredByLogoUrl = CODEVERTEX_LOGO_URL, className,
+  tenantName, tenantLogoUrl, workflowSteps, poweredByLogoUrl, className,
 }: PinLoginBrandPanelProps) {
   return (
     <div className={`h-full flex flex-col items-center justify-center gap-7 px-6 py-8 text-center ${className ?? ''}`}>
@@ -49,18 +46,8 @@ export function PinLoginBrandPanel({
 
       {/* Platform attribution — a real card (creamy, same tone as the main login card), not a
           faint text mark, so "Powered by Codevertex Africa Limited" reads clearly against the
-          brand-tinted panel. */}
-      <div className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5">
-        <img
-          src={poweredByLogoUrl}
-          alt="Codevertex Africa Limited"
-          className="h-12 w-12 rounded-lg object-contain shrink-0"
-        />
-        <div className="text-left leading-tight">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Powered by</p>
-          <p className="text-sm font-black text-foreground whitespace-nowrap">Codevertex Africa Limited</p>
-        </div>
-      </div>
+          brand-tinted panel. Same badge every app's footer uses. */}
+      <PoweredByBadge iconUrl={poweredByLogoUrl} iconClassName="h-12 w-12" />
     </div>
   );
 }

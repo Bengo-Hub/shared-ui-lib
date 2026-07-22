@@ -118,7 +118,7 @@ interface PinLoginBrandPanelProps {
     tenantName: string;
     tenantLogoUrl?: string | null;
     workflowSteps: WorkflowStep[];
-    /** Override the platform "Powered by" logo (defaults to the Codevertex Africa Limited logo). */
+    /** Override the platform "Powered by" icon (defaults to the Codevertex icon). */
     poweredByLogoUrl?: string;
     className?: string;
 }

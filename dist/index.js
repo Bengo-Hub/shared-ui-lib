@@ -1720,6 +1720,35 @@ function compareValues(a, b) {
 function cx2(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
+function PoweredByBadge({
+  iconUrl = CODEVERTEX_ICON_URL,
+  variant = "card",
+  iconClassName = "h-11 w-11",
+  href = "https://codevertexitsolutions.com",
+  className
+}) {
+  return /* @__PURE__ */ jsxs(
+    "a",
+    {
+      href,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      className: cx2(
+        "inline-flex items-center gap-3 transition-shadow",
+        variant === "card" && "rounded-2xl bg-card px-4 py-3.5 shadow-lg ring-1 ring-black/5 hover:shadow-xl",
+        className
+      ),
+      children: [
+        /* @__PURE__ */ jsx("img", { src: iconUrl, alt: "Codevertex", className: cx2(iconClassName, "shrink-0 object-contain") }),
+        /* @__PURE__ */ jsxs("span", { className: "text-left leading-tight", children: [
+          /* @__PURE__ */ jsx("span", { className: "block text-[9px] font-bold uppercase tracking-widest text-muted-foreground", children: "Powered by" }),
+          /* @__PURE__ */ jsx("span", { className: "block text-sm font-black text-foreground whitespace-nowrap", children: "Codevertex Africa Limited" })
+        ] })
+      ]
+    }
+  );
+}
 function BulkActionBar({
   selectedKeys,
   actions,
@@ -2429,6 +2458,6 @@ function FragmentRow({ children }) {
   return /* @__PURE__ */ jsx(Fragment, { children });
 }
 
-export { BANK, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, DataTable, FunnelFilter, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, OfflineBar, OfflineSyncBanner, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PwaUpdater, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, registerServiceWorker, useDocumentPreview, useOfflineSync, useOnlineStatus };
+export { BANK, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, DataTable, FunnelFilter, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, OfflineBar, OfflineSyncBanner, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, registerServiceWorker, useDocumentPreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

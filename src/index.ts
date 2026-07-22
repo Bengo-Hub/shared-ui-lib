@@ -58,6 +58,7 @@ export {
   type ComboboxOption,
   type SearchableComboboxProps,
 } from './components/combobox';
+export { PoweredByBadge, type PoweredByBadgeProps } from './components/branding/powered-by';
 export {
   DataTable,
   type DataTableProps,
