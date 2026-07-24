@@ -12,12 +12,10 @@ import 'react';
 interface PoweredByBadgeProps {
     /** Override the icon (defaults to the Codevertex Africa Limited icon). */
     iconUrl?: string;
-    /** 'card' (default) — the creamy pill/card used on brand panels/footers.
-     *  'inline' — a bare, no-background row for tight spaces. */
+    /** 'card' (default) — the rounded white pill. 'inline' — a bare, no-background row for tight spaces. */
     variant?: 'card' | 'inline';
-    /** 'row' (default) — thin one-line "Powered by Codevertex Africa Limited" pill, for app
-     *  footers. 'stacked' — the taller two-line card (uppercase "POWERED BY" label over a bold
-     *  name), for the prominent PIN-login brand panel placement. */
+    /** 'row' (default) — one-line "POWERED BY CODEVERTEX AFRICA LIMITED" pill, for app footers.
+     *  'stacked' — the taller two-line card (label over the name), for the PIN-login brand panel. */
     layout?: 'row' | 'stacked';
     /** Icon size — for `layout="row"` this drives the pill's height (thin padding, not a fixed tall
      *  box), so pass a bigger size for a more prominent placement and it stays proportioned.

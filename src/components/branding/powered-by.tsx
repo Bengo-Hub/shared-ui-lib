@@ -1,14 +1,12 @@
 'use client';
 
 /**
- * PoweredByBadge — the platform attribution shown across every tenant-facing app: a creamy card
- * (same tone as the app's own cards/surfaces, so it always reads correctly whether the app is
- * light or dark) with the Codevertex icon + "Powered by Codevertex Africa Limited", set in the
- * Codevertex brand purple rather than generic gray/black text. Used both on the shared PIN-login
- * brand panel (`layout="stacked"` — the original taller two-line card: uppercase "POWERED BY"
- * label over a bold name) and as the app-wide footer badge (`layout="row"`, default — a thin
- * one-line pill; replaces each app's own hand-rolled dark-pill version) so every service shows the
- * same mark, sized appropriately for where it sits.
+ * PoweredByBadge — the platform attribution shown across every tenant-facing app: a rounded white
+ * pill holding the Codevertex icon in its own light chip, then "POWERED BY" in bold dark type and
+ * "CODEVERTEX AFRICA LIMITED" in the Codevertex brand orange — all uppercase, on one line (the
+ * design in the reference mark). Used both on the shared PIN-login brand panel (`layout="stacked"`,
+ * the two-line variant that stacks the label over the name) and as the app-wide footer badge
+ * (`layout="row"`, default) so every service shows the same mark, sized for where it sits.
  */
 
 import { cx } from '../data-table/types';
@@ -17,20 +15,16 @@ import { cx } from '../data-table/types';
  *  at small sizes and is the mark used site-wide on codevertexitsolutions.com). */
 const CODEVERTEX_ICON_URL = 'https://codevertexitsolutions.com/icon.svg';
 
-/** Codevertex Africa Limited brand purple (matches codevertex-website's `--primary` / Tailwind
- *  `brand.purple` token: hsl(291 100% 35%) = #9100B0) — used instead of theme-neutral gray/black
- *  so the mark reads as a Codevertex brand element wherever it's placed. */
-const BRAND_PURPLE = '#9100B0';
+/** Codevertex Africa Limited brand orange — the accent the company name is set in on the mark. */
+const BRAND_ORANGE = '#E8631E';
 
 export interface PoweredByBadgeProps {
   /** Override the icon (defaults to the Codevertex Africa Limited icon). */
   iconUrl?: string;
-  /** 'card' (default) — the creamy pill/card used on brand panels/footers.
-   *  'inline' — a bare, no-background row for tight spaces. */
+  /** 'card' (default) — the rounded white pill. 'inline' — a bare, no-background row for tight spaces. */
   variant?: 'card' | 'inline';
-  /** 'row' (default) — thin one-line "Powered by Codevertex Africa Limited" pill, for app
-   *  footers. 'stacked' — the taller two-line card (uppercase "POWERED BY" label over a bold
-   *  name), for the prominent PIN-login brand panel placement. */
+  /** 'row' (default) — one-line "POWERED BY CODEVERTEX AFRICA LIMITED" pill, for app footers.
+   *  'stacked' — the taller two-line card (label over the name), for the PIN-login brand panel. */
   layout?: 'row' | 'stacked';
   /** Icon size — for `layout="row"` this drives the pill's height (thin padding, not a fixed tall
    *  box), so pass a bigger size for a more prominent placement and it stays proportioned.
@@ -49,40 +43,35 @@ export function PoweredByBadge({
   className,
 }: PoweredByBadgeProps) {
   const stacked = layout === 'stacked';
+  const iconSize = iconClassName ?? (stacked ? 'h-10 w-10' : 'h-7 w-7');
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={cx(
-        'inline-flex items-center transition-shadow',
-        stacked ? 'gap-3' : 'gap-2',
+        'inline-flex items-center gap-2.5 transition-shadow',
         variant === 'card' && (stacked
-          ? 'rounded-2xl bg-card px-4 py-2.5 shadow-md ring-1 ring-black/5 hover:shadow-lg'
-          : 'rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg'),
+          ? 'rounded-3xl bg-card pl-2 pr-5 py-2 shadow-md ring-1 ring-black/5 hover:shadow-lg'
+          : 'rounded-full bg-card pl-1.5 pr-4 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg'),
         className
       )}
     >
-      <img
-        src={iconUrl}
-        alt="Codevertex"
-        className={cx(iconClassName ?? (stacked ? 'h-11 w-11' : 'h-7 w-7'), 'shrink-0 object-contain')}
-      />
+      {/* Icon sits in its own light rounded chip, as in the reference mark. */}
+      <span className="shrink-0 flex items-center justify-center rounded-2xl bg-white ring-1 ring-black/5 shadow-sm p-1">
+        <img src={iconUrl} alt="Codevertex" className={cx(iconSize, 'object-contain')} />
+      </span>
       {stacked ? (
-        <span className="flex flex-col items-start leading-tight text-left">
-          <span
-            className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: BRAND_PURPLE, opacity: 0.65 }}
-          >
-            Powered by
-          </span>
-          <span className="text-sm font-extrabold whitespace-nowrap" style={{ color: BRAND_PURPLE }}>
+        <span className="flex flex-col items-start leading-tight text-left uppercase">
+          <span className="text-[10px] font-bold tracking-wider text-foreground">Powered by</span>
+          <span className="text-sm font-extrabold tracking-wide whitespace-nowrap" style={{ color: BRAND_ORANGE }}>
             Codevertex Africa Limited
           </span>
         </span>
       ) : (
-        <span className="text-xs font-bold whitespace-nowrap" style={{ color: BRAND_PURPLE }}>
-          <span className="font-semibold" style={{ opacity: 0.65 }}>Powered by</span> Codevertex Africa Limited
+        <span className="text-xs font-extrabold uppercase tracking-wide whitespace-nowrap">
+          <span className="text-foreground">Powered by</span>{' '}
+          <span style={{ color: BRAND_ORANGE }}>Codevertex Africa Limited</span>
         </span>
       )}
     </a>

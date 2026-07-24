@@ -419,7 +419,7 @@ function PinLoginHeader({
   ] }) });
 }
 var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
-var BRAND_PURPLE = "#9100B0";
+var BRAND_ORANGE = "#E8631E";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
@@ -429,6 +429,7 @@ function PoweredByBadge({
   className
 }) {
   const stacked = layout === "stacked";
+  const iconSize = iconClassName ?? (stacked ? "h-10 w-10" : "h-7 w-7");
   return /* @__PURE__ */ jsxRuntime.jsxs(
     "a",
     {
@@ -436,33 +437,19 @@ function PoweredByBadge({
       target: "_blank",
       rel: "noopener noreferrer",
       className: cx(
-        "inline-flex items-center transition-shadow",
-        stacked ? "gap-3" : "gap-2",
-        variant === "card" && (stacked ? "rounded-2xl bg-card px-4 py-2.5 shadow-md ring-1 ring-black/5 hover:shadow-lg" : "rounded-full bg-card pl-1.5 pr-3.5 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg"),
+        "inline-flex items-center gap-2.5 transition-shadow",
+        variant === "card" && (stacked ? "rounded-3xl bg-card pl-2 pr-5 py-2 shadow-md ring-1 ring-black/5 hover:shadow-lg" : "rounded-full bg-card pl-1.5 pr-4 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg"),
         className
       ),
       children: [
-        /* @__PURE__ */ jsxRuntime.jsx(
-          "img",
-          {
-            src: iconUrl,
-            alt: "Codevertex",
-            className: cx(iconClassName ?? (stacked ? "h-11 w-11" : "h-7 w-7"), "shrink-0 object-contain")
-          }
-        ),
-        stacked ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex flex-col items-start leading-tight text-left", children: [
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "span",
-            {
-              className: "text-[10px] font-bold uppercase tracking-wider",
-              style: { color: BRAND_PURPLE, opacity: 0.65 },
-              children: "Powered by"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm font-extrabold whitespace-nowrap", style: { color: BRAND_PURPLE }, children: "Codevertex Africa Limited" })
-        ] }) : /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-bold whitespace-nowrap", style: { color: BRAND_PURPLE }, children: [
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", style: { opacity: 0.65 }, children: "Powered by" }),
-          " Codevertex Africa Limited"
+        /* @__PURE__ */ jsxRuntime.jsx("span", { className: "shrink-0 flex items-center justify-center rounded-2xl bg-white ring-1 ring-black/5 shadow-sm p-1", children: /* @__PURE__ */ jsxRuntime.jsx("img", { src: iconUrl, alt: "Codevertex", className: cx(iconSize, "object-contain") }) }),
+        stacked ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex flex-col items-start leading-tight text-left uppercase", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-[10px] font-bold tracking-wider text-foreground", children: "Powered by" }),
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm font-extrabold tracking-wide whitespace-nowrap", style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" })
+        ] }) : /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-extrabold uppercase tracking-wide whitespace-nowrap", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-foreground", children: "Powered by" }),
+          " ",
+          /* @__PURE__ */ jsxRuntime.jsx("span", { style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" })
         ] })
       ]
     }
