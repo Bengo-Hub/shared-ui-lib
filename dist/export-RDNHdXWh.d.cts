@@ -61,6 +61,17 @@ interface DataTableColumn<T> {
     exportable?: boolean;
     /** Start hidden in the column-visibility manager. */
     defaultHidden?: boolean;
+    /** Use this column as the card's title (big, top-left). Exactly one per table. */
+    primary?: boolean;
+    /** Render this column in the card's top-right slot instead of the field list
+     *  (e.g. a status badge or an edit/menu button). */
+    mobileAction?: boolean;
+    /** Omit this column from the mobile card entirely (e.g. redundant with the primary title,
+     *  or a column that only makes sense in the dense desktop grid). */
+    mobileHidden?: boolean;
+    /** Label shown before the value in the mobile card's field list. Defaults to `header`
+     *  when it's a plain string. */
+    mobileLabel?: string;
 }
 interface BulkAction {
     key: string;

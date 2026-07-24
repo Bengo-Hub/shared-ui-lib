@@ -598,7 +598,7 @@ function DataTable(props) {
       ] })
     ] }),
     selectable && bulkActions.length > 0 && /* @__PURE__ */ jsx(BulkActionBar, { selectedKeys: [...selected], actions: bulkActions, onClear: () => setSelected(/* @__PURE__ */ new Set()) }),
-    /* @__PURE__ */ jsxs("div", { className: "overflow-x-auto rounded-lg border border-border", children: [
+    /* @__PURE__ */ jsxs("div", { className: "hidden md:block overflow-x-auto rounded-lg border border-border", children: [
       /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
         /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { className: cx("border-b border-border bg-muted/40", gridLines === "both" && "divide-x divide-border/50"), children: [
           selectable && /* @__PURE__ */ jsx("th", { className: cx(cellPad, "w-10"), children: /* @__PURE__ */ jsx(
@@ -717,6 +717,100 @@ function DataTable(props) {
           ] }, key);
         }) })
       ] }),
+      props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
+        TableFooter,
+        {
+          page: props.page,
+          totalPages: props.totalPages,
+          onPageChange: props.onPageChange,
+          total: props.total,
+          pageSize: props.pageSize,
+          shownCount: processedRows.length
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "md:hidden rounded-lg border border-border", children: [
+      /* @__PURE__ */ jsx("div", { className: "divide-y divide-border", children: loading ? /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center text-muted-foreground", children: "Loading\u2026" }) : error ? /* @__PURE__ */ jsxs("div", { className: "px-6 py-12 text-center", children: [
+        /* @__PURE__ */ jsx(AlertTriangle, { className: "h-10 w-10 mx-auto text-destructive/60 mb-3" }),
+        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "Couldn't load data" }),
+        onRetry && /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onRetry,
+            className: "mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors",
+            children: "Retry"
+          }
+        )
+      ] }) : processedRows.length === 0 ? /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center", children: props.emptyState ?? /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx(Inbox, { className: "h-10 w-10 mx-auto text-muted-foreground/50 mb-3" }),
+        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: props.emptyText ?? "No records found" })
+      ] }) }) : processedRows.map((row, i) => {
+        const key = rowKey(row);
+        const isExpanded = expanded.has(key);
+        const canSelect = isRowSelectable?.(row) ?? true;
+        const primaryCol = visibleColumns.find((c) => c.primary);
+        const actionCols = visibleColumns.filter((c) => c.mobileAction);
+        const bodyCols = visibleColumns.filter((c) => !c.primary && !c.mobileAction && !c.mobileHidden);
+        return /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: cx(
+              "p-4 active:bg-accent/40 transition-colors",
+              (props.onRowClick || renderExpanded) && "cursor-pointer",
+              selected.has(key) && "bg-primary/5",
+              props.rowClassName?.(row)
+            ),
+            onClick: props.onRowClick ? () => props.onRowClick?.(row) : renderExpanded ? () => {
+              const next = new Set(expanded);
+              if (next.has(key)) next.delete(key);
+              else next.add(key);
+              setExpanded(next);
+            } : void 0,
+            children: [
+              /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+                selectable && canSelect && /* @__PURE__ */ jsx("div", { onClick: (e) => e.stopPropagation(), className: "pt-0.5 shrink-0", children: /* @__PURE__ */ jsx(
+                  Checkbox,
+                  {
+                    checked: selected.has(key),
+                    onChange: () => {
+                      const next = new Set(selected);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      setSelected(next);
+                    }
+                  }
+                ) }),
+                /* @__PURE__ */ jsx("div", { className: "min-w-0 flex-1", children: primaryCol && /* @__PURE__ */ jsx("div", { className: "font-semibold text-foreground break-words", children: primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || "\u2014" }) }),
+                (actionCols.length > 0 || renderExpanded) && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 shrink-0", onClick: (e) => e.stopPropagation(), children: [
+                  actionCols.map((c) => /* @__PURE__ */ jsx("div", { children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) }, c.key)),
+                  renderExpanded && /* @__PURE__ */ jsx(
+                    "button",
+                    {
+                      type: "button",
+                      "aria-label": isExpanded ? "Collapse row" : "Expand row",
+                      onClick: () => {
+                        const next = new Set(expanded);
+                        if (next.has(key)) next.delete(key);
+                        else next.add(key);
+                        setExpanded(next);
+                      },
+                      className: "p-1 rounded text-muted-foreground hover:text-foreground transition-colors",
+                      children: isExpanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+                    }
+                  )
+                ] })
+              ] }),
+              bodyCols.length > 0 && /* @__PURE__ */ jsx("dl", { className: "mt-3 grid grid-cols-2 gap-x-4 gap-y-2", children: bodyCols.map((c) => /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+                /* @__PURE__ */ jsx("dt", { className: "text-[10px] font-semibold uppercase tracking-wide text-muted-foreground", children: c.mobileLabel ?? (typeof c.header === "string" ? c.header : c.key) }),
+                /* @__PURE__ */ jsx("dd", { className: "text-sm text-foreground mt-0.5 break-words", children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) || "\u2014" })
+              ] }, c.key)) }),
+              isExpanded && renderExpanded && /* @__PURE__ */ jsx("div", { className: "mt-3 pt-3 border-t border-border/70", onClick: (e) => e.stopPropagation(), children: renderExpanded(row) })
+            ]
+          },
+          key
+        );
+      }) }),
       props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
         TableFooter,
         {
