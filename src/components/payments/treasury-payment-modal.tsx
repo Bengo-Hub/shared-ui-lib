@@ -46,7 +46,7 @@ type PaymentState = 'loading' | 'checkout' | 'confirmed' | 'failed' | 'expired';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_TREASURY_UI_URL: string =
   ((globalThis as any).process?.env?.NEXT_PUBLIC_TREASURY_UI_URL as string | undefined) ||
-  'https://books.codevertexitsolutions.com';
+  'https://books.codevertexafrica.com';
 
 /** Default timeout: 10 minutes */
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;

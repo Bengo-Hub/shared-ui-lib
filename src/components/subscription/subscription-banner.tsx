@@ -130,7 +130,7 @@ function SubscribeOverlay({ upgradeUrl }: { upgradeUrl: string }) {
         Choose a plan
       </a>
       <p className="text-xs text-muted-foreground">
-        Contact <span className="font-medium">support@codevertexitsolutions.com</span> for assistance
+        Contact <span className="font-medium">support@codevertexafrica.com</span> for assistance
       </p>
     </div>
   );
@@ -182,7 +182,7 @@ function BlockingOverlay({
         Try again
       </button>
       <p className="text-xs text-muted-foreground">
-        Contact <span className="font-medium">support@codevertexitsolutions.com</span> for
+        Contact <span className="font-medium">support@codevertexafrica.com</span> for
         assistance
       </p>
     </div>
@@ -237,7 +237,7 @@ function BlockingOverlay({
       </a>
 
       <p className="text-xs text-muted-foreground">
-        Contact <span className="font-medium">support@codevertexitsolutions.com</span> for assistance
+        Contact <span className="font-medium">support@codevertexafrica.com</span> for assistance
       </p>
     </div>
   );

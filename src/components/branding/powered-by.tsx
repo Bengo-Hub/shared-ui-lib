@@ -12,8 +12,8 @@
 import { cx } from '../data-table/types';
 
 /** The Codevertex Africa Limited platform icon (not the full wordmark logo — this reads clearly
- *  at small sizes and is the mark used site-wide on codevertexitsolutions.com). */
-const CODEVERTEX_ICON_URL = 'https://codevertexitsolutions.com/icon.svg';
+ *  at small sizes and is the mark used site-wide on codevertexafrica.com). */
+const CODEVERTEX_ICON_URL = 'https://codevertexafrica.com/icon.svg';
 
 /** Codevertex Africa Limited brand orange — the accent the company name is set in on the mark. */
 const BRAND_ORANGE = '#E8631E';
@@ -39,7 +39,7 @@ export function PoweredByBadge({
   variant = 'card',
   layout = 'row',
   iconClassName,
-  href = 'https://codevertexitsolutions.com',
+  href = 'https://codevertexafrica.com',
   className,
 }: PoweredByBadgeProps) {
   const stacked = layout === 'stacked';

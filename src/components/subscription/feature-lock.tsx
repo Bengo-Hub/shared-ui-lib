@@ -44,7 +44,7 @@ export function useFeatureUpgrade(feature: string): {
   const locked = !isFeatureUnlocked(e, feature);
   const tierLabel = entry?.minTierLabel || "a higher plan";
   const upgradeHref = useMemo(() => {
-    const base = (e.upgradeBaseUrl || "https://pricing.codevertexitsolutions.com").replace(/\/$/, "");
+    const base = (e.upgradeBaseUrl || "https://pricing.codevertexafrica.com").replace(/\/$/, "");
     const params = new URLSearchParams();
     if (entry?.serviceTag) params.set("service", entry.serviceTag);
     if (entry?.minPlanCode) params.set("plan", entry.minPlanCode);
