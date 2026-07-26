@@ -9,6 +9,22 @@ export interface PwaUpdaterProps {
   className?: string;
 }
 
+// codevertexitsolutions.com -> codevertexafrica.com rebrand: any tab/installed-PWA still on the
+// old domain gets a distinct, immediate "this app has moved" banner instead of waiting on the
+// normal same-origin build-fingerprint poll (which never fires here — the old domain's Ingress no
+// longer routes to this app at all, so every fetch the poll makes 404s and is silently ignored).
+// Once every legacy host is retired this block (and the branch in applyUpdate) can be deleted.
+const LEGACY_DOMAIN = 'codevertexitsolutions.com';
+const CURRENT_DOMAIN = 'codevertexafrica.com';
+
+function legacyRedirectUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  const { hostname } = window.location;
+  if (hostname !== LEGACY_DOMAIN && !hostname.endsWith(`.${LEGACY_DOMAIN}`)) return null;
+  const newHost = hostname.slice(0, hostname.length - LEGACY_DOMAIN.length) + CURRENT_DOMAIN;
+  return window.location.href.replace(hostname, newHost);
+}
+
 /** Extract the Next.js build id from a page's _buildManifest/_ssgManifest asset path. Only
  *  present for webpack (Pages Router-style) builds — Turbopack/App Router never emits this. */
 function buildIdFrom(html: string): string | null {
@@ -56,9 +72,16 @@ function fingerprintFrom(html: string): string | null {
  */
 export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpdaterProps) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isLegacyDomain, setIsLegacyDomain] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (legacyRedirectUrl()) {
+      setIsLegacyDomain(true);
+      setUpdateAvailable(true);
+      return; // no point polling a domain this app no longer serves
+    }
+
     const url = window.location.href;
     let stopped = false;
     let mine: string | null = null;
@@ -93,6 +116,13 @@ export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpda
   }, [checkIntervalMs]);
 
   const applyUpdate = async () => {
+    // On the legacy domain the app itself is gone (Ingress no longer routes here), so there's no
+    // "latest build" to reload into — the only correct action is to leave. Unregistering first
+    // means the browser drops this origin's installed-app registration on next relaunch instead of
+    // reopening a dead shell; the redirect below is what actually gets the user to a working app
+    // (installing the new PWA from there is a separate, user-driven browser gesture we can't
+    // trigger from script).
+    const redirect = legacyRedirectUrl();
     try {
       if ('caches' in window) {
         const keys = await caches.keys();
@@ -100,12 +130,20 @@ export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpda
       }
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.update().catch(() => {})));
+        if (redirect) {
+          await Promise.all(regs.map((r) => r.unregister().catch(() => {})));
+        } else {
+          await Promise.all(regs.map((r) => r.update().catch(() => {})));
+        }
       }
     } catch {
       /* best-effort */
     }
-    window.location.reload();
+    if (redirect) {
+      window.location.replace(redirect);
+    } else {
+      window.location.reload();
+    }
   };
 
   if (!updateAvailable) return null;
@@ -116,13 +154,13 @@ export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpda
       className={`flex w-full items-center justify-center gap-3 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white ${className}`}
     >
       <RefreshCw className="h-4 w-4 shrink-0" />
-      <span>A new version is available.</span>
+      <span>{isLegacyDomain ? 'This app has moved to a new address.' : 'A new version is available.'}</span>
       <button
         type="button"
         onClick={() => void applyUpdate()}
         className="rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100"
       >
-        Update now
+        {isLegacyDomain ? 'Continue' : 'Update now'}
       </button>
     </div>
   );

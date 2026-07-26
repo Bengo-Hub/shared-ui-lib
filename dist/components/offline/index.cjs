@@ -73,6 +73,15 @@ function SyncedConfirmation({ className = "" }) {
     " All offline data synced"
   ] });
 }
+var LEGACY_DOMAIN = "codevertexitsolutions.com";
+var CURRENT_DOMAIN = "codevertexafrica.com";
+function legacyRedirectUrl() {
+  if (typeof window === "undefined") return null;
+  const { hostname } = window.location;
+  if (hostname !== LEGACY_DOMAIN && !hostname.endsWith(`.${LEGACY_DOMAIN}`)) return null;
+  const newHost = hostname.slice(0, hostname.length - LEGACY_DOMAIN.length) + CURRENT_DOMAIN;
+  return window.location.href.replace(hostname, newHost);
+}
 function buildIdFrom(html) {
   const m = html.match(/\/_next\/static\/([^/"']+)\/_(?:build|ssg)Manifest/);
   return m ? m[1] : null;
@@ -87,8 +96,14 @@ function fingerprintFrom(html) {
 }
 function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
   const [updateAvailable, setUpdateAvailable] = react.useState(false);
+  const [isLegacyDomain, setIsLegacyDomain] = react.useState(false);
   react.useEffect(() => {
     if (typeof window === "undefined") return;
+    if (legacyRedirectUrl()) {
+      setIsLegacyDomain(true);
+      setUpdateAvailable(true);
+      return;
+    }
     const url = window.location.href;
     let stopped = false;
     let mine = null;
@@ -119,6 +134,7 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
     };
   }, [checkIntervalMs]);
   const applyUpdate = async () => {
+    const redirect = legacyRedirectUrl();
     try {
       if ("caches" in window) {
         const keys = await caches.keys();
@@ -126,12 +142,21 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
       }
       if ("serviceWorker" in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.update().catch(() => {
-        })));
+        if (redirect) {
+          await Promise.all(regs.map((r) => r.unregister().catch(() => {
+          })));
+        } else {
+          await Promise.all(regs.map((r) => r.update().catch(() => {
+          })));
+        }
       }
     } catch {
     }
-    window.location.reload();
+    if (redirect) {
+      window.location.replace(redirect);
+    } else {
+      window.location.reload();
+    }
   };
   if (!updateAvailable) return null;
   return /* @__PURE__ */ jsxRuntime.jsxs(
@@ -141,14 +166,14 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
       className: `flex w-full items-center justify-center gap-3 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white ${className}`,
       children: [
         /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "h-4 w-4 shrink-0" }),
-        /* @__PURE__ */ jsxRuntime.jsx("span", { children: "A new version is available." }),
+        /* @__PURE__ */ jsxRuntime.jsx("span", { children: isLegacyDomain ? "This app has moved to a new address." : "A new version is available." }),
         /* @__PURE__ */ jsxRuntime.jsx(
           "button",
           {
             type: "button",
             onClick: () => void applyUpdate(),
             className: "rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100",
-            children: "Update now"
+            children: isLegacyDomain ? "Continue" : "Update now"
           }
         )
       ]
