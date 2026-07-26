@@ -8,7 +8,7 @@ function SSOLoginModal({
   open,
   onOpenChange,
   tenantSlug,
-  authUiUrl = "https://accounts.codevertexitsolutions.com",
+  authUiUrl = "https://accounts.codevertexafrica.com",
   onLoginSuccess,
   onLoginFailed,
   title = "Sign In"

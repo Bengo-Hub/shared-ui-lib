@@ -88,7 +88,7 @@ function SubscribeOverlay({ upgradeUrl }) {
         ),
         /* @__PURE__ */ jsxs("p", { className: "text-xs text-muted-foreground", children: [
           "Contact ",
-          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
+          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexafrica.com" }),
           " for assistance"
         ] })
       ]
@@ -136,7 +136,7 @@ function BlockingOverlay({
         ),
         /* @__PURE__ */ jsxs("p", { className: "text-xs text-muted-foreground", children: [
           "Contact ",
-          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
+          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexafrica.com" }),
           " for assistance"
         ] })
       ]
@@ -192,7 +192,7 @@ function BlockingOverlay({
         ),
         /* @__PURE__ */ jsxs("p", { className: "text-xs text-muted-foreground", children: [
           "Contact ",
-          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexitsolutions.com" }),
+          /* @__PURE__ */ jsx("span", { className: "font-medium", children: "support@codevertexafrica.com" }),
           " for assistance"
         ] })
       ]
@@ -643,7 +643,7 @@ function useFeatureUpgrade(feature) {
   const locked = !isFeatureUnlocked(e, feature);
   const tierLabel = entry?.minTierLabel || "a higher plan";
   const upgradeHref = useMemo(() => {
-    const base = (e.upgradeBaseUrl || "https://pricing.codevertexitsolutions.com").replace(/\/$/, "");
+    const base = (e.upgradeBaseUrl || "https://pricing.codevertexafrica.com").replace(/\/$/, "");
     const params = new URLSearchParams();
     if (entry?.serviceTag) params.set("service", entry.serviceTag);
     if (entry?.minPlanCode) params.set("plan", entry.minPlanCode);

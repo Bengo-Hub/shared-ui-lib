@@ -6,7 +6,7 @@ function TrackingIframeModal({
   open,
   onOpenChange,
   trackingCode,
-  logisticsUiUrl = "https://logistics.codevertexitsolutions.com",
+  logisticsUiUrl = "https://logistics.codevertexafrica.com",
   title = "Track Order"
 }) {
   const [loadState, setLoadState] = useState("loading");

@@ -10,7 +10,7 @@ function SSOLoginModal({
   open,
   onOpenChange,
   tenantSlug,
-  authUiUrl = "https://accounts.codevertexitsolutions.com",
+  authUiUrl = "https://accounts.codevertexafrica.com",
   onLoginSuccess,
   onLoginFailed,
   title = "Sign In"
@@ -133,7 +133,7 @@ function SSOLoginModal({
     ] })
   ] });
 }
-var DEFAULT_TREASURY_UI_URL = globalThis.process?.env?.NEXT_PUBLIC_TREASURY_UI_URL || "https://books.codevertexitsolutions.com";
+var DEFAULT_TREASURY_UI_URL = globalThis.process?.env?.NEXT_PUBLIC_TREASURY_UI_URL || "https://books.codevertexafrica.com";
 var DEFAULT_TIMEOUT_MS = 10 * 60 * 1e3;
 function TreasuryPaymentModal({
   open,
@@ -529,7 +529,7 @@ function TrackingIframeModal({
   open,
   onOpenChange,
   trackingCode,
-  logisticsUiUrl = "https://logistics.codevertexitsolutions.com",
+  logisticsUiUrl = "https://logistics.codevertexafrica.com",
   title = "Track Order"
 }) {
   const [loadState, setLoadState] = react.useState("loading");
@@ -1720,14 +1720,14 @@ function compareValues(a, b) {
 function cx2(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
+var CODEVERTEX_ICON_URL = "https://codevertexafrica.com/icon.svg";
 var BRAND_ORANGE = "#E8631E";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
   layout = "row",
   iconClassName,
-  href = "https://codevertexitsolutions.com",
+  href = "https://codevertexafrica.com",
   className
 }) {
   const stacked = layout === "stacked";

@@ -412,14 +412,14 @@ function PinLoginHeader({
     ] })
   ] }) });
 }
-var CODEVERTEX_ICON_URL = "https://codevertexitsolutions.com/icon.svg";
+var CODEVERTEX_ICON_URL = "https://codevertexafrica.com/icon.svg";
 var BRAND_ORANGE = "#E8631E";
 function PoweredByBadge({
   iconUrl = CODEVERTEX_ICON_URL,
   variant = "card",
   layout = "row",
   iconClassName,
-  href = "https://codevertexitsolutions.com",
+  href = "https://codevertexafrica.com",
   className
 }) {
   const stacked = layout === "stacked";
