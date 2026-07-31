@@ -51,12 +51,18 @@ interface UseVisibleServicesOptions {
      * empty) array once known so an un-subscribed tenant stops seeing gated services.
      */
     activeServiceTags?: string[] | null;
+    /**
+     * Restricts the registry to exactly these keys (in registry order), for a host app that
+     * intentionally curates a smaller cross-link list (e.g. logistics-ui/library-ui only ever
+     * linked to Account Portal + Subscriptions). Omit to use the full registry.
+     */
+    include?: ServiceKey[];
 }
 /**
  * Filters the canonical SERVICE_REGISTRY down to what this user/tenant should actually see in
  * the "SERVICES" profile-menu dropdown: RBAC (manageOnly) + subscription (serviceTag) gating,
  * with 'coming-soon' entries always included (disabled, no href) so the whole roadmap is visible.
  */
-declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, }: UseVisibleServicesOptions): VisibleService[];
+declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, include, }: UseVisibleServicesOptions): VisibleService[];
 
 export { SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };

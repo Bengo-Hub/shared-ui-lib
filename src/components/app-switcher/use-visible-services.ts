@@ -26,6 +26,12 @@ export interface UseVisibleServicesOptions {
    * empty) array once known so an un-subscribed tenant stops seeing gated services.
    */
   activeServiceTags?: string[] | null;
+  /**
+   * Restricts the registry to exactly these keys (in registry order), for a host app that
+   * intentionally curates a smaller cross-link list (e.g. logistics-ui/library-ui only ever
+   * linked to Account Portal + Subscriptions). Omit to use the full registry.
+   */
+  include?: ServiceKey[];
 }
 
 /**
@@ -38,10 +44,13 @@ export function useVisibleServices({
   urls,
   canManageLinks,
   activeServiceTags,
+  include,
 }: UseVisibleServicesOptions): VisibleService[] {
   return useMemo(() => {
+    const allow = include ? new Set(include) : null;
     const out: VisibleService[] = [];
     for (const svc of SERVICE_REGISTRY) {
+      if (allow && !allow.has(svc.key)) continue;
       if (svc.manageOnly && !canManageLinks) continue;
 
       if (svc.status === 'coming-soon') {
@@ -63,5 +72,5 @@ export function useVisibleServices({
       out.push({ ...svc, href: `${base}/${orgSlug}` });
     }
     return out;
-  }, [orgSlug, urls, canManageLinks, activeServiceTags]);
+  }, [orgSlug, urls, canManageLinks, activeServiceTags, include]);
 }

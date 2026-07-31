@@ -23,11 +23,14 @@ function useVisibleServices({
   orgSlug,
   urls,
   canManageLinks,
-  activeServiceTags
+  activeServiceTags,
+  include
 }) {
   return react.useMemo(() => {
+    const allow = include ? new Set(include) : null;
     const out = [];
     for (const svc of SERVICE_REGISTRY) {
+      if (allow && !allow.has(svc.key)) continue;
       if (svc.manageOnly && !canManageLinks) continue;
       if (svc.status === "coming-soon") {
         out.push({ ...svc, href: null });
@@ -41,7 +44,7 @@ function useVisibleServices({
       out.push({ ...svc, href: `${base}/${orgSlug}` });
     }
     return out;
-  }, [orgSlug, urls, canManageLinks, activeServiceTags]);
+  }, [orgSlug, urls, canManageLinks, activeServiceTags, include]);
 }
 
 exports.SERVICE_REGISTRY = SERVICE_REGISTRY;
