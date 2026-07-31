@@ -136,8 +136,18 @@ interface PasscodeFieldProps {
     submitLabel?: string;
     submittingLabel?: string;
     className?: string;
+    /**
+     * Called with the field's full new value on every keystroke (physical keyboard, mobile
+     * virtual keyboard, paste). Passing this renders a real `<input>` so the field actually
+     * accepts keyboard input, not just on-screen keypad clicks.
+     */
+    onChange?: (value: string) => void;
+    /** Virtual-keyboard hint for mobile: 'numeric' for a PIN, 'text' for an alphanumeric passcode. */
+    inputMode?: 'numeric' | 'text';
+    maxLength?: number;
+    autoFocus?: boolean;
 }
-declare function PasscodeField({ value, error, shake, onSubmit, isSubmitting, placeholder, submitLabel, submittingLabel, className, }: PasscodeFieldProps): react_jsx_runtime.JSX.Element;
+declare function PasscodeField({ value, error, shake, onSubmit, isSubmitting, placeholder, submitLabel, submittingLabel, className, onChange, inputMode, maxLength, autoFocus, }: PasscodeFieldProps): react_jsx_runtime.JSX.Element;
 
 interface PinLoginSSOButtonProps {
     onClick: () => void;

@@ -1,6 +1,6 @@
 import { Truck, Warehouse, BedDouble, Wine, Coffee, Scissors, Pill, ShoppingBag, Zap, UtensilsCrossed, Delete, CornerDownLeft, ArrowBigUp, Building2, ChevronRight, ArrowRight, WifiOff, Lock, ExternalLink } from 'lucide-react';
 import { jsxs, jsx } from 'react/jsx-runtime';
-import React from 'react';
+import React, { useRef } from 'react';
 
 // src/components/pin-login/keyboards.tsx
 
@@ -478,17 +478,23 @@ function PasscodeField({
   placeholder = "Enter PIN or passcode",
   submitLabel = "Login",
   submittingLabel = "Signing in\u2026",
-  className
+  className,
+  onChange,
+  inputMode = "text",
+  maxLength,
+  autoFocus = true
 }) {
+  const inputRef = useRef(null);
   return /* @__PURE__ */ jsxs("div", { className: cx("flex items-center justify-center gap-2.5 sm:gap-3", className), children: [
     /* @__PURE__ */ jsxs(
       "div",
       {
         className: cx(
-          "flex h-12 min-w-48 sm:min-w-64 items-center gap-3 rounded-full bg-card px-5 shadow-lg ring-1 ring-black/5 transition-all",
+          "relative flex h-12 min-w-48 sm:min-w-64 items-center gap-3 rounded-full bg-card px-5 shadow-lg ring-1 ring-black/5 transition-all",
           error && "ring-2 ring-destructive",
           shake && "animate-shake"
         ),
+        onClick: () => inputRef.current?.focus(),
         children: [
           /* @__PURE__ */ jsx(Lock, { className: cx("h-4 w-4 shrink-0", error ? "text-destructive" : "text-muted-foreground") }),
           value.length === 0 ? /* @__PURE__ */ jsx("span", { className: "text-sm font-medium text-muted-foreground", children: placeholder }) : /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1.5", children: Array.from({ length: value.length }).map((_, i) => /* @__PURE__ */ jsx(
@@ -497,7 +503,25 @@ function PasscodeField({
               className: cx("h-2.5 w-2.5 rounded-full", error ? "bg-destructive" : "bg-foreground")
             },
             i
-          )) })
+          )) }),
+          onChange && /* @__PURE__ */ jsx(
+            "input",
+            {
+              ref: inputRef,
+              type: inputMode === "numeric" ? "tel" : "text",
+              inputMode,
+              autoFocus,
+              value,
+              maxLength,
+              disabled: isSubmitting,
+              onChange: (e) => onChange(e.target.value),
+              onKeyDown: (e) => {
+                if (e.key === "Enter") onSubmit();
+              },
+              "aria-label": placeholder,
+              className: "absolute inset-0 h-full w-full cursor-text rounded-full opacity-0"
+            }
+          )
         ]
       }
     ),
