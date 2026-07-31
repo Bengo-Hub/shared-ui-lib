@@ -13,6 +13,7 @@ export default defineConfig({
     "src/components/combobox/index.ts",
     "src/components/data-table/index.ts",
     "src/components/pin-login/index.ts",
+    "src/components/app-switcher/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
