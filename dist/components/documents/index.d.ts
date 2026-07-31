@@ -1,4 +1,4 @@
-export { D as DocumentPreviewProps, O as OpenPreviewOptions, P as PdfPreview, a as PdfPreviewProps, u as useDocumentPreview } from '../../use-document-preview-Ch4RIS8N.js';
+export { D as DocumentPreviewProps, I as ImagePreview, a as ImagePreviewProps, b as ImagePreviewPropsShape, O as OpenImagePreviewOptions, c as OpenPreviewOptions, P as PdfPreview, d as PdfPreviewProps, u as useDocumentPreview, e as useImagePreview } from '../../use-image-preview-BunCXG40.js';
 import 'react/jsx-runtime';
 
 /**

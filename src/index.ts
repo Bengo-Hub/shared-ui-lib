@@ -30,6 +30,11 @@ export {
   useDocumentPreview,
   type DocumentPreviewProps,
   type OpenPreviewOptions,
+  ImagePreview,
+  type ImagePreviewProps,
+  useImagePreview,
+  type ImagePreviewPropsShape,
+  type OpenImagePreviewOptions,
 } from './components/documents';
 export {
   OfflineSyncBanner,

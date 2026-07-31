@@ -934,6 +934,169 @@ function useDocumentPreview(opts) {
   };
   return { openPreview, previewProps };
 }
+var S2 = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 1e3,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  backdrop: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" },
+  modal: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    maxWidth: "90vw",
+    maxHeight: "90vh",
+    margin: "0 16px",
+    background: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "12px 20px",
+    borderBottom: "1px solid #e5e7eb"
+  },
+  title: { margin: 0, fontSize: 15, fontWeight: 600, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  iconBtn: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 8, borderRadius: 9999, border: 0, background: "transparent", color: "#6b7280", cursor: "pointer" },
+  tabs: { display: "flex", gap: 4, padding: "10px 20px 0", borderBottom: "1px solid #e5e7eb" },
+  tab: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "8px 14px",
+    borderRadius: "8px 8px 0 0",
+    border: 0,
+    borderBottom: "2px solid transparent",
+    background: "transparent",
+    color: "#6b7280",
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: "pointer"
+  },
+  tabActive: { color: "#111827", borderBottom: "2px solid #111827" },
+  body: {
+    position: "relative",
+    flex: 1,
+    minHeight: 0,
+    minWidth: 0,
+    background: "#f3f4f6",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  image: { maxWidth: "100%", maxHeight: "78vh", objectFit: "contain", borderRadius: 8 },
+  center: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, color: "#6b7280" }
+};
+var IconClose2 = () => /* @__PURE__ */ jsxRuntime.jsxs(
+  "svg",
+  {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+    children: [
+      /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M18 6 6 18" }),
+      /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m6 6 12 12" })
+    ]
+  }
+);
+function ImagePreview({
+  open,
+  onOpenChange,
+  src,
+  alt = "Preview",
+  title = "Image Preview",
+  secondarySrc,
+  secondaryLabel = "Back",
+  primaryLabel = "Front"
+}) {
+  const [showSecondary, setShowSecondary] = react.useState(false);
+  if (!open) return null;
+  const hasSecondary = Boolean(secondarySrc);
+  const activeSrc = hasSecondary && showSecondary ? secondarySrc : src;
+  const activeAlt = hasSecondary ? showSecondary ? secondaryLabel : primaryLabel : alt;
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { style: S2.overlay, role: "dialog", "aria-modal": "true", "aria-label": title, children: [
+    /* @__PURE__ */ jsxRuntime.jsx("div", { style: S2.backdrop, onClick: () => onOpenChange(false) }),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { style: S2.modal, children: [
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { style: S2.header, children: [
+        /* @__PURE__ */ jsxRuntime.jsx("h2", { style: S2.title, children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("button", { onClick: () => onOpenChange(false), style: S2.iconBtn, "aria-label": "Close", children: /* @__PURE__ */ jsxRuntime.jsx(IconClose2, {}) })
+      ] }),
+      hasSecondary && /* @__PURE__ */ jsxRuntime.jsxs("div", { style: S2.tabs, children: [
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "button",
+          {
+            onClick: () => setShowSecondary(false),
+            style: { ...S2.tab, ...showSecondary ? {} : S2.tabActive },
+            children: primaryLabel
+          }
+        ),
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "button",
+          {
+            onClick: () => setShowSecondary(true),
+            style: { ...S2.tab, ...showSecondary ? S2.tabActive : {} },
+            children: secondaryLabel
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntime.jsx("div", { style: S2.body, children: activeSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        /* @__PURE__ */ jsxRuntime.jsx("img", { src: activeSrc, alt: activeAlt, style: S2.image })
+      ) : /* @__PURE__ */ jsxRuntime.jsx("div", { style: S2.center, children: /* @__PURE__ */ jsxRuntime.jsx("p", { style: { margin: 0, fontSize: 14 }, children: "No image available." }) }) })
+    ] })
+  ] });
+}
+var INITIAL2 = {
+  open: false,
+  src: null,
+  secondarySrc: null,
+  title: "Image Preview",
+  alt: "Preview",
+  secondaryLabel: "Back",
+  primaryLabel: "Front"
+};
+function useImagePreview() {
+  const [state, setState] = react.useState(INITIAL2);
+  const openPreview = react.useCallback((o) => {
+    setState({
+      open: true,
+      src: o.src,
+      secondarySrc: o.secondarySrc ?? null,
+      title: o.title ?? "Image Preview",
+      alt: o.alt ?? "Preview",
+      secondaryLabel: o.secondaryLabel ?? "Back",
+      primaryLabel: o.primaryLabel ?? "Front"
+    });
+  }, []);
+  const onOpenChange = react.useCallback((open) => setState((s) => ({ ...s, open })), []);
+  const previewProps = {
+    open: state.open,
+    onOpenChange,
+    src: state.src,
+    alt: state.alt,
+    title: state.title,
+    secondarySrc: state.secondarySrc,
+    secondaryLabel: state.secondaryLabel,
+    primaryLabel: state.primaryLabel
+  };
+  return { openPreview, previewProps };
+}
 function OfflineSyncBanner({
   isOnline,
   pendingCount = 0,
@@ -2596,6 +2759,7 @@ exports.Checkbox = Checkbox;
 exports.ColumnVisibilityButton = ColumnVisibilityButton;
 exports.DataTable = DataTable;
 exports.FunnelFilter = FunnelFilter;
+exports.ImagePreview = ImagePreview;
 exports.MPESA_B2B = MPESA_B2B;
 exports.MPESA_B2C = MPESA_B2C;
 exports.MPESA_MANUAL = MPESA_MANUAL;
@@ -2623,6 +2787,7 @@ exports.TreasuryPaymentModal = TreasuryPaymentModal;
 exports.exportRowsAsCsv = exportRowsAsCsv;
 exports.registerServiceWorker = registerServiceWorker;
 exports.useDocumentPreview = useDocumentPreview;
+exports.useImagePreview = useImagePreview;
 exports.useOfflineSync = useOfflineSync;
 exports.useOnlineStatus = useOnlineStatus;
 //# sourceMappingURL=index.cjs.map
