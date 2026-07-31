@@ -19,6 +19,7 @@ export const SERVICE_TAGS = {
   MARKETFLOW:  'marketflow',
   ISP_BILLING: 'isp_billing',
   PROJECTS:    'projects',
+  AFYA:        'afya',
 } as const;
 
 export type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
@@ -35,4 +36,5 @@ export const SERVICE_TAG_LABELS: Record<ServiceTag, string> = {
   marketflow:  'MarketFlow',
   isp_billing: 'ISP Billing',
   projects:    'Projects & Invoicing',
+  afya:        'Afya (Hospital)',
 };

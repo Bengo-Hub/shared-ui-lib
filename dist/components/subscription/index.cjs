@@ -511,7 +511,8 @@ var SERVICE_TAGS = {
   TRULOAD: "truload",
   MARKETFLOW: "marketflow",
   ISP_BILLING: "isp_billing",
-  PROJECTS: "projects"
+  PROJECTS: "projects",
+  AFYA: "afya"
 };
 var SERVICE_TAG_LABELS = {
   ordering: "Ordering",
@@ -523,7 +524,8 @@ var SERVICE_TAG_LABELS = {
   truload: "Axle Load (TruLoad)",
   marketflow: "MarketFlow",
   isp_billing: "ISP Billing",
-  projects: "Projects & Invoicing"
+  projects: "Projects & Invoicing",
+  afya: "Afya (Hospital)"
 };
 var EMPTY = {
   features: [],
