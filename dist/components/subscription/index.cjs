@@ -510,6 +510,7 @@ var SERVICE_TAGS = {
   TREASURY: "treasury",
   TRULOAD: "truload",
   MARKETFLOW: "marketflow",
+  HELPDESK: "ticketing",
   ISP_BILLING: "isp_billing",
   PROJECTS: "projects",
   AFYA: "afya"
@@ -523,6 +524,7 @@ var SERVICE_TAG_LABELS = {
   treasury: "Treasury & Finance",
   truload: "Axle Load (TruLoad)",
   marketflow: "MarketFlow",
+  ticketing: "Help Desk",
   isp_billing: "ISP Billing",
   projects: "Projects & Invoicing",
   afya: "Afya (Hospital)"

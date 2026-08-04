@@ -59,6 +59,7 @@ declare const SERVICE_TAGS: {
     readonly TREASURY: "treasury";
     readonly TRULOAD: "truload";
     readonly MARKETFLOW: "marketflow";
+    readonly HELPDESK: "ticketing";
     readonly ISP_BILLING: "isp_billing";
     readonly PROJECTS: "projects";
     readonly AFYA: "afya";
