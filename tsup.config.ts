@@ -14,6 +14,7 @@ export default defineConfig({
     "src/components/data-table/index.ts",
     "src/components/pin-login/index.ts",
     "src/components/app-switcher/index.ts",
+    "src/components/navigation/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
