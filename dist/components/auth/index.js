@@ -205,6 +205,19 @@ function SSOCallbackError({
     ] })
   ] });
 }
+
+// src/components/auth/revoke-session.ts
+async function revokeServerSession(ssoBaseUrl, accessToken) {
+  try {
+    await fetch(new URL("/api/v1/auth/logout", ssoBaseUrl).toString(), {
+      method: "POST",
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      credentials: "include",
+      keepalive: true
+    });
+  } catch {
+  }
+}
 var BANNER_STYLES = {
   notice: "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/40",
   final_warning: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/40",
@@ -558,6 +571,6 @@ function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClos
   return /* @__PURE__ */ jsx("div", { className: "veb-overlay", children: card });
 }
 
-export { SSOCallbackError, SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog };
+export { SSOCallbackError, SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog, revokeServerSession };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

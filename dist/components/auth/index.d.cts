@@ -38,6 +38,14 @@ interface SSOCallbackErrorProps {
 declare function SSOCallbackError({ error, errorDescription, orgSlug, lastKnownTenant, onRetry, onSwitchTenant, }: SSOCallbackErrorProps): react_jsx_runtime.JSX.Element;
 
 /**
+ * Best-effort POST to revoke a user's backend SSO session: deletes their Redis
+ * session_token keys + DB sessions and clears the cookie. Callers still proceed
+ * with local logout/redirect regardless of outcome (a stolen refresh token is
+ * invalidated server-side, but the local UX never blocks on this call). Never throws.
+ */
+declare function revokeServerSession(ssoBaseUrl: string, accessToken?: string | null): Promise<void>;
+
+/**
  * Graduated email-verification prompt.
  *
  * Existing SSO accounts are not silently trusted: they must prove their email. Access is
@@ -105,4 +113,4 @@ interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerifie
 }
 declare function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose, embedded }: VerifyEmailDialogProps): react_jsx_runtime.JSX.Element;
 
-export { type EmailVerificationState, SSOCallbackError, type SSOCallbackErrorProps, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage };
+export { type EmailVerificationState, SSOCallbackError, type SSOCallbackErrorProps, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage, revokeServerSession };
