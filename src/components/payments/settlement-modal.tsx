@@ -28,16 +28,19 @@ export const STORE_CREDIT: SettlementMethod = { value: 'store_credit', label: 'S
 export const CUSTOMER_ADVANCE: SettlementMethod = { value: 'customer_advance', label: 'Customer advance' };
 export const MPESA_B2C: SettlementMethod = { value: 'mpesa_b2c', label: 'M-Pesa (send to customer)' };
 export const MPESA_B2B: SettlementMethod = { value: 'mpesa_b2b', label: 'M-Pesa (send to supplier till/paybill)' };
+export const MTN_MOMO: SettlementMethod = { value: 'mtn_momo', label: 'MTN Mobile Money', requiresReference: true };
+export const AIRTEL_MONEY: SettlementMethod = { value: 'airtel_money', label: 'Airtel Money', requiresReference: true };
+export const BANK_TRANSFER: SettlementMethod = { value: 'bank_transfer', label: 'Bank Transfer', requiresReference: true };
 
 /** Every method the platform supports for RECEIVING money (customer/supplier repayment). */
-export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT];
+export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 /** Real cash-out channels only — paying money OUT, never a book-entry method. */
 export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_B2C, BANK, CHEQUE];
 /** Paying a supplier — offline references + online dispatch methods. */
-export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_B2B, BANK, CHEQUE, CARD];
+export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 /** Settling a completed on-account (credit) sale at the till — recording money already
  *  collected offline, never a live STK push (that's a separate checkout-time tender). */
-export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK];
+export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 
 export type SettlementMode = 'receive' | 'payout' | 'apply_to_debt' | 'pay_supplier' | 'record_refund';
 

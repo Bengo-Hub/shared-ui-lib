@@ -22,7 +22,26 @@ export {
   CUSTOMER_ADVANCE,
   MPESA_B2C,
   MPESA_B2B,
+  MTN_MOMO,
+  AIRTEL_MONEY,
+  BANK_TRANSFER,
 } from './components/payments/settlement-modal';
+export {
+  CURRENCY_META,
+  SUPPORTED_CURRENCIES,
+  formatCurrency,
+  formatCompactCurrency,
+  type CurrencyMeta,
+} from './components/payments/currency';
+export {
+  PAYMENT_METHOD_LABELS,
+  getPaymentMethodLabel,
+} from './components/payments/payment-method-labels';
+export {
+  CurrencyChangeConfirmModal,
+  type CurrencyChangeConfirmModalProps,
+  type CurrencyChangeExampleRow,
+} from './components/payments/currency-change-confirm-modal';
 export { TrackingIframeModal, type TrackingIframeModalProps } from './components/tracking/tracking-iframe-modal';
 export {
   PdfPreview,
