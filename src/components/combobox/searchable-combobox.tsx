@@ -33,6 +33,14 @@ export interface SearchableComboboxProps {
   value?: string;
   onChange: (value: string, option?: ComboboxOption) => void;
   /**
+   * Fallback label shown when `value` is set but its record isn't in `options` or the
+   * remote-search cache — e.g. an edit/amend flow pre-fills a value whose record lives
+   * past the prefetched page. Without this, the closed control silently falls back to
+   * `placeholder`, making an already-selected value look unselected. Host passes
+   * whatever display name it already has on hand (e.g. `record.supplier_name`).
+   */
+  valueLabel?: string;
+  /**
    * Optional async fallback invoked (debounced) when the client filter yields
    * fewer than `remoteThreshold` matches. Results merge below local matches,
    * deduped by value. Omit for pure client mode (small lists).
@@ -62,6 +70,7 @@ export function SearchableCombobox({
   options,
   value,
   onChange,
+  valueLabel,
   onRemoteSearch,
   remoteThreshold = 5,
   onLoadMore,
@@ -88,7 +97,8 @@ export function SearchableCombobox({
   const [selectedCache, setSelectedCache] = useState<ComboboxOption | undefined>(undefined);
   const selected =
     options.find((o) => o.value === value) ??
-    (selectedCache && selectedCache.value === value ? selectedCache : undefined);
+    (selectedCache && selectedCache.value === value ? selectedCache : undefined) ??
+    (value && valueLabel ? { value, label: valueLabel } : undefined);
 
   const localMatches = useMemo(() => {
     const q = query.trim().toLowerCase();

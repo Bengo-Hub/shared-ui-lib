@@ -29,6 +29,14 @@ interface SearchableComboboxProps {
     value?: string;
     onChange: (value: string, option?: ComboboxOption) => void;
     /**
+     * Fallback label shown when `value` is set but its record isn't in `options` or the
+     * remote-search cache — e.g. an edit/amend flow pre-fills a value whose record lives
+     * past the prefetched page. Without this, the closed control silently falls back to
+     * `placeholder`, making an already-selected value look unselected. Host passes
+     * whatever display name it already has on hand (e.g. `record.supplier_name`).
+     */
+    valueLabel?: string;
+    /**
      * Optional async fallback invoked (debounced) when the client filter yields
      * fewer than `remoteThreshold` matches. Results merge below local matches,
      * deduped by value. Omit for pure client mode (small lists).
@@ -49,6 +57,6 @@ interface SearchableComboboxProps {
     /** Action row pinned under the list (e.g. "+ Add new") — host owns the dialog. */
     footer?: React.ReactNode;
 }
-declare function SearchableCombobox({ options, value, onChange, onRemoteSearch, remoteThreshold, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
+declare function SearchableCombobox({ options, value, onChange, valueLabel, onRemoteSearch, remoteThreshold, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
 
 export { type ComboboxOption, SearchableCombobox, type SearchableComboboxProps };

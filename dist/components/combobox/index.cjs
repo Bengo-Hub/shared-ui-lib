@@ -12,6 +12,7 @@ function SearchableCombobox({
   options,
   value,
   onChange,
+  valueLabel,
   onRemoteSearch,
   remoteThreshold = 5,
   onLoadMore,
@@ -33,7 +34,7 @@ function SearchableCombobox({
   const debounceRef = react.useRef(null);
   const requestSeq = react.useRef(0);
   const [selectedCache, setSelectedCache] = react.useState(void 0);
-  const selected = options.find((o) => o.value === value) ?? (selectedCache && selectedCache.value === value ? selectedCache : void 0);
+  const selected = options.find((o) => o.value === value) ?? (selectedCache && selectedCache.value === value ? selectedCache : void 0) ?? (value && valueLabel ? { value, label: valueLabel } : void 0);
   const localMatches = react.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;

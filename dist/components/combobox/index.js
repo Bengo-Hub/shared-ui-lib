@@ -10,6 +10,7 @@ function SearchableCombobox({
   options,
   value,
   onChange,
+  valueLabel,
   onRemoteSearch,
   remoteThreshold = 5,
   onLoadMore,
@@ -31,7 +32,7 @@ function SearchableCombobox({
   const debounceRef = useRef(null);
   const requestSeq = useRef(0);
   const [selectedCache, setSelectedCache] = useState(void 0);
-  const selected = options.find((o) => o.value === value) ?? (selectedCache && selectedCache.value === value ? selectedCache : void 0);
+  const selected = options.find((o) => o.value === value) ?? (selectedCache && selectedCache.value === value ? selectedCache : void 0) ?? (value && valueLabel ? { value, label: valueLabel } : void 0);
   const localMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;
