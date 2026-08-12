@@ -65,6 +65,8 @@ export interface DataTableProps<T> {
   /** 'both' = row + column grid lines (Go-Digital look, default); 'rows' = row dividers only. */
   gridLines?: 'both' | 'rows';
   dense?: boolean;
+  /** Freezes the header and scrolls the body once rows exceed this height (desktop grid only). CSS length, e.g. '65vh' or '480px'. Set to `false` to disable and let the page scroll instead. */
+  maxBodyHeight?: string | false;
   /** Host chrome (search box, custom filters) rendered in the toolbar row. */
   toolbar?: ReactNode;
   /** Right-aligned extra toolbar actions (e.g. Export PDF). */
@@ -114,6 +116,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
     gridLines = 'both',
     dense,
     pageSizeOptions = [10, 25, 50, 100],
+    maxBodyHeight = '65vh',
   } = props;
 
   // ── Sort (controlled or internal) ───────────────────────────────────────
@@ -296,9 +299,16 @@ export function DataTable<T>(props: DataTableProps<T>) {
           instead (see the sibling block below) — the native pattern for dense tabular data
           on phones, since fixed table columns either cram unreadably or force sideways
           scrolling on every row just to see one more field. */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-border">
+      <div className="hidden md:block rounded-lg border border-border overflow-hidden">
+        {/* Scroll region wraps only the table (not the footer below), so the header can
+            freeze at its top via `sticky` while rows scroll underneath — the user never
+            has to scroll back up to re-check a column label. */}
+        <div
+          className="overflow-auto"
+          style={maxBodyHeight ? { maxHeight: maxBodyHeight } : undefined}
+        >
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10 bg-muted">
             <tr className={cx('border-b border-border bg-muted/40', gridLines === 'both' && 'divide-x divide-border/50')}>
               {selectable && (
                 <th className={cx(cellPad, 'w-10')}>
@@ -450,6 +460,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
             )}
           </tbody>
         </table>
+        </div>
         {props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && (
           <TableFooter
             page={props.page}

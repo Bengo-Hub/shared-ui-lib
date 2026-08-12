@@ -126,6 +126,8 @@ interface DataTableProps<T> {
     /** 'both' = row + column grid lines (Go-Digital look, default); 'rows' = row dividers only. */
     gridLines?: 'both' | 'rows';
     dense?: boolean;
+    /** Freezes the header and scrolls the body once rows exceed this height (desktop grid only). CSS length, e.g. '65vh' or '480px'. Set to `false` to disable and let the page scroll instead. */
+    maxBodyHeight?: string | false;
     /** Host chrome (search box, custom filters) rendered in the toolbar row. */
     toolbar?: ReactNode;
     /** Right-aligned extra toolbar actions (e.g. Export PDF). */
