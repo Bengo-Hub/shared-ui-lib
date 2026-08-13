@@ -12,6 +12,7 @@ export default defineConfig({
     "src/components/suppliers/index.ts",
     "src/components/combobox/index.ts",
     "src/components/data-table/index.ts",
+    "src/components/search-add-table/index.ts",
     "src/components/pin-login/index.ts",
     "src/components/app-switcher/index.ts",
     "src/components/navigation/index.ts",
