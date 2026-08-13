@@ -2584,7 +2584,7 @@ function DataTable(props) {
     storageKey,
     gridLines = "both",
     dense,
-    pageSizeOptions = [10, 25, 50, 100],
+    pageSizeOptions = [1, 5, 10, 25, 50, 100, 500],
     maxBodyHeight = "65vh"
   } = props;
   const [internalSort, setInternalSort] = useState(props.defaultSort ?? null);
