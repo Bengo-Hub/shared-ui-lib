@@ -381,6 +381,17 @@ var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTA
 var PAYOUT_METHODS = [CASH, MPESA_B2C, BANK, CHEQUE];
 var PAY_SUPPLIER_METHODS = [CASH, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
+function nowDatetimeLocal() {
+  const d = /* @__PURE__ */ new Date();
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+function datetimeLocalToISO(value) {
+  if (!value) return void 0;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? void 0 : d.toISOString();
+}
 function SettlementModal({
   open,
   mode,
@@ -400,6 +411,7 @@ function SettlementModal({
   const [amount, setAmount] = useState(String(defaultAmount ?? amountValue));
   const [method, setMethod] = useState(methods[0]?.value ?? "");
   const [reference, setReference] = useState("");
+  const [effectiveAt, setEffectiveAt] = useState(nowDatetimeLocal());
   const [error, setError] = useState("");
   const selectedMethod = useMemo(() => methods.find((m) => m.value === method), [methods, method]);
   if (!open || typeof document === "undefined") return null;
@@ -418,9 +430,18 @@ function SettlementModal({
       setError("A reference is required for this method.");
       return;
     }
+    if (!effectiveAt) {
+      setError("Enter the payment date & time.");
+      return;
+    }
     setError("");
     try {
-      await onSubmit({ amount: amt, method: methods.length ? method : void 0, reference: reference.trim() || void 0 });
+      await onSubmit({
+        amount: amt,
+        method: methods.length ? method : void 0,
+        reference: reference.trim() || void 0,
+        effectiveAt: datetimeLocalToISO(effectiveAt)
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     }
@@ -465,6 +486,19 @@ function SettlementModal({
               inputMode: "decimal",
               value: amount,
               onChange: (e) => setAmount(e.target.value),
+              className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Payment date & time" }),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "datetime-local",
+              value: effectiveAt,
+              max: nowDatetimeLocal(),
+              onChange: (e) => setEffectiveAt(e.target.value),
               className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
             }
           )

@@ -78,6 +78,10 @@ interface SettlementSubmitInput {
     amount: number;
     method?: string;
     reference?: string;
+    /** ISO 8601 timestamp of when the payment actually happened — defaults to "now" in the form,
+     *  but editable so a payment collected earlier can be backdated instead of always stamping the
+     *  moment it was entered into the system. */
+    effectiveAt?: string;
 }
 interface SettlementModalProps {
     open: boolean;

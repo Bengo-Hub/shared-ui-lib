@@ -48,6 +48,25 @@ export interface SettlementSubmitInput {
   amount: number;
   method?: string;
   reference?: string;
+  /** ISO 8601 timestamp of when the payment actually happened — defaults to "now" in the form,
+   *  but editable so a payment collected earlier can be backdated instead of always stamping the
+   *  moment it was entered into the system. */
+  effectiveAt?: string;
+}
+
+/** Value for an `<input type="datetime-local">` representing the current local time (minute precision). */
+export function nowDatetimeLocal(): string {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
+/** Converts an `<input type="datetime-local">` value (local time, no offset) to a UTC ISO string. */
+export function datetimeLocalToISO(value: string): string | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 
 export interface SettlementModalProps {
@@ -89,6 +108,7 @@ export function SettlementModal({
   const [amount, setAmount] = useState(String(defaultAmount ?? amountValue));
   const [method, setMethod] = useState(methods[0]?.value ?? '');
   const [reference, setReference] = useState('');
+  const [effectiveAt, setEffectiveAt] = useState(nowDatetimeLocal());
   const [error, setError] = useState('');
 
   const selectedMethod = useMemo(() => methods.find((m) => m.value === method), [methods, method]);
@@ -111,9 +131,18 @@ export function SettlementModal({
       setError('A reference is required for this method.');
       return;
     }
+    if (!effectiveAt) {
+      setError('Enter the payment date & time.');
+      return;
+    }
     setError('');
     try {
-      await onSubmit({ amount: amt, method: methods.length ? method : undefined, reference: reference.trim() || undefined });
+      await onSubmit({
+        amount: amt,
+        method: methods.length ? method : undefined,
+        reference: reference.trim() || undefined,
+        effectiveAt: datetimeLocalToISO(effectiveAt),
+      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong.');
     }
@@ -146,6 +175,16 @@ export function SettlementModal({
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500">Payment date &amp; time</label>
+              <input
+                type="datetime-local"
+                value={effectiveAt}
+                max={nowDatetimeLocal()}
+                onChange={(e) => setEffectiveAt(e.target.value)}
                 className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
               />
             </div>
