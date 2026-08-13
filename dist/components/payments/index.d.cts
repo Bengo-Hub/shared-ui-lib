@@ -83,6 +83,10 @@ interface SettlementSubmitInput {
      *  moment it was entered into the system. */
     effectiveAt?: string;
 }
+/** Value for an `<input type="datetime-local">` representing the current local time (minute precision). */
+declare function nowDatetimeLocal(): string;
+/** Converts an `<input type="datetime-local">` value (local time, no offset) to a UTC ISO string. */
+declare function datetimeLocalToISO(value: string): string | undefined;
 interface SettlementModalProps {
     open: boolean;
     mode: SettlementMode;
@@ -193,4 +197,4 @@ interface CurrencyChangeConfirmModalProps {
  */
 declare function CurrencyChangeConfirmModal({ open, fromCurrency, toCurrency, rate, rateSource, exampleAmounts, onConfirm, onCancel, loading, error, }: CurrencyChangeConfirmModalProps): React$1.ReactPortal | null;
 
-export { AIRTEL_MONEY, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, type CurrencyChangeConfirmModalProps, type CurrencyChangeExampleRow, type CurrencyMeta, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps, formatCompactCurrency, formatCurrency, getPaymentMethodLabel };
+export { AIRTEL_MONEY, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, type CurrencyChangeConfirmModalProps, type CurrencyChangeExampleRow, type CurrencyMeta, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, nowDatetimeLocal };
