@@ -52,6 +52,17 @@ export interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption
   className?: string;
   /** Use fixed positioning for the dropdown so it escapes overflow:auto parents (e.g. modals). */
   fixedDropdown?: boolean;
+  /**
+   * Optional control rendered inside the input's right edge (e.g. a barcode-scan button) — the
+   * input gains extra right padding automatically when this is set. A render prop rather than a
+   * plain node so the caller's control can drive the search box itself (e.g. a scanned code
+   * should populate + trigger the search) without this component exposing its query state via a
+   * ref: `setQuery` sets the text AND opens the dropdown, exactly like typing it.
+   */
+  endAdornment?: (helpers: { setQuery: (q: string) => void; open: () => void }) => React.ReactNode;
+  /** Optional row rendered below the results list (e.g. a "+ Create new" action) — same
+   *  convention as SearchableCombobox's `footer` prop. Hidden while loading. */
+  footer?: React.ReactNode;
 }
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -69,6 +80,8 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
   disabled,
   className,
   fixedDropdown,
+  endAdornment,
+  footer,
 }: SearchAddTableProps<T>) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -170,6 +183,13 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
     </ul>
   );
 
+  const panel = (
+    <>
+      {list}
+      {!loading && footer}
+    </>
+  );
+
   return (
     <div className={cx('relative', className)} ref={ref}>
       <div className="relative" ref={inputRef}>
@@ -183,15 +203,23 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
             setOpen(true);
           }}
           onFocus={() => query.trim().length >= minChars && setOpen(true)}
-          className="w-full rounded-lg border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+          className={cx(
+            'w-full rounded-lg border border-input bg-background py-2 pl-10 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60',
+            endAdornment ? 'pr-12' : 'pr-3',
+          )}
         />
+        {endAdornment && (
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+            {endAdornment({ setQuery: (q: string) => { setQuery(q); setOpen(true); }, open: () => setOpen(true) })}
+          </div>
+        )}
       </div>
       {dropdownVisible && !fixedDropdown && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg">{list}</div>
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg">{panel}</div>
       )}
       {dropdownVisible && fixedDropdown && (
         <div style={dropdownStyle} className="rounded-lg border border-border bg-popover shadow-xl">
-          {list}
+          {panel}
         </div>
       )}
     </div>

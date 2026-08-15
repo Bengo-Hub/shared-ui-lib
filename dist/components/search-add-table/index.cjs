@@ -18,7 +18,9 @@ function SearchAddTable({
   emptyText = "No matches",
   disabled,
   className,
-  fixedDropdown
+  fixedDropdown,
+  endAdornment,
+  footer
 }) {
   const [query, setQuery] = react.useState("");
   const [open, setOpen] = react.useState(false);
@@ -98,6 +100,10 @@ function SearchAddTable({
       ]
     }
   ) }, option.id)) });
+  const panel = /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    list,
+    !loading && footer
+  ] });
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: cx("relative", className), ref, children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative", ref: inputRef, children: [
       /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Search, { className: "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" }),
@@ -112,12 +118,19 @@ function SearchAddTable({
             setOpen(true);
           },
           onFocus: () => query.trim().length >= minChars && setOpen(true),
-          className: "w-full rounded-lg border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+          className: cx(
+            "w-full rounded-lg border border-input bg-background py-2 pl-10 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60",
+            endAdornment ? "pr-12" : "pr-3"
+          )
         }
-      )
+      ),
+      endAdornment && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute right-1.5 top-1/2 -translate-y-1/2", children: endAdornment({ setQuery: (q) => {
+        setQuery(q);
+        setOpen(true);
+      }, open: () => setOpen(true) }) })
     ] }),
-    dropdownVisible && !fixedDropdown && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg", children: list }),
-    dropdownVisible && fixedDropdown && /* @__PURE__ */ jsxRuntime.jsx("div", { style: dropdownStyle, className: "rounded-lg border border-border bg-popover shadow-xl", children: list })
+    dropdownVisible && !fixedDropdown && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg", children: panel }),
+    dropdownVisible && fixedDropdown && /* @__PURE__ */ jsxRuntime.jsx("div", { style: dropdownStyle, className: "rounded-lg border border-border bg-popover shadow-xl", children: panel })
   ] });
 }
 

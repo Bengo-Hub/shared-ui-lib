@@ -48,7 +48,21 @@ interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
     className?: string;
     /** Use fixed positioning for the dropdown so it escapes overflow:auto parents (e.g. modals). */
     fixedDropdown?: boolean;
+    /**
+     * Optional control rendered inside the input's right edge (e.g. a barcode-scan button) — the
+     * input gains extra right padding automatically when this is set. A render prop rather than a
+     * plain node so the caller's control can drive the search box itself (e.g. a scanned code
+     * should populate + trigger the search) without this component exposing its query state via a
+     * ref: `setQuery` sets the text AND opens the dropdown, exactly like typing it.
+     */
+    endAdornment?: (helpers: {
+        setQuery: (q: string) => void;
+        open: () => void;
+    }) => React.ReactNode;
+    /** Optional row rendered below the results list (e.g. a "+ Create new" action) — same
+     *  convention as SearchableCombobox's `footer` prop. Hidden while loading. */
+    footer?: React.ReactNode;
 }
-declare function SearchAddTable<T extends SearchAddOption = SearchAddOption>({ onSearch, onAdd, excludeIds, minChars, debounceMs, placeholder, emptyText, disabled, className, fixedDropdown, }: SearchAddTableProps<T>): react_jsx_runtime.JSX.Element;
+declare function SearchAddTable<T extends SearchAddOption = SearchAddOption>({ onSearch, onAdd, excludeIds, minChars, debounceMs, placeholder, emptyText, disabled, className, fixedDropdown, endAdornment, footer, }: SearchAddTableProps<T>): react_jsx_runtime.JSX.Element;
 
 export { type SearchAddOption, SearchAddTable, type SearchAddTableProps };
