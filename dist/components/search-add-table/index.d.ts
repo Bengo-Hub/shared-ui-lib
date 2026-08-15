@@ -59,9 +59,16 @@ interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
         setQuery: (q: string) => void;
         open: () => void;
     }) => React.ReactNode;
-    /** Optional row rendered below the results list (e.g. a "+ Create new" action) — same
-     *  convention as SearchableCombobox's `footer` prop. Hidden while loading. */
-    footer?: React.ReactNode;
+    /**
+     * Optional row rendered below the results list (e.g. a "+ Create '{query}'" action when
+     * nothing matches) — same convention as SearchableCombobox's `footer` prop, but a render prop
+     * so the caller can read the current query text and reset the box (e.g. after opening a create
+     * dialog) without this component exposing its internal state via a ref. Hidden while loading.
+     */
+    footer?: (helpers: {
+        query: string;
+        clear: () => void;
+    }) => React.ReactNode;
 }
 declare function SearchAddTable<T extends SearchAddOption = SearchAddOption>({ onSearch, onAdd, excludeIds, minChars, debounceMs, placeholder, emptyText, disabled, className, fixedDropdown, endAdornment, footer, }: SearchAddTableProps<T>): react_jsx_runtime.JSX.Element;
 

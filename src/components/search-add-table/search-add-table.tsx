@@ -60,9 +60,13 @@ export interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption
    * ref: `setQuery` sets the text AND opens the dropdown, exactly like typing it.
    */
   endAdornment?: (helpers: { setQuery: (q: string) => void; open: () => void }) => React.ReactNode;
-  /** Optional row rendered below the results list (e.g. a "+ Create new" action) — same
-   *  convention as SearchableCombobox's `footer` prop. Hidden while loading. */
-  footer?: React.ReactNode;
+  /**
+   * Optional row rendered below the results list (e.g. a "+ Create '{query}'" action when
+   * nothing matches) — same convention as SearchableCombobox's `footer` prop, but a render prop
+   * so the caller can read the current query text and reset the box (e.g. after opening a create
+   * dialog) without this component exposing its internal state via a ref. Hidden while loading.
+   */
+  footer?: (helpers: { query: string; clear: () => void }) => React.ReactNode;
 }
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -140,11 +144,15 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
   const visible = excluded ? results.filter((r) => !excluded.has(r.id)) : results;
   const dropdownVisible = open && query.trim().length >= minChars;
 
-  function pick(option: T) {
-    onAdd(option);
+  function clear() {
     setQuery('');
     setResults([]);
     setOpen(false);
+  }
+
+  function pick(option: T) {
+    onAdd(option);
+    clear();
   }
 
   const list = (
@@ -186,7 +194,7 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
   const panel = (
     <>
       {list}
-      {!loading && footer}
+      {!loading && footer?.({ query: query.trim(), clear })}
     </>
   );
 

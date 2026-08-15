@@ -70,11 +70,14 @@ function SearchAddTable({
   const excluded = excludeIds ? new Set(excludeIds) : void 0;
   const visible = excluded ? results.filter((r) => !excluded.has(r.id)) : results;
   const dropdownVisible = open && query.trim().length >= minChars;
-  function pick(option) {
-    onAdd(option);
+  function clear() {
     setQuery("");
     setResults([]);
     setOpen(false);
+  }
+  function pick(option) {
+    onAdd(option);
+    clear();
   }
   const list = /* @__PURE__ */ jsxRuntime.jsx("ul", { className: "max-h-60 overflow-y-auto py-1", children: loading ? /* @__PURE__ */ jsxRuntime.jsxs("li", { className: "flex items-center justify-center gap-2 px-3 py-6 text-sm text-muted-foreground", children: [
     /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Loader2, { className: "h-4 w-4 animate-spin" }),
@@ -102,7 +105,7 @@ function SearchAddTable({
   ) }, option.id)) });
   const panel = /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
     list,
-    !loading && footer
+    !loading && footer?.({ query: query.trim(), clear })
   ] });
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: cx("relative", className), ref, children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative", ref: inputRef, children: [
