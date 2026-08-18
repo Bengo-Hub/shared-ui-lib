@@ -104,4 +104,25 @@ interface AppSwitcherGridProps {
 }
 declare function AppSwitcherGrid({ services, onNavigate, label, className }: AppSwitcherGridProps): react_jsx_runtime.JSX.Element | null;
 
-export { AppSwitcherGrid, type AppSwitcherGridProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };
+/**
+ * Self-contained quick-access "apps" launcher — a header icon button that opens
+ * AppSwitcherGrid in a small anchored popover. Ports auth-ui's own Grid3x3
+ * icon-trigger pattern (first built for DashboardTopNav) into a single reusable
+ * component so every other *-ui gets the same quick-launch affordance instead
+ * of only reaching the switcher through the full AccountPanel slide-over.
+ *
+ * Portals to `document.body` and positions itself from the trigger button's
+ * own bounding rect (the same technique this fleet's headers already use for
+ * their own anchored dropdowns) — required because a host header's
+ * `backdrop-filter`/`transform` would otherwise clip a plain `fixed` popover
+ * (see AccountPanel's own doc comment for the same gotcha).
+ */
+interface AppSwitcherTriggerProps {
+    services: VisibleService[];
+    className?: string;
+    /** Fires after a live service is clicked, or the backdrop is clicked. */
+    onNavigate?: () => void;
+}
+declare function AppSwitcherTrigger({ services, className, onNavigate }: AppSwitcherTriggerProps): react_jsx_runtime.JSX.Element | null;
+
+export { AppSwitcherGrid, type AppSwitcherGridProps, AppSwitcherTrigger, type AppSwitcherTriggerProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };

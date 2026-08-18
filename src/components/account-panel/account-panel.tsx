@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LogOut, X } from 'lucide-react';
 
@@ -47,6 +47,15 @@ function initials(name: string, email: string): string {
 }
 
 export function AccountPanel({ open, onClose, user, onSignOut, links, children }: AccountPanelProps) {
+  // Stay mounted through the close transition (unmounting immediately on
+  // `open=false` would cut off the slide-out/fade-out animation), then drop
+  // out of the DOM once it finishes via onTransitionEnd below.
+  const [mounted, setMounted] = useState(open);
+
+  useEffect(() => {
+    if (open) setMounted(true);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -56,12 +65,18 @@ export function AccountPanel({ open, onClose, user, onSignOut, links, children }
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (!mounted || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
+    <div
+      className={`fixed inset-0 z-50 flex justify-end bg-black/30 transition-opacity duration-200 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+      onClick={onClose}
+      onTransitionEnd={(e) => {
+        if (e.target === e.currentTarget && !open) setMounted(false);
+      }}
+    >
       <div
-        className="flex h-full w-full max-w-sm flex-col overflow-y-auto bg-card shadow-2xl"
+        className={`flex h-full w-full max-w-sm flex-col overflow-y-auto bg-card shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-end p-3">

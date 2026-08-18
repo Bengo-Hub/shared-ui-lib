@@ -3,6 +3,7 @@
 var lucideReact = require('lucide-react');
 var react = require('react');
 var jsxRuntime = require('react/jsx-runtime');
+var reactDom = require('react-dom');
 
 // src/components/app-switcher/service-registry.ts
 var SERVICE_REGISTRY = [
@@ -85,7 +86,7 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
     ] }),
     /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex flex-col gap-4", children: groupByCategory(services).map(([category, items]) => /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
       /* @__PURE__ */ jsxRuntime.jsx("p", { className: "mb-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground", children: category }),
-      /* @__PURE__ */ jsxRuntime.jsx("div", { className: "grid grid-cols-3 gap-1.5 sm:grid-cols-4", children: items.map(
+      /* @__PURE__ */ jsxRuntime.jsx("div", { className: "grid grid-cols-4 gap-1.5", children: items.map(
         ({ key, label: svcLabel, href, Icon, status, color }) => href ? /* @__PURE__ */ jsxRuntime.jsxs(
           "a",
           {
@@ -117,8 +118,55 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
     ] }, category)) })
   ] });
 }
+function AppSwitcherTrigger({ services, className, onNavigate }) {
+  const [open, setOpen] = react.useState(false);
+  const btnRef = react.useRef(null);
+  const [pos, setPos] = react.useState(null);
+  if (services.length === 0) return null;
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
+    }
+    setOpen((v) => !v);
+  };
+  const close = () => {
+    setOpen(false);
+    onNavigate?.();
+  };
+  return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntime.jsx(
+      "button",
+      {
+        ref: btnRef,
+        type: "button",
+        onClick: toggle,
+        "aria-label": "Codevertex apps",
+        "aria-expanded": open,
+        "aria-haspopup": "true",
+        className: className ?? "relative inline-flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors",
+        children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Grid3x3, { className: "h-5 w-5" })
+      }
+    ),
+    open && pos && typeof document !== "undefined" && reactDom.createPortal(
+      /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "fixed inset-0 z-[90]", onClick: close, "aria-hidden": true }),
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "div",
+          {
+            className: "fixed z-[91] w-80 max-w-[calc(100vw-1rem)] max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-popover p-4 shadow-2xl",
+            style: { top: pos.top, right: pos.right },
+            children: /* @__PURE__ */ jsxRuntime.jsx(AppSwitcherGrid, { services, onNavigate: close })
+          }
+        )
+      ] }),
+      document.body
+    )
+  ] });
+}
 
 exports.AppSwitcherGrid = AppSwitcherGrid;
+exports.AppSwitcherTrigger = AppSwitcherTrigger;
 exports.SERVICE_REGISTRY = SERVICE_REGISTRY;
 exports.useVisibleServices = useVisibleServices;
 //# sourceMappingURL=index.cjs.map

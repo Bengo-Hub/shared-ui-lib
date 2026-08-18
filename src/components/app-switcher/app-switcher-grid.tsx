@@ -70,7 +70,11 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
             <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {category}
             </p>
-            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+            {/* Fixed column count (not a viewport-width breakpoint): this grid always renders
+                inside a narrow anchored panel/popover regardless of the host window's size, so a
+                `sm:` breakpoint keyed off viewport width — not the panel's own width — produced
+                an inconsistent column count in practice. */}
+            <div className="grid grid-cols-4 gap-1.5">
               {items.map(({ key, label: svcLabel, href, Icon, status, color }) =>
                 href ? (
                   <a
