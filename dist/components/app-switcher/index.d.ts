@@ -96,7 +96,9 @@ interface AppSwitcherGridProps {
     services: VisibleService[];
     /** Called after a live service link is clicked (e.g. to close a menu). */
     onNavigate?: () => void;
-    /** Shown above the grid — defaults to a Codevertex-branded eyebrow label. */
+    /** Shown above the grid — defaults to a Codevertex-branded eyebrow label.
+     * Pass an empty string to suppress the header entirely (e.g. when embedding
+     * this inside another surface, like AccountPanel, that already has its own heading). */
     label?: string;
     className?: string;
 }

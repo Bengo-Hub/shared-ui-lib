@@ -24,7 +24,9 @@ export interface AppSwitcherGridProps {
   services: VisibleService[];
   /** Called after a live service link is clicked (e.g. to close a menu). */
   onNavigate?: () => void;
-  /** Shown above the grid — defaults to a Codevertex-branded eyebrow label. */
+  /** Shown above the grid — defaults to a Codevertex-branded eyebrow label.
+   * Pass an empty string to suppress the header entirely (e.g. when embedding
+   * this inside another surface, like AccountPanel, that already has its own heading). */
   label?: string;
   className?: string;
 }
@@ -54,12 +56,14 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
 
   return (
     <div className={className}>
-      <div className="mb-3 flex items-center gap-2 px-1">
-        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-          {label ?? 'Codevertex Suite'}
-        </p>
-      </div>
+      {label !== '' && (
+        <div className="mb-3 flex items-center gap-2 px-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            {label ?? 'Codevertex Suite'}
+          </p>
+        </div>
+      )}
       <div className="flex flex-col gap-4">
         {groupByCategory(services).map(([category, items]) => (
           <div key={category}>

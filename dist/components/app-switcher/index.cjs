@@ -79,7 +79,7 @@ function groupByCategory(services) {
 function AppSwitcherGrid({ services, onNavigate, label, className }) {
   if (services.length === 0) return null;
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className, children: [
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-3 flex items-center gap-2 px-1", children: [
+    label !== "" && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-3 flex items-center gap-2 px-1", children: [
       /* @__PURE__ */ jsxRuntime.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-primary", "aria-hidden": true }),
       /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-[10px] font-bold uppercase tracking-widest text-primary", children: label ?? "Codevertex Suite" })
     ] }),
