@@ -15,6 +15,7 @@ export default defineConfig({
     "src/components/search-add-table/index.ts",
     "src/components/pin-login/index.ts",
     "src/components/app-switcher/index.ts",
+    "src/components/account-panel/index.ts",
     "src/components/navigation/index.ts",
     "src/components/tenant/index.ts",
   ],

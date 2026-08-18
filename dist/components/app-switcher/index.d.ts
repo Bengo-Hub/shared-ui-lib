@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react';
+import * as react_jsx_runtime from 'react/jsx-runtime';
 
 /**
  * Canonical cross-service link registry for the "SERVICES" profile-menu dropdown.
@@ -12,12 +13,21 @@ import { LucideIcon } from 'lucide-react';
  * consuming Next.js app must keep resolving its own env vars as literal expressions in its own
  * source so its bundler can statically inline them, then pass the resolved base URLs in via
  * `useVisibleServices({ urls })`. See each header.tsx's `SERVICE_URLS` map for the convention.
+ *
+ * `category` groups the AppSwitcherGrid presentation (Zoho-style sectioned grid, scaled to this
+ * platform's real ~17-service suite, not Zoho's own ~50-app marketplace). `color` picks a
+ * per-service accent tint for the grid's icon cell — additive fields, existing consumers that
+ * only destructure {key,label,href,Icon} are unaffected.
  */
-type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'ordering' | 'subscriptions' | 'auth' | 'projects' | 'afya' | 'sourcing' | 'traceability' | 'ticketing';
+type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'ordering' | 'subscriptions' | 'auth' | 'projects' | 'afya' | 'sourcing' | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload';
+type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
+type ServiceAccent = 'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'fuchsia';
 interface ServiceDefinition {
     key: ServiceKey;
     label: string;
     Icon: LucideIcon;
+    category: ServiceCategory;
+    color: ServiceAccent;
     /** Hidden from non-manager principals (matches each app's own manager/admin permission check). */
     manageOnly: boolean;
     /** subscriptions-api service tag, when this service is billable/gateable. Omit if not yet billed. */
@@ -65,4 +75,31 @@ interface UseVisibleServicesOptions {
  */
 declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, include, }: UseVisibleServicesOptions): VisibleService[];
 
-export { SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };
+/**
+ * Icon-grid presentation of useVisibleServices()'s output — the "SERVICES"
+ * profile-menu content every *-ui currently hand-rolls as its own vertical
+ * list (pos-ui/inventory-ui/treasury-ui/logistics-ui/library-ui/hospital-ui
+ * header.tsx, byte-for-byte duplicated). Grouped by category and given a
+ * distinct accent color per service — Zoho's own app-switcher groups by
+ * category and colors each tile; this is the same idea scaled to this
+ * platform's real ~17-service suite, not a copy of Zoho's ~50-app grid.
+ *
+ * Ships raw Tailwind semantic-token classNames like the rest of
+ * shared-ui-lib — no CSS pipeline, no portal/popover dependency, works on
+ * any host (Radix-based shadcn or @base-ui).
+ *
+ * Purely presentational: fetch/filter via useVisibleServices first, then
+ * pass the result here. `onNavigate` fires on any click (link or disabled
+ * coming-soon cell) — typically used to close the parent menu/panel.
+ */
+interface AppSwitcherGridProps {
+    services: VisibleService[];
+    /** Called after a live service link is clicked (e.g. to close a menu). */
+    onNavigate?: () => void;
+    /** Shown above the grid — defaults to a Codevertex-branded eyebrow label. */
+    label?: string;
+    className?: string;
+}
+declare function AppSwitcherGrid({ services, onNavigate, label, className }: AppSwitcherGridProps): react_jsx_runtime.JSX.Element | null;
+
+export { AppSwitcherGrid, type AppSwitcherGridProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };
