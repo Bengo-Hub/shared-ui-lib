@@ -555,8 +555,12 @@ function useEntitlements() {
 }
 function planFamily(code) {
   if (!code) return "";
-  const i = code.indexOf("_");
-  return (i === -1 ? code : code.slice(0, i)).toUpperCase();
+  const upper = code.toUpperCase();
+  if (upper.startsWith("POWERSUITE_")) {
+    return upper.split("_").slice(0, 2).join("_");
+  }
+  const i = upper.indexOf("_");
+  return i === -1 ? upper : upper.slice(0, i);
 }
 function isFeatureUnlocked(e, code) {
   if (e.isExempt) return true;

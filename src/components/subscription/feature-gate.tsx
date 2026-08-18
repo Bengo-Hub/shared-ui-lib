@@ -81,13 +81,26 @@ export function useEntitlements(): SubscriptionEntitlements {
   return useContext(SubscriptionContext);
 }
 
-/** planFamily returns a plan code's family = its first underscore segment, upper-cased
- * (POWERSUITE_GROWTH_ONE_TIME → "POWERSUITE", ERP_STARTER_ONE_TIME → "ERP"). Mirrors the
- * pricing UI's planGroup rule so tier ranks are only compared within the same product family. */
+/** planFamily returns a plan code's family, upper-cased (ERP_STARTER_ONE_TIME → "ERP"). For
+ * PowerSuite plans specifically it returns the first TWO segments (POWERSUITE_DUKA_GOLD_ONE_TIME
+ * → "POWERSUITE_DUKA", POWERSUITE_HOSP_BASIC → "POWERSUITE_HOSP") because the PowerSuite line
+ * encodes a further use-case sub-family — Hospitality / Retail(Duka) / Pharmacy(Dawa) — as its
+ * SECOND segment, and those three are deliberately DISJOINT feature sets (see subscriptions-api's
+ * hospSuiteFeatures/dukaSuiteFeatures/dawaSuiteFeatures: a Duka plan never grants kds/table_management/
+ * hotel_module, a Hosp plan never grants layaway/commissions/warranties). Splitting only on the
+ * first segment (the pre-fix behaviour) collapsed all three into one "POWERSUITE" bucket, so the
+ * tier-rank fallback below would report e.g. "kds" (minPlanCode POWERSUITE_HOSP_BASIC) as unlocked
+ * for ANY PowerSuite Duka/Dawa tenant at tier >= 1 — exactly the cross-family leak the comment on
+ * isFeatureUnlocked says this check exists to prevent. Every other product line (ERP_*, ORDERING_*,
+ * AFYA_*, TRULOAD_*, ...) has no such sub-family split, so the first segment is still correct there. */
 function planFamily(code?: string | null): string {
   if (!code) return "";
-  const i = code.indexOf("_");
-  return (i === -1 ? code : code.slice(0, i)).toUpperCase();
+  const upper = code.toUpperCase();
+  if (upper.startsWith("POWERSUITE_")) {
+    return upper.split("_").slice(0, 2).join("_");
+  }
+  const i = upper.indexOf("_");
+  return i === -1 ? upper : upper.slice(0, i);
 }
 
 /**
