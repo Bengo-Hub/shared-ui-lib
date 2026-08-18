@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { LogOut, X } from 'lucide-react';
 
 /**
@@ -11,8 +12,11 @@ import { LogOut, X } from 'lucide-react';
  * for host-specific content (subscription/plan info, storage usage, an
  * AppSwitcherGrid, etc. — this component only owns the shell/chrome).
  *
- * Self-contained like the rest of shared-ui-lib: no portal/dialog dependency,
- * plain fixed-position backdrop + panel, raw Tailwind semantic-token classes.
+ * Portals to `document.body`: a `fixed inset-0` overlay rendered inline gets
+ * clipped/mispositioned by ANY ancestor establishing a CSS containing block
+ * for fixed descendants (a `transform`, `filter`, or `backdrop-filter` —
+ * e.g. a header using `backdrop-blur-*`, a very common host pattern in this
+ * fleet). Portalling to body is the only placement immune to a host's layout.
  */
 export interface AccountPanelUser {
   name: string;
@@ -52,9 +56,9 @@ export function AccountPanel({ open, onClose, user, onSignOut, links, children }
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
       <div
         className="flex h-full w-full max-w-sm flex-col overflow-y-auto bg-card shadow-2xl"
@@ -113,6 +117,7 @@ export function AccountPanel({ open, onClose, user, onSignOut, links, children }
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

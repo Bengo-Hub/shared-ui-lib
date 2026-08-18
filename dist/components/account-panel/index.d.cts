@@ -1,4 +1,4 @@
-import * as react_jsx_runtime from 'react/jsx-runtime';
+import * as React$1 from 'react';
 
 /**
  * Right-side slide-over account panel — the piece missing from every *-ui's
@@ -8,8 +8,11 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
  * for host-specific content (subscription/plan info, storage usage, an
  * AppSwitcherGrid, etc. — this component only owns the shell/chrome).
  *
- * Self-contained like the rest of shared-ui-lib: no portal/dialog dependency,
- * plain fixed-position backdrop + panel, raw Tailwind semantic-token classes.
+ * Portals to `document.body`: a `fixed inset-0` overlay rendered inline gets
+ * clipped/mispositioned by ANY ancestor establishing a CSS containing block
+ * for fixed descendants (a `transform`, `filter`, or `backdrop-filter` —
+ * e.g. a header using `backdrop-blur-*`, a very common host pattern in this
+ * fleet). Portalling to body is the only placement immune to a host's layout.
  */
 interface AccountPanelUser {
     name: string;
@@ -30,6 +33,6 @@ interface AccountPanelProps {
     /** Host-specific content (plan/subscription info, storage bar, app switcher…). */
     children?: React.ReactNode;
 }
-declare function AccountPanel({ open, onClose, user, onSignOut, links, children }: AccountPanelProps): react_jsx_runtime.JSX.Element | null;
+declare function AccountPanel({ open, onClose, user, onSignOut, links, children }: AccountPanelProps): React$1.ReactPortal | null;
 
 export { AccountPanel, type AccountPanelLink, type AccountPanelProps, type AccountPanelUser };
