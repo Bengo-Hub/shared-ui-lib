@@ -22,6 +22,8 @@ interface ComboboxOption {
     hint?: string;
     /** Longer muted description line under the label. */
     description?: string;
+    /** Small leading visual (flag, swatch, glyph…) shown before the label, both closed and in the list. */
+    icon?: React.ReactNode;
 }
 interface SearchableComboboxProps {
     /** Prefetched options — always searched first, client-side. */

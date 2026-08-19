@@ -84,6 +84,17 @@ export {
 } from './components/combobox';
 export { PoweredByBadge, type PoweredByBadgeProps } from './components/branding/powered-by';
 export {
+  PhoneInputField,
+  type PhoneInputFieldProps,
+  CountrySelect,
+  type CountrySelectProps,
+  FlagIcon,
+  type FlagIconProps,
+  listCountries,
+  countryName,
+  type CountryEntry,
+} from './components/contact';
+export {
   DataTable,
   type DataTableProps,
   Checkbox,

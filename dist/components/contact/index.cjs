@@ -1,10 +1,58 @@
 'use strict';
 
 var react = require('react');
-var lucideReact = require('lucide-react');
+var PhoneInput = require('react-phone-number-input');
 var jsxRuntime = require('react/jsx-runtime');
+var lucideReact = require('lucide-react');
+var flags = require('react-phone-number-input/flags');
 
-// src/components/combobox/searchable-combobox.tsx
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var PhoneInput__default = /*#__PURE__*/_interopDefault(PhoneInput);
+var flags__default = /*#__PURE__*/_interopDefault(flags);
+
+// src/components/contact/phone-input.tsx
+function PhoneInputField({
+  value,
+  onChange,
+  placeholder = "e.g. 743 793 901",
+  disabled,
+  className,
+  defaultCountry = "KE",
+  id
+}) {
+  const [displayValue, setDisplayValue] = react.useState(() => {
+    if (value && !value.startsWith("+")) {
+      try {
+        const parsed = PhoneInput.parsePhoneNumber(value, defaultCountry);
+        if (parsed?.isValid()) return parsed.number;
+      } catch {
+      }
+    }
+    return value;
+  });
+  react.useEffect(() => {
+    if (displayValue && displayValue !== value) {
+      onChange(displayValue);
+    }
+  }, []);
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    PhoneInput__default.default,
+    {
+      id,
+      international: true,
+      defaultCountry,
+      value: displayValue,
+      onChange: (v) => {
+        setDisplayValue(v);
+        onChange(v ?? "");
+      },
+      placeholder,
+      disabled,
+      className
+    }
+  );
+}
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -179,7 +227,64 @@ function SearchableCombobox({
     ] })
   ] });
 }
+var regionNames;
+function countryName(iso) {
+  if (regionNames === void 0) {
+    try {
+      regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    } catch {
+      regionNames = null;
+    }
+  }
+  return regionNames?.of(iso) ?? iso;
+}
+function listCountries() {
+  return PhoneInput.getCountries().map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name));
+}
+function FlagIcon({ code, className }) {
+  const Flag = flags__default.default[code];
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    "span",
+    {
+      className: className ?? "inline-flex h-3.5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-[2px] ring-1 ring-black/10",
+      children: Flag ? /* @__PURE__ */ jsxRuntime.jsx(Flag, { title: code }) : /* @__PURE__ */ jsxRuntime.jsx("span", { className: "h-full w-full bg-muted" })
+    }
+  );
+}
+function CountrySelect({
+  value,
+  onChange,
+  placeholder = "Select a country\u2026",
+  searchPlaceholder = "Search countries\u2026",
+  disabled,
+  className
+}) {
+  const options = react.useMemo(
+    () => listCountries().map((c) => ({ value: c.code, label: c.name, icon: /* @__PURE__ */ jsxRuntime.jsx(FlagIcon, { code: c.code }) })),
+    []
+  );
+  const isKnown = value ? options.some((o) => o.value === value) : false;
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    SearchableCombobox,
+    {
+      options,
+      value,
+      onChange,
+      valueLabel: value && !isKnown ? value : void 0,
+      placeholder,
+      searchPlaceholder,
+      emptyText: "No countries match",
+      disabled,
+      clearable: false,
+      className
+    }
+  );
+}
 
-exports.SearchableCombobox = SearchableCombobox;
+exports.CountrySelect = CountrySelect;
+exports.FlagIcon = FlagIcon;
+exports.PhoneInputField = PhoneInputField;
+exports.countryName = countryName;
+exports.listCountries = listCountries;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

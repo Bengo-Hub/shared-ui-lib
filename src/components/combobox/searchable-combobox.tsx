@@ -25,6 +25,8 @@ export interface ComboboxOption {
   hint?: string;
   /** Longer muted description line under the label. */
   description?: string;
+  /** Small leading visual (flag, swatch, glyph…) shown before the label, both closed and in the list. */
+  icon?: React.ReactNode;
 }
 
 export interface SearchableComboboxProps {
@@ -185,8 +187,9 @@ export function SearchableCombobox({
         onClick={() => (open ? close() : setOpen(true))}
         className="flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
       >
-        <span className={cx('truncate text-left', !selected && 'text-muted-foreground')}>
-          {selected ? selected.label : placeholder}
+        <span className={cx('flex min-w-0 items-center gap-2 text-left', !selected && 'text-muted-foreground')}>
+          {selected?.icon}
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
         </span>
         <span className="flex items-center gap-1">
           {clearable && selected && !disabled && (
@@ -229,18 +232,21 @@ export function SearchableCombobox({
                     onClick={() => select(o)}
                     className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60"
                   >
-                    <span className="min-w-0">
-                      <span className="flex items-baseline gap-2">
-                        <span className="truncate text-foreground">{o.label}</span>
-                        {o.hint && (
-                          <span className="shrink-0 text-xs text-muted-foreground">{o.hint}</span>
+                    <span className="flex min-w-0 items-center gap-2">
+                      {o.icon}
+                      <span className="min-w-0">
+                        <span className="flex items-baseline gap-2">
+                          <span className="truncate text-foreground">{o.label}</span>
+                          {o.hint && (
+                            <span className="shrink-0 text-xs text-muted-foreground">{o.hint}</span>
+                          )}
+                        </span>
+                        {o.description && (
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {o.description}
+                          </span>
                         )}
                       </span>
-                      {o.description && (
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {o.description}
-                        </span>
-                      )}
                     </span>
                     {o.value === value && <Check className="h-4 w-4 shrink-0 text-primary" />}
                   </button>
