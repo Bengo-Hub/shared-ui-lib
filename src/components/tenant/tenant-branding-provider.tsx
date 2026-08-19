@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, useContext, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchTenantBySlug, type TenantBrand } from './tenant-api';
 import { defaultTenantCacheAdapter, type TenantCacheAdapter } from './kv-cache';
 
@@ -123,9 +123,19 @@ export function TenantBrandingProvider({
     [defaultPrimaryColor, defaultSecondaryColor]
   );
 
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(() => ['tenant', slug], [slug]);
+
   const { data: tenant, isLoading, error } = useQuery({
-    queryKey: ['tenant', slug],
-    queryFn: () => fetchTenantBySlug(slug, authApiBase, cache),
+    queryKey,
+    // A cache hit returns instantly (possibly stale — e.g. captured before this tenant's
+    // logo/colors were ever set) and fires a background network refresh; onFresh pushes that
+    // refreshed value straight into THIS query's cache so the UI actually updates once it
+    // arrives, instead of the refresh only ever benefiting some future query call.
+    queryFn: () =>
+      fetchTenantBySlug(slug, authApiBase, cache, (fresh) => {
+        queryClient.setQueryData(queryKey, fresh);
+      }),
     staleTime: 6 * 60 * 60 * 1000, // 6 hours — aligned with JWT TTL
     enabled: !!slug,
     // Fail fast: fetchTenantBySlug already times out at 8s and returns null rather than

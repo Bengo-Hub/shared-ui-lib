@@ -1,5 +1,5 @@
 import { createContext, useMemo, useContext } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { jsx } from 'react/jsx-runtime';
 
 // src/components/tenant/kv-cache.ts
@@ -77,7 +77,7 @@ function parseBrandFromTenant(t) {
     contactEmail: typeof t.contact_email === "string" && t.contact_email ? t.contact_email : null
   };
 }
-async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAdapter) {
+async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAdapter, onFresh) {
   if (!slug) return null;
   const url = `${authApiBase}/api/v1/tenants/by-slug/${encodeURIComponent(slug)}`;
   const cacheKey = kvKey("tenant-brand", slug);
@@ -96,7 +96,9 @@ async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAd
   try {
     const cached = await cache.getKV(cacheKey).catch(() => void 0);
     if (cached) {
-      void refresh().catch(() => {
+      void refresh().then((fresh) => {
+        if (fresh) onFresh?.(fresh);
+      }).catch(() => {
       });
       return cached;
     }
@@ -180,9 +182,17 @@ function TenantBrandingProvider({
     }),
     [defaultPrimaryColor, defaultSecondaryColor]
   );
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(() => ["tenant", slug], [slug]);
   const { data: tenant, isLoading, error } = useQuery({
-    queryKey: ["tenant", slug],
-    queryFn: () => fetchTenantBySlug(slug, authApiBase, cache),
+    queryKey,
+    // A cache hit returns instantly (possibly stale — e.g. captured before this tenant's
+    // logo/colors were ever set) and fires a background network refresh; onFresh pushes that
+    // refreshed value straight into THIS query's cache so the UI actually updates once it
+    // arrives, instead of the refresh only ever benefiting some future query call.
+    queryFn: () => fetchTenantBySlug(slug, authApiBase, cache, (fresh) => {
+      queryClient.setQueryData(queryKey, fresh);
+    }),
     staleTime: 6 * 60 * 60 * 1e3,
     // 6 hours — aligned with JWT TTL
     enabled: !!slug,

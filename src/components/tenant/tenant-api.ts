@@ -93,11 +93,19 @@ export function parseBrandFromTenant(t: TenantResponse): TenantBrand {
  *   `process.env` itself).
  * @param cache Optional cache adapter. Defaults to the dependency-free native-IndexedDB
  *   adapter; pass your own to reuse an existing cache (e.g. pos-ui's Dexie-backed one).
+ * @param onFresh Optional callback invoked with the network-refreshed brand once the
+ *   background refresh (fired after a cache hit) resolves. Without this, a stale cached
+ *   value (e.g. captured before a tenant's logo/colors were ever set) would be re-served
+ *   verbatim on every subsequent call forever — the refresh updated the KV cache for a
+ *   "next call" that itself always hits the same stale-serving cache-first branch, so the
+ *   UI never actually caught up. Callers (e.g. TenantBrandingProvider) should use this to
+ *   push the fresh value into whatever reactive state is driving the UI.
  */
 export async function fetchTenantBySlug(
   slug: string,
   authApiBase: string,
-  cache: TenantCacheAdapter = defaultTenantCacheAdapter
+  cache: TenantCacheAdapter = defaultTenantCacheAdapter,
+  onFresh?: (brand: TenantBrand) => void
 ): Promise<TenantBrand | null> {
   if (!slug) return null;
   const url = `${authApiBase}/api/v1/tenants/by-slug/${encodeURIComponent(slug)}`;
@@ -116,7 +124,11 @@ export async function fetchTenantBySlug(
   try {
     const cached = await cache.getKV<TenantBrand>(cacheKey).catch(() => undefined);
     if (cached) {
-      void refresh().catch(() => {});
+      void refresh()
+        .then((fresh) => {
+          if (fresh) onFresh?.(fresh);
+        })
+        .catch(() => {});
       return cached;
     }
     return await refresh();
