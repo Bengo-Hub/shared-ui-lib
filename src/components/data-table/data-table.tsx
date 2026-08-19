@@ -1,13 +1,12 @@
 'use client';
 
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { AlertTriangle, ChevronDown, ChevronRight, FileDown, Inbox, Printer } from 'lucide-react';
+import { FileDown, Printer } from 'lucide-react';
 import { BulkActionBar } from './bulk-action-bar';
-import { Checkbox } from './checkbox';
 import { ColumnVisibilityButton, loadHiddenColumns } from './column-visibility';
+import { DataTableDesktop } from './data-table-desktop';
+import { DataTableMobile } from './data-table-mobile';
 import { exportRowsAsCsv } from './export';
-import { FunnelFilter, SortButton } from './header-controls';
-import { TableFooter } from './table-footer';
 import {
   cellText,
   compareValues,
@@ -27,6 +26,10 @@ import {
  *
  * Client mode (default): sorting + funnel filters run over `rows`.
  * Server mode: pass `onSortChange` / `onFiltersChange` and drive your query.
+ *
+ * Rendering is split into `DataTableDesktop` (the real `<table>`, `md:` and up)
+ * and `DataTableMobile` (stacked cards, below `md:`) — two fully parallel trees
+ * sharing this component's state/derived-data logic.
  */
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
@@ -39,6 +42,8 @@ export interface DataTableProps<T> {
   /** Rich empty state (icon + CTA). Default is a simple message. */
   emptyState?: ReactNode;
   emptyText?: string;
+  /** Render this many shimmer skeleton rows/cards instead of the plain "Loading…" text while `loading` is true. Omit to keep the original text-only loading state (zero behavior change for existing callers). */
+  loadingRows?: number;
 
   /** Controlled sort (server mode when onSortChange given). */
   sort?: SortState | null;
@@ -92,20 +97,13 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-const ALIGN = { left: 'text-left', right: 'text-right', center: 'text-center' } as const;
-const HIDE = {
-  sm: 'hidden sm:table-cell',
-  md: 'hidden md:table-cell',
-  lg: 'hidden lg:table-cell',
-  xl: 'hidden xl:table-cell',
-} as const;
-
 export function DataTable<T>(props: DataTableProps<T>) {
   const {
     columns,
     rows,
     rowKey,
     loading,
+    loadingRows,
     error,
     onRetry,
     selectable,
@@ -231,7 +229,6 @@ export function DataTable<T>(props: DataTableProps<T>) {
 
   const colSpan = visibleColumns.length + (selectable ? 1 : 0) + (renderExpanded ? 1 : 0);
   const cellPad = dense ? 'px-4 py-2.5' : 'px-4 py-3';
-  const softCol = gridLines === 'both' ? 'border-r border-border/50 last:border-r-0' : '';
 
   const showToolbar =
     props.onPageSizeChange || props.toolbar || props.toolbarActions || props.showExportCsv || props.onPrint || storageKey;
@@ -295,325 +292,71 @@ export function DataTable<T>(props: DataTableProps<T>) {
         <BulkActionBar selectedKeys={[...selected]} actions={bulkActions} onClear={() => setSelected(new Set())} />
       )}
 
-      {/* Desktop / tablet: the full grid. Below md this collapses to a stacked card list
-          instead (see the sibling block below) — the native pattern for dense tabular data
-          on phones, since fixed table columns either cram unreadably or force sideways
-          scrolling on every row just to see one more field. */}
-      <div className="hidden md:block rounded-lg border border-border overflow-hidden">
-        {/* Scroll region wraps only the table (not the footer below), so the header can
-            freeze at its top via `sticky` while rows scroll underneath — the user never
-            has to scroll back up to re-check a column label. */}
-        <div
-          className="overflow-auto"
-          style={maxBodyHeight ? { maxHeight: maxBodyHeight } : undefined}
-        >
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-muted">
-            <tr className={cx('border-b border-border bg-muted/40', gridLines === 'both' && 'divide-x divide-border/50')}>
-              {selectable && (
-                <th className={cx(cellPad, 'w-10')}>
-                  <Checkbox
-                    checked={allSelected}
-                    indeterminate={!allSelected && someSelected}
-                    onChange={toggleAll}
-                    aria-label="Select all rows"
-                  />
-                </th>
-              )}
-              {renderExpanded && <th className={cx(cellPad, 'w-8')} />}
-              {visibleColumns.map((col) => (
-                <th
-                  key={col.key}
-                  className={cx(
-                    cellPad,
-                    'font-medium text-muted-foreground whitespace-nowrap',
-                    ALIGN[col.align ?? 'left'],
-                    col.hideBelow && HIDE[col.hideBelow],
-                    col.headerClassName,
-                  )}
-                >
-                  <span className={cx('inline-flex items-center gap-1', col.align === 'right' && 'flex-row-reverse')}>
-                    {col.header}
-                    {col.sortable && (
-                      <SortButton dir={sort?.key === col.key ? sort.dir : null} onCycle={() => cycleSort(col.key)} />
-                    )}
-                    {col.filterable && (
-                      <FunnelFilter
-                        options={funnelOptionsFor(col)}
-                        state={filters[col.key]}
-                        onChange={(st) => setColumnFilter(col.key, st)}
-                      />
-                    )}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/70">
-            {loading ? (
-              <tr>
-                <td colSpan={colSpan} className="px-6 py-12 text-center text-muted-foreground">
-                  Loading…
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan={colSpan} className="px-6 py-12 text-center">
-                  <AlertTriangle className="h-10 w-10 mx-auto text-destructive/60 mb-3" />
-                  <p className="text-muted-foreground">Couldn&apos;t load data</p>
-                  {onRetry && (
-                    <button
-                      type="button"
-                      onClick={onRetry}
-                      className="mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
-                    >
-                      Retry
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ) : processedRows.length === 0 ? (
-              <tr>
-                <td colSpan={colSpan} className="px-6 py-12 text-center">
-                  {props.emptyState ?? (
-                    <>
-                      <Inbox className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                      <p className="text-muted-foreground">{props.emptyText ?? 'No records found'}</p>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ) : (
-              processedRows.map((row, i) => {
-                const key = rowKey(row);
-                const isExpanded = expanded.has(key);
-                const canSelect = isRowSelectable?.(row) ?? true;
-                return (
-                  <FragmentRow key={key}>
-                    <tr
-                      className={cx(
-                        'hover:bg-accent/30 transition-colors',
-                        gridLines === 'both' && 'divide-x divide-border/50',
-                        selected.has(key) && 'bg-primary/5',
-                        props.onRowClick && 'cursor-pointer',
-                        props.rowClassName?.(row),
-                      )}
-                      onClick={props.onRowClick ? () => props.onRowClick?.(row) : undefined}
-                    >
-                      {selectable && (
-                        <td className={cellPad}>
-                          {canSelect && (
-                            <Checkbox
-                              checked={selected.has(key)}
-                              onChange={() => {
-                                const next = new Set(selected);
-                                if (next.has(key)) next.delete(key);
-                                else next.add(key);
-                                setSelected(next);
-                              }}
-                            />
-                          )}
-                        </td>
-                      )}
-                      {renderExpanded && (
-                        <td className={cellPad}>
-                          <button
-                            type="button"
-                            aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const next = new Set(expanded);
-                              if (next.has(key)) next.delete(key);
-                              else next.add(key);
-                              setExpanded(next);
-                            }}
-                            className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                          </button>
-                        </td>
-                      )}
-                      {visibleColumns.map((col) => (
-                        <td
-                          key={col.key}
-                          className={cx(
-                            cellPad,
-                            ALIGN[col.align ?? 'left'],
-                            col.hideBelow && HIDE[col.hideBelow],
-                            col.cellClassName,
-                          )}
-                        >
-                          {col.render ? col.render(row, i) : cellText(accessorOf(col)(row)) || '—'}
-                        </td>
-                      ))}
-                    </tr>
-                    {isExpanded && renderExpanded && (
-                      <tr className="bg-muted/20">
-                        <td colSpan={colSpan} className="px-6 py-3">
-                          {renderExpanded(row)}
-                        </td>
-                      </tr>
-                    )}
-                  </FragmentRow>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-        </div>
-        {props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && (
-          <TableFooter
-            page={props.page}
-            totalPages={props.totalPages}
-            onPageChange={props.onPageChange}
-            total={props.total}
-            pageSize={props.pageSize}
-            shownCount={processedRows.length}
-          />
-        )}
-      </div>
+      <DataTableDesktop
+        visibleColumns={visibleColumns}
+        processedRows={processedRows}
+        rowKey={rowKey}
+        accessorOf={accessorOf}
+        loading={loading}
+        loadingRows={loadingRows}
+        error={error}
+        onRetry={onRetry}
+        emptyState={props.emptyState}
+        emptyText={props.emptyText}
+        gridLines={gridLines}
+        cellPad={cellPad}
+        colSpan={colSpan}
+        maxBodyHeight={maxBodyHeight}
+        sort={sort}
+        cycleSort={cycleSort}
+        filters={filters}
+        setColumnFilter={setColumnFilter}
+        funnelOptionsFor={funnelOptionsFor}
+        selectable={selectable}
+        selected={selected}
+        setSelected={setSelected}
+        isRowSelectable={isRowSelectable}
+        allSelected={allSelected}
+        someSelected={someSelected}
+        toggleAll={toggleAll}
+        renderExpanded={renderExpanded}
+        expanded={expanded}
+        setExpanded={setExpanded}
+        onRowClick={props.onRowClick}
+        rowClassName={props.rowClassName}
+        page={props.page}
+        totalPages={props.totalPages}
+        onPageChange={props.onPageChange}
+        total={props.total}
+        pageSize={props.pageSize}
+      />
 
-      {/* Mobile card list — same loading/error/empty/rows logic as the desktop table above,
-          rendered as stacked cards instead of a grid. */}
-      <div className="md:hidden rounded-lg border border-border">
-        <div className="divide-y divide-border">
-        {loading ? (
-          <div className="px-6 py-12 text-center text-muted-foreground">Loading…</div>
-        ) : error ? (
-          <div className="px-6 py-12 text-center">
-            <AlertTriangle className="h-10 w-10 mx-auto text-destructive/60 mb-3" />
-            <p className="text-muted-foreground">Couldn&apos;t load data</p>
-            {onRetry && (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
-              >
-                Retry
-              </button>
-            )}
-          </div>
-        ) : processedRows.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            {props.emptyState ?? (
-              <>
-                <Inbox className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">{props.emptyText ?? 'No records found'}</p>
-              </>
-            )}
-          </div>
-        ) : (
-          processedRows.map((row, i) => {
-            const key = rowKey(row);
-            const isExpanded = expanded.has(key);
-            const canSelect = isRowSelectable?.(row) ?? true;
-            const primaryCol = visibleColumns.find((c) => c.primary);
-            const actionCols = visibleColumns.filter((c) => c.mobileAction);
-            const bodyCols = visibleColumns.filter((c) => !c.primary && !c.mobileAction && !c.mobileHidden);
-            return (
-              <div
-                key={key}
-                className={cx(
-                  'p-4 active:bg-accent/40 transition-colors',
-                  (props.onRowClick || renderExpanded) && 'cursor-pointer',
-                  selected.has(key) && 'bg-primary/5',
-                  props.rowClassName?.(row),
-                )}
-                onClick={
-                  props.onRowClick
-                    ? () => props.onRowClick?.(row)
-                    : renderExpanded
-                      ? () => {
-                          const next = new Set(expanded);
-                          if (next.has(key)) next.delete(key);
-                          else next.add(key);
-                          setExpanded(next);
-                        }
-                      : undefined
-                }
-              >
-                <div className="flex items-start gap-3">
-                  {selectable && canSelect && (
-                    <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
-                      <Checkbox
-                        checked={selected.has(key)}
-                        onChange={() => {
-                          const next = new Set(selected);
-                          if (next.has(key)) next.delete(key);
-                          else next.add(key);
-                          setSelected(next);
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    {primaryCol && (
-                      <div className="font-semibold text-foreground break-words">
-                        {primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || '—'}
-                      </div>
-                    )}
-                  </div>
-                  {(actionCols.length > 0 || renderExpanded) && (
-                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {actionCols.map((c) => <div key={c.key}>{c.render ? c.render(row, i) : cellText(accessorOf(c)(row))}</div>)}
-                      {renderExpanded && (
-                        <button
-                          type="button"
-                          aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
-                          onClick={() => {
-                            const next = new Set(expanded);
-                            if (next.has(key)) next.delete(key);
-                            else next.add(key);
-                            setExpanded(next);
-                          }}
-                          className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-                {bodyCols.length > 0 && (
-                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
-                    {bodyCols.map((c) => (
-                      <div key={c.key} className="min-w-0">
-                        <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {c.mobileLabel ?? (typeof c.header === 'string' ? c.header : c.key)}
-                        </dt>
-                        <dd className="text-sm text-foreground mt-0.5 break-words">
-                          {c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) || '—'}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-                {isExpanded && renderExpanded && (
-                  <div className="mt-3 pt-3 border-t border-border/70" onClick={(e) => e.stopPropagation()}>
-                    {renderExpanded(row)}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
-      {props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && (
-        <TableFooter
-          page={props.page}
-          totalPages={props.totalPages}
-          onPageChange={props.onPageChange}
-          total={props.total}
-          pageSize={props.pageSize}
-          shownCount={processedRows.length}
-        />
-      )}
-      </div>
+      <DataTableMobile
+        visibleColumns={visibleColumns}
+        processedRows={processedRows}
+        rowKey={rowKey}
+        accessorOf={accessorOf}
+        loading={loading}
+        loadingRows={loadingRows}
+        error={error}
+        onRetry={onRetry}
+        emptyState={props.emptyState}
+        emptyText={props.emptyText}
+        selectable={selectable}
+        selected={selected}
+        setSelected={setSelected}
+        isRowSelectable={isRowSelectable}
+        renderExpanded={renderExpanded}
+        expanded={expanded}
+        setExpanded={setExpanded}
+        onRowClick={props.onRowClick}
+        rowClassName={props.rowClassName}
+        page={props.page}
+        totalPages={props.totalPages}
+        onPageChange={props.onPageChange}
+        total={props.total}
+        pageSize={props.pageSize}
+      />
     </div>
   );
-}
-
-/** Keyed fragment wrapper so a data row + its expansion row share one key. */
-function FragmentRow({ children }: { children: ReactNode }) {
-  return <>{children}</>;
 }

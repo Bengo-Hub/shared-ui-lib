@@ -95,6 +95,10 @@ declare function compareValues(a: unknown, b: unknown): number;
  *
  * Client mode (default): sorting + funnel filters run over `rows`.
  * Server mode: pass `onSortChange` / `onFiltersChange` and drive your query.
+ *
+ * Rendering is split into `DataTableDesktop` (the real `<table>`, `md:` and up)
+ * and `DataTableMobile` (stacked cards, below `md:`) — two fully parallel trees
+ * sharing this component's state/derived-data logic.
  */
 interface DataTableProps<T> {
     columns: DataTableColumn<T>[];
@@ -106,6 +110,8 @@ interface DataTableProps<T> {
     /** Rich empty state (icon + CTA). Default is a simple message. */
     emptyState?: ReactNode;
     emptyText?: string;
+    /** Render this many shimmer skeleton rows/cards instead of the plain "Loading…" text while `loading` is true. Omit to keep the original text-only loading state (zero behavior change for existing callers). */
+    loadingRows?: number;
     /** Controlled sort (server mode when onSortChange given). */
     sort?: SortState | null;
     onSortChange?: (s: SortState | null) => void;

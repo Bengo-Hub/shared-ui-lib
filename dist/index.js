@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect, useLayoutEffect } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { createPortal } from 'react-dom';
-import { WifiOff, RefreshCw, CheckCircle2, X, ChevronsUpDown, Search, Loader2, Check, Minus, Columns3, ArrowUp, ArrowDown, ArrowUpDown, Filter, ChevronLeft, ChevronRight, FileDown, Printer, AlertTriangle, Inbox, ChevronDown } from 'lucide-react';
+import { WifiOff, RefreshCw, CheckCircle2, X, ChevronsUpDown, Search, Loader2, Check, Columns3, Minus, ArrowUp, ArrowDown, ArrowUpDown, Filter, ChevronLeft, ChevronRight, FileDown, Printer, AlertTriangle, Inbox, ChevronDown } from 'lucide-react';
 
 // src/components/auth/sso-login-modal.tsx
 function SSOLoginModal({
@@ -2208,30 +2208,6 @@ function BulkActionBar({
     ))
   ] });
 }
-function Checkbox({ checked, indeterminate, onChange, disabled, className, ...rest }) {
-  const active = checked || indeterminate;
-  return /* @__PURE__ */ jsx(
-    "button",
-    {
-      type: "button",
-      role: "checkbox",
-      "aria-checked": indeterminate ? "mixed" : checked,
-      "aria-label": rest["aria-label"] ?? "Select row",
-      disabled,
-      onClick: (e) => {
-        e.stopPropagation();
-        onChange(!checked);
-      },
-      className: cx2(
-        "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-        active ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background hover:border-primary/60",
-        disabled && "opacity-40 cursor-not-allowed",
-        className
-      ),
-      children: indeterminate ? /* @__PURE__ */ jsx(Minus, { className: "h-3 w-3" }) : checked ? /* @__PURE__ */ jsx(Check, { className: "h-3 w-3" }) : null
-    }
-  );
-}
 function AnchoredPopover({
   open,
   onClose,
@@ -2362,30 +2338,29 @@ function ColumnVisibilityButton({
     ] })
   ] });
 }
-
-// src/components/data-table/export.ts
-function exportRowsAsCsv(rows, columns, fileName) {
-  const cols = columns.filter((c) => c.exportable !== false);
-  const esc = (s) => /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  const headerText = (h) => typeof h === "string" || typeof h === "number" ? String(h) : "";
-  const lines = [
-    cols.map((c) => esc(headerText(c.header) || c.key)).join(","),
-    ...rows.map(
-      (row) => cols.map((c) => {
-        const v = c.accessor ? c.accessor(row) : row[c.key];
-        return esc(cellText(v));
-      }).join(",")
-    )
-  ];
-  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+function Checkbox({ checked, indeterminate, onChange, disabled, className, ...rest }) {
+  const active = checked || indeterminate;
+  return /* @__PURE__ */ jsx(
+    "button",
+    {
+      type: "button",
+      role: "checkbox",
+      "aria-checked": indeterminate ? "mixed" : checked,
+      "aria-label": rest["aria-label"] ?? "Select row",
+      disabled,
+      onClick: (e) => {
+        e.stopPropagation();
+        onChange(!checked);
+      },
+      className: cx2(
+        "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+        active ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background hover:border-primary/60",
+        disabled && "opacity-40 cursor-not-allowed",
+        className
+      ),
+      children: indeterminate ? /* @__PURE__ */ jsx(Minus, { className: "h-3 w-3" }) : checked ? /* @__PURE__ */ jsx(Check, { className: "h-3 w-3" }) : null
+    }
+  );
 }
 function SortButton({
   dir,
@@ -2504,6 +2479,9 @@ function FunnelFilter({
     ] }) })
   ] });
 }
+function SkeletonBar({ widthClass = "w-3/4" }) {
+  return /* @__PURE__ */ jsx("div", { className: `h-3.5 rounded bg-muted animate-pulse ${widthClass}` });
+}
 function TableFooter({
   page,
   totalPages,
@@ -2569,12 +2547,338 @@ var HIDE = {
   lg: "hidden lg:table-cell",
   xl: "hidden xl:table-cell"
 };
+var SKELETON_WIDTHS = ["w-5/6", "w-2/3", "w-3/4", "w-1/2"];
+function FragmentRow({ children }) {
+  return /* @__PURE__ */ jsx(Fragment, { children });
+}
+function DataTableDesktop(props) {
+  const {
+    visibleColumns,
+    processedRows,
+    rowKey,
+    accessorOf,
+    loading,
+    loadingRows,
+    error,
+    onRetry,
+    gridLines,
+    cellPad,
+    colSpan,
+    maxBodyHeight = "65vh",
+    sort,
+    cycleSort,
+    filters,
+    setColumnFilter,
+    funnelOptionsFor,
+    selectable,
+    selected,
+    setSelected,
+    isRowSelectable,
+    allSelected,
+    someSelected,
+    toggleAll,
+    renderExpanded,
+    expanded,
+    setExpanded,
+    onRowClick,
+    rowClassName,
+    page,
+    totalPages,
+    onPageChange,
+    total,
+    pageSize
+  } = props;
+  return /* @__PURE__ */ jsxs("div", { className: "hidden md:block rounded-lg border border-border overflow-hidden", children: [
+    /* @__PURE__ */ jsx("div", { className: "overflow-auto", style: maxBodyHeight ? { maxHeight: maxBodyHeight } : void 0, children: /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
+      /* @__PURE__ */ jsx("thead", { className: "sticky top-0 z-10 bg-muted", children: /* @__PURE__ */ jsxs("tr", { className: cx2("border-b border-border bg-muted/40", gridLines === "both" && "divide-x divide-border/50"), children: [
+        selectable && /* @__PURE__ */ jsx("th", { className: cx2(cellPad, "w-10"), children: /* @__PURE__ */ jsx(
+          Checkbox,
+          {
+            checked: allSelected,
+            indeterminate: !allSelected && someSelected,
+            onChange: toggleAll,
+            "aria-label": "Select all rows"
+          }
+        ) }),
+        renderExpanded && /* @__PURE__ */ jsx("th", { className: cx2(cellPad, "w-8") }),
+        visibleColumns.map((col) => /* @__PURE__ */ jsx(
+          "th",
+          {
+            className: cx2(
+              cellPad,
+              "font-medium text-muted-foreground whitespace-nowrap",
+              ALIGN[col.align ?? "left"],
+              col.hideBelow && HIDE[col.hideBelow],
+              col.headerClassName
+            ),
+            children: /* @__PURE__ */ jsxs("span", { className: cx2("inline-flex items-center gap-1", col.align === "right" && "flex-row-reverse"), children: [
+              col.header,
+              col.sortable && /* @__PURE__ */ jsx(SortButton, { dir: sort?.key === col.key ? sort.dir : null, onCycle: () => cycleSort(col.key) }),
+              col.filterable && /* @__PURE__ */ jsx(
+                FunnelFilter,
+                {
+                  options: funnelOptionsFor(col),
+                  state: filters[col.key],
+                  onChange: (st) => setColumnFilter(col.key, st)
+                }
+              )
+            ] })
+          },
+          col.key
+        ))
+      ] }) }),
+      /* @__PURE__ */ jsx("tbody", { className: "divide-y divide-border/70", children: loading ? loadingRows ? Array.from({ length: loadingRows }).map((_, i) => /* @__PURE__ */ jsxs("tr", { className: gridLines === "both" ? "divide-x divide-border/50" : void 0, children: [
+        selectable && /* @__PURE__ */ jsx("td", { className: cellPad }),
+        renderExpanded && /* @__PURE__ */ jsx("td", { className: cellPad }),
+        visibleColumns.map((col, ci) => /* @__PURE__ */ jsx("td", { className: cellPad, children: /* @__PURE__ */ jsx(SkeletonBar, { widthClass: SKELETON_WIDTHS[(i + ci) % SKELETON_WIDTHS.length] }) }, col.key))
+      ] }, `skeleton-${i}`)) : /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-12 text-center text-muted-foreground", children: "Loading\u2026" }) }) : error ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsxs("td", { colSpan, className: "px-6 py-12 text-center", children: [
+        /* @__PURE__ */ jsx(AlertTriangle, { className: "h-10 w-10 mx-auto text-destructive/60 mb-3" }),
+        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "Couldn't load data" }),
+        onRetry && /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onRetry,
+            className: "mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors",
+            children: "Retry"
+          }
+        )
+      ] }) }) : processedRows.length === 0 ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-12 text-center", children: props.emptyState ?? /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx(Inbox, { className: "h-10 w-10 mx-auto text-muted-foreground/50 mb-3" }),
+        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: props.emptyText ?? "No records found" })
+      ] }) }) }) : processedRows.map((row, i) => {
+        const key = rowKey(row);
+        const isExpanded = expanded.has(key);
+        const canSelect = isRowSelectable?.(row) ?? true;
+        return /* @__PURE__ */ jsxs(FragmentRow, { children: [
+          /* @__PURE__ */ jsxs(
+            "tr",
+            {
+              className: cx2(
+                "hover:bg-accent/30 transition-colors",
+                gridLines === "both" && "divide-x divide-border/50",
+                selected.has(key) && "bg-primary/5",
+                onRowClick && "cursor-pointer",
+                rowClassName?.(row)
+              ),
+              onClick: onRowClick ? () => onRowClick(row) : void 0,
+              children: [
+                selectable && /* @__PURE__ */ jsx("td", { className: cellPad, children: canSelect && /* @__PURE__ */ jsx(
+                  Checkbox,
+                  {
+                    checked: selected.has(key),
+                    onChange: () => {
+                      const next = new Set(selected);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      setSelected(next);
+                    }
+                  }
+                ) }),
+                renderExpanded && /* @__PURE__ */ jsx("td", { className: cellPad, children: /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    type: "button",
+                    "aria-label": isExpanded ? "Collapse row" : "Expand row",
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      const next = new Set(expanded);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      setExpanded(next);
+                    },
+                    className: "p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors",
+                    children: isExpanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+                  }
+                ) }),
+                visibleColumns.map((col) => /* @__PURE__ */ jsx(
+                  "td",
+                  {
+                    className: cx2(
+                      cellPad,
+                      ALIGN[col.align ?? "left"],
+                      col.hideBelow && HIDE[col.hideBelow],
+                      col.cellClassName
+                    ),
+                    children: col.render ? col.render(row, i) : cellText(accessorOf(col)(row)) || "\u2014"
+                  },
+                  col.key
+                ))
+              ]
+            }
+          ),
+          isExpanded && renderExpanded && /* @__PURE__ */ jsx("tr", { className: "bg-muted/20", children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-3", children: renderExpanded(row) }) })
+        ] }, key);
+      }) })
+    ] }) }),
+    page != null && totalPages != null && onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
+      TableFooter,
+      {
+        page,
+        totalPages,
+        onPageChange,
+        total,
+        pageSize,
+        shownCount: processedRows.length
+      }
+    )
+  ] });
+}
+function DataTableMobile(props) {
+  const {
+    visibleColumns,
+    processedRows,
+    rowKey,
+    accessorOf,
+    loading,
+    loadingRows,
+    error,
+    onRetry,
+    selectable,
+    selected,
+    setSelected,
+    isRowSelectable,
+    renderExpanded,
+    expanded,
+    setExpanded,
+    onRowClick,
+    rowClassName,
+    page,
+    totalPages,
+    onPageChange,
+    total,
+    pageSize
+  } = props;
+  return /* @__PURE__ */ jsxs("div", { className: "md:hidden rounded-lg border border-border", children: [
+    /* @__PURE__ */ jsx("div", { className: "divide-y divide-border", children: loading ? loadingRows ? Array.from({ length: loadingRows }).map((_, i) => /* @__PURE__ */ jsxs("div", { className: "p-4 space-y-2", children: [
+      /* @__PURE__ */ jsx(SkeletonBar, { widthClass: "w-2/3" }),
+      /* @__PURE__ */ jsx(SkeletonBar, { widthClass: "w-1/2" })
+    ] }, `skeleton-${i}`)) : /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center text-muted-foreground", children: "Loading\u2026" }) : error ? /* @__PURE__ */ jsxs("div", { className: "px-6 py-12 text-center", children: [
+      /* @__PURE__ */ jsx(AlertTriangle, { className: "h-10 w-10 mx-auto text-destructive/60 mb-3" }),
+      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "Couldn't load data" }),
+      onRetry && /* @__PURE__ */ jsx(
+        "button",
+        {
+          type: "button",
+          onClick: onRetry,
+          className: "mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors",
+          children: "Retry"
+        }
+      )
+    ] }) : processedRows.length === 0 ? /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center", children: props.emptyState ?? /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx(Inbox, { className: "h-10 w-10 mx-auto text-muted-foreground/50 mb-3" }),
+      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: props.emptyText ?? "No records found" })
+    ] }) }) : processedRows.map((row, i) => {
+      const key = rowKey(row);
+      const isExpanded = expanded.has(key);
+      const canSelect = isRowSelectable?.(row) ?? true;
+      const primaryCol = visibleColumns.find((c) => c.primary);
+      const actionCols = visibleColumns.filter((c) => c.mobileAction);
+      const bodyCols = visibleColumns.filter((c) => !c.primary && !c.mobileAction && !c.mobileHidden);
+      return /* @__PURE__ */ jsxs(
+        "div",
+        {
+          className: cx2(
+            "p-4 active:bg-accent/40 transition-colors",
+            (onRowClick || renderExpanded) && "cursor-pointer",
+            selected.has(key) && "bg-primary/5",
+            rowClassName?.(row)
+          ),
+          onClick: onRowClick ? () => onRowClick(row) : renderExpanded ? () => {
+            const next = new Set(expanded);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            setExpanded(next);
+          } : void 0,
+          children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+              selectable && canSelect && /* @__PURE__ */ jsx("div", { onClick: (e) => e.stopPropagation(), className: "pt-0.5 shrink-0", children: /* @__PURE__ */ jsx(
+                Checkbox,
+                {
+                  checked: selected.has(key),
+                  onChange: () => {
+                    const next = new Set(selected);
+                    if (next.has(key)) next.delete(key);
+                    else next.add(key);
+                    setSelected(next);
+                  }
+                }
+              ) }),
+              /* @__PURE__ */ jsx("div", { className: "min-w-0 flex-1", children: primaryCol && /* @__PURE__ */ jsx("div", { className: "font-semibold text-foreground break-words", children: primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || "\u2014" }) }),
+              (actionCols.length > 0 || renderExpanded) && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 shrink-0", onClick: (e) => e.stopPropagation(), children: [
+                actionCols.map((c) => /* @__PURE__ */ jsx("div", { children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) }, c.key)),
+                renderExpanded && /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    type: "button",
+                    "aria-label": isExpanded ? "Collapse row" : "Expand row",
+                    onClick: () => {
+                      const next = new Set(expanded);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      setExpanded(next);
+                    },
+                    className: "p-1 rounded text-muted-foreground hover:text-foreground transition-colors",
+                    children: isExpanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] }),
+            bodyCols.length > 0 && /* @__PURE__ */ jsx("dl", { className: "mt-3 grid grid-cols-2 gap-x-4 gap-y-2", children: bodyCols.map((c) => /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+              /* @__PURE__ */ jsx("dt", { className: "text-[10px] font-semibold uppercase tracking-wide text-muted-foreground", children: c.mobileLabel ?? (typeof c.header === "string" ? c.header : c.key) }),
+              /* @__PURE__ */ jsx("dd", { className: "text-sm text-foreground mt-0.5 break-words", children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) || "\u2014" })
+            ] }, c.key)) }),
+            isExpanded && renderExpanded && /* @__PURE__ */ jsx("div", { className: "mt-3 pt-3 border-t border-border/70", onClick: (e) => e.stopPropagation(), children: renderExpanded(row) })
+          ]
+        },
+        key
+      );
+    }) }),
+    page != null && totalPages != null && onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
+      TableFooter,
+      {
+        page,
+        totalPages,
+        onPageChange,
+        total,
+        pageSize,
+        shownCount: processedRows.length
+      }
+    )
+  ] });
+}
+
+// src/components/data-table/export.ts
+function exportRowsAsCsv(rows, columns, fileName) {
+  const cols = columns.filter((c) => c.exportable !== false);
+  const esc = (s) => /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  const headerText = (h) => typeof h === "string" || typeof h === "number" ? String(h) : "";
+  const lines = [
+    cols.map((c) => esc(headerText(c.header) || c.key)).join(","),
+    ...rows.map(
+      (row) => cols.map((c) => {
+        const v = c.accessor ? c.accessor(row) : row[c.key];
+        return esc(cellText(v));
+      }).join(",")
+    )
+  ];
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 function DataTable(props) {
   const {
     columns,
     rows,
     rowKey,
     loading,
+    loadingRows,
     error,
     onRetry,
     selectable,
@@ -2736,242 +3040,77 @@ function DataTable(props) {
       ] })
     ] }),
     selectable && bulkActions.length > 0 && /* @__PURE__ */ jsx(BulkActionBar, { selectedKeys: [...selected], actions: bulkActions, onClear: () => setSelected(/* @__PURE__ */ new Set()) }),
-    /* @__PURE__ */ jsxs("div", { className: "hidden md:block rounded-lg border border-border overflow-hidden", children: [
-      /* @__PURE__ */ jsx(
-        "div",
-        {
-          className: "overflow-auto",
-          style: maxBodyHeight ? { maxHeight: maxBodyHeight } : void 0,
-          children: /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
-            /* @__PURE__ */ jsx("thead", { className: "sticky top-0 z-10 bg-muted", children: /* @__PURE__ */ jsxs("tr", { className: cx2("border-b border-border bg-muted/40", gridLines === "both" && "divide-x divide-border/50"), children: [
-              selectable && /* @__PURE__ */ jsx("th", { className: cx2(cellPad, "w-10"), children: /* @__PURE__ */ jsx(
-                Checkbox,
-                {
-                  checked: allSelected,
-                  indeterminate: !allSelected && someSelected,
-                  onChange: toggleAll,
-                  "aria-label": "Select all rows"
-                }
-              ) }),
-              renderExpanded && /* @__PURE__ */ jsx("th", { className: cx2(cellPad, "w-8") }),
-              visibleColumns.map((col) => /* @__PURE__ */ jsx(
-                "th",
-                {
-                  className: cx2(
-                    cellPad,
-                    "font-medium text-muted-foreground whitespace-nowrap",
-                    ALIGN[col.align ?? "left"],
-                    col.hideBelow && HIDE[col.hideBelow],
-                    col.headerClassName
-                  ),
-                  children: /* @__PURE__ */ jsxs("span", { className: cx2("inline-flex items-center gap-1", col.align === "right" && "flex-row-reverse"), children: [
-                    col.header,
-                    col.sortable && /* @__PURE__ */ jsx(SortButton, { dir: sort?.key === col.key ? sort.dir : null, onCycle: () => cycleSort(col.key) }),
-                    col.filterable && /* @__PURE__ */ jsx(
-                      FunnelFilter,
-                      {
-                        options: funnelOptionsFor(col),
-                        state: filters[col.key],
-                        onChange: (st) => setColumnFilter(col.key, st)
-                      }
-                    )
-                  ] })
-                },
-                col.key
-              ))
-            ] }) }),
-            /* @__PURE__ */ jsx("tbody", { className: "divide-y divide-border/70", children: loading ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-12 text-center text-muted-foreground", children: "Loading\u2026" }) }) : error ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsxs("td", { colSpan, className: "px-6 py-12 text-center", children: [
-              /* @__PURE__ */ jsx(AlertTriangle, { className: "h-10 w-10 mx-auto text-destructive/60 mb-3" }),
-              /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "Couldn't load data" }),
-              onRetry && /* @__PURE__ */ jsx(
-                "button",
-                {
-                  type: "button",
-                  onClick: onRetry,
-                  className: "mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors",
-                  children: "Retry"
-                }
-              )
-            ] }) }) : processedRows.length === 0 ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-12 text-center", children: props.emptyState ?? /* @__PURE__ */ jsxs(Fragment, { children: [
-              /* @__PURE__ */ jsx(Inbox, { className: "h-10 w-10 mx-auto text-muted-foreground/50 mb-3" }),
-              /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: props.emptyText ?? "No records found" })
-            ] }) }) }) : processedRows.map((row, i) => {
-              const key = rowKey(row);
-              const isExpanded = expanded.has(key);
-              const canSelect = isRowSelectable?.(row) ?? true;
-              return /* @__PURE__ */ jsxs(FragmentRow, { children: [
-                /* @__PURE__ */ jsxs(
-                  "tr",
-                  {
-                    className: cx2(
-                      "hover:bg-accent/30 transition-colors",
-                      gridLines === "both" && "divide-x divide-border/50",
-                      selected.has(key) && "bg-primary/5",
-                      props.onRowClick && "cursor-pointer",
-                      props.rowClassName?.(row)
-                    ),
-                    onClick: props.onRowClick ? () => props.onRowClick?.(row) : void 0,
-                    children: [
-                      selectable && /* @__PURE__ */ jsx("td", { className: cellPad, children: canSelect && /* @__PURE__ */ jsx(
-                        Checkbox,
-                        {
-                          checked: selected.has(key),
-                          onChange: () => {
-                            const next = new Set(selected);
-                            if (next.has(key)) next.delete(key);
-                            else next.add(key);
-                            setSelected(next);
-                          }
-                        }
-                      ) }),
-                      renderExpanded && /* @__PURE__ */ jsx("td", { className: cellPad, children: /* @__PURE__ */ jsx(
-                        "button",
-                        {
-                          type: "button",
-                          "aria-label": isExpanded ? "Collapse row" : "Expand row",
-                          onClick: (e) => {
-                            e.stopPropagation();
-                            const next = new Set(expanded);
-                            if (next.has(key)) next.delete(key);
-                            else next.add(key);
-                            setExpanded(next);
-                          },
-                          className: "p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors",
-                          children: isExpanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
-                        }
-                      ) }),
-                      visibleColumns.map((col) => /* @__PURE__ */ jsx(
-                        "td",
-                        {
-                          className: cx2(
-                            cellPad,
-                            ALIGN[col.align ?? "left"],
-                            col.hideBelow && HIDE[col.hideBelow],
-                            col.cellClassName
-                          ),
-                          children: col.render ? col.render(row, i) : cellText(accessorOf(col)(row)) || "\u2014"
-                        },
-                        col.key
-                      ))
-                    ]
-                  }
-                ),
-                isExpanded && renderExpanded && /* @__PURE__ */ jsx("tr", { className: "bg-muted/20", children: /* @__PURE__ */ jsx("td", { colSpan, className: "px-6 py-3", children: renderExpanded(row) }) })
-              ] }, key);
-            }) })
-          ] })
-        }
-      ),
-      props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
-        TableFooter,
-        {
-          page: props.page,
-          totalPages: props.totalPages,
-          onPageChange: props.onPageChange,
-          total: props.total,
-          pageSize: props.pageSize,
-          shownCount: processedRows.length
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxs("div", { className: "md:hidden rounded-lg border border-border", children: [
-      /* @__PURE__ */ jsx("div", { className: "divide-y divide-border", children: loading ? /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center text-muted-foreground", children: "Loading\u2026" }) : error ? /* @__PURE__ */ jsxs("div", { className: "px-6 py-12 text-center", children: [
-        /* @__PURE__ */ jsx(AlertTriangle, { className: "h-10 w-10 mx-auto text-destructive/60 mb-3" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "Couldn't load data" }),
-        onRetry && /* @__PURE__ */ jsx(
-          "button",
-          {
-            type: "button",
-            onClick: onRetry,
-            className: "mt-3 rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors",
-            children: "Retry"
-          }
-        )
-      ] }) : processedRows.length === 0 ? /* @__PURE__ */ jsx("div", { className: "px-6 py-12 text-center", children: props.emptyState ?? /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsx(Inbox, { className: "h-10 w-10 mx-auto text-muted-foreground/50 mb-3" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: props.emptyText ?? "No records found" })
-      ] }) }) : processedRows.map((row, i) => {
-        const key = rowKey(row);
-        const isExpanded = expanded.has(key);
-        const canSelect = isRowSelectable?.(row) ?? true;
-        const primaryCol = visibleColumns.find((c) => c.primary);
-        const actionCols = visibleColumns.filter((c) => c.mobileAction);
-        const bodyCols = visibleColumns.filter((c) => !c.primary && !c.mobileAction && !c.mobileHidden);
-        return /* @__PURE__ */ jsxs(
-          "div",
-          {
-            className: cx2(
-              "p-4 active:bg-accent/40 transition-colors",
-              (props.onRowClick || renderExpanded) && "cursor-pointer",
-              selected.has(key) && "bg-primary/5",
-              props.rowClassName?.(row)
-            ),
-            onClick: props.onRowClick ? () => props.onRowClick?.(row) : renderExpanded ? () => {
-              const next = new Set(expanded);
-              if (next.has(key)) next.delete(key);
-              else next.add(key);
-              setExpanded(next);
-            } : void 0,
-            children: [
-              /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
-                selectable && canSelect && /* @__PURE__ */ jsx("div", { onClick: (e) => e.stopPropagation(), className: "pt-0.5 shrink-0", children: /* @__PURE__ */ jsx(
-                  Checkbox,
-                  {
-                    checked: selected.has(key),
-                    onChange: () => {
-                      const next = new Set(selected);
-                      if (next.has(key)) next.delete(key);
-                      else next.add(key);
-                      setSelected(next);
-                    }
-                  }
-                ) }),
-                /* @__PURE__ */ jsx("div", { className: "min-w-0 flex-1", children: primaryCol && /* @__PURE__ */ jsx("div", { className: "font-semibold text-foreground break-words", children: primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || "\u2014" }) }),
-                (actionCols.length > 0 || renderExpanded) && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 shrink-0", onClick: (e) => e.stopPropagation(), children: [
-                  actionCols.map((c) => /* @__PURE__ */ jsx("div", { children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) }, c.key)),
-                  renderExpanded && /* @__PURE__ */ jsx(
-                    "button",
-                    {
-                      type: "button",
-                      "aria-label": isExpanded ? "Collapse row" : "Expand row",
-                      onClick: () => {
-                        const next = new Set(expanded);
-                        if (next.has(key)) next.delete(key);
-                        else next.add(key);
-                        setExpanded(next);
-                      },
-                      className: "p-1 rounded text-muted-foreground hover:text-foreground transition-colors",
-                      children: isExpanded ? /* @__PURE__ */ jsx(ChevronDown, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
-                    }
-                  )
-                ] })
-              ] }),
-              bodyCols.length > 0 && /* @__PURE__ */ jsx("dl", { className: "mt-3 grid grid-cols-2 gap-x-4 gap-y-2", children: bodyCols.map((c) => /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
-                /* @__PURE__ */ jsx("dt", { className: "text-[10px] font-semibold uppercase tracking-wide text-muted-foreground", children: c.mobileLabel ?? (typeof c.header === "string" ? c.header : c.key) }),
-                /* @__PURE__ */ jsx("dd", { className: "text-sm text-foreground mt-0.5 break-words", children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) || "\u2014" })
-              ] }, c.key)) }),
-              isExpanded && renderExpanded && /* @__PURE__ */ jsx("div", { className: "mt-3 pt-3 border-t border-border/70", onClick: (e) => e.stopPropagation(), children: renderExpanded(row) })
-            ]
-          },
-          key
-        );
-      }) }),
-      props.page != null && props.totalPages != null && props.onPageChange && !loading && processedRows.length > 0 && /* @__PURE__ */ jsx(
-        TableFooter,
-        {
-          page: props.page,
-          totalPages: props.totalPages,
-          onPageChange: props.onPageChange,
-          total: props.total,
-          pageSize: props.pageSize,
-          shownCount: processedRows.length
-        }
-      )
-    ] })
+    /* @__PURE__ */ jsx(
+      DataTableDesktop,
+      {
+        visibleColumns,
+        processedRows,
+        rowKey,
+        accessorOf,
+        loading,
+        loadingRows,
+        error,
+        onRetry,
+        emptyState: props.emptyState,
+        emptyText: props.emptyText,
+        gridLines,
+        cellPad,
+        colSpan,
+        maxBodyHeight,
+        sort,
+        cycleSort,
+        filters,
+        setColumnFilter,
+        funnelOptionsFor,
+        selectable,
+        selected,
+        setSelected,
+        isRowSelectable,
+        allSelected,
+        someSelected,
+        toggleAll,
+        renderExpanded,
+        expanded,
+        setExpanded,
+        onRowClick: props.onRowClick,
+        rowClassName: props.rowClassName,
+        page: props.page,
+        totalPages: props.totalPages,
+        onPageChange: props.onPageChange,
+        total: props.total,
+        pageSize: props.pageSize
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      DataTableMobile,
+      {
+        visibleColumns,
+        processedRows,
+        rowKey,
+        accessorOf,
+        loading,
+        loadingRows,
+        error,
+        onRetry,
+        emptyState: props.emptyState,
+        emptyText: props.emptyText,
+        selectable,
+        selected,
+        setSelected,
+        isRowSelectable,
+        renderExpanded,
+        expanded,
+        setExpanded,
+        onRowClick: props.onRowClick,
+        rowClassName: props.rowClassName,
+        page: props.page,
+        totalPages: props.totalPages,
+        onPageChange: props.onPageChange,
+        total: props.total,
+        pageSize: props.pageSize
+      }
+    )
   ] });
-}
-function FragmentRow({ children }) {
-  return /* @__PURE__ */ jsx(Fragment, { children });
 }
 
 export { AIRTEL_MONEY, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
