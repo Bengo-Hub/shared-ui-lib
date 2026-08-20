@@ -4,13 +4,6 @@ var react = require('react');
 var jsxRuntime = require('react/jsx-runtime');
 var reactDom = require('react-dom');
 var lucideReact = require('lucide-react');
-var PhoneInput = require('react-phone-number-input');
-var flags = require('react-phone-number-input/flags');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var PhoneInput__default = /*#__PURE__*/_interopDefault(PhoneInput);
-var flags__default = /*#__PURE__*/_interopDefault(flags);
 
 // src/components/auth/sso-login-modal.tsx
 function SSOLoginModal({
@@ -2178,100 +2171,6 @@ function PoweredByBadge({
     }
   );
 }
-function PhoneInputField({
-  value,
-  onChange,
-  placeholder = "e.g. 743 793 901",
-  disabled,
-  className,
-  defaultCountry = "KE",
-  id
-}) {
-  const [displayValue, setDisplayValue] = react.useState(() => {
-    if (value && !value.startsWith("+")) {
-      try {
-        const parsed = PhoneInput.parsePhoneNumber(value, defaultCountry);
-        if (parsed?.isValid()) return parsed.number;
-      } catch {
-      }
-    }
-    return value;
-  });
-  react.useEffect(() => {
-    if (displayValue && displayValue !== value) {
-      onChange(displayValue);
-    }
-  }, []);
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    PhoneInput__default.default,
-    {
-      id,
-      international: true,
-      defaultCountry,
-      value: displayValue,
-      onChange: (v) => {
-        setDisplayValue(v);
-        onChange(v ?? "");
-      },
-      placeholder,
-      disabled,
-      className
-    }
-  );
-}
-var regionNames;
-function countryName(iso) {
-  if (regionNames === void 0) {
-    try {
-      regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-    } catch {
-      regionNames = null;
-    }
-  }
-  return regionNames?.of(iso) ?? iso;
-}
-function listCountries() {
-  return PhoneInput.getCountries().map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name));
-}
-function FlagIcon({ code, className }) {
-  const Flag = flags__default.default[code];
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    "span",
-    {
-      className: className ?? "inline-flex h-3.5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-[2px] ring-1 ring-black/10",
-      children: Flag ? /* @__PURE__ */ jsxRuntime.jsx(Flag, { title: code }) : /* @__PURE__ */ jsxRuntime.jsx("span", { className: "h-full w-full bg-muted" })
-    }
-  );
-}
-function CountrySelect({
-  value,
-  onChange,
-  placeholder = "Select a country\u2026",
-  searchPlaceholder = "Search countries\u2026",
-  disabled,
-  className
-}) {
-  const options = react.useMemo(
-    () => listCountries().map((c) => ({ value: c.code, label: c.name, icon: /* @__PURE__ */ jsxRuntime.jsx(FlagIcon, { code: c.code }) })),
-    []
-  );
-  const isKnown = value ? options.some((o) => o.value === value) : false;
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    SearchableCombobox,
-    {
-      options,
-      value,
-      onChange,
-      valueLabel: value && !isKnown ? value : void 0,
-      placeholder,
-      searchPlaceholder,
-      emptyText: "No countries match",
-      disabled,
-      clearable: false,
-      className
-    }
-  );
-}
 function BulkActionBar({
   selectedKeys,
   actions,
@@ -3234,10 +3133,8 @@ exports.CURRENCY_META = CURRENCY_META;
 exports.CUSTOMER_ADVANCE = CUSTOMER_ADVANCE;
 exports.Checkbox = Checkbox;
 exports.ColumnVisibilityButton = ColumnVisibilityButton;
-exports.CountrySelect = CountrySelect;
 exports.CurrencyChangeConfirmModal = CurrencyChangeConfirmModal;
 exports.DataTable = DataTable;
-exports.FlagIcon = FlagIcon;
 exports.FunnelFilter = FunnelFilter;
 exports.ImagePreview = ImagePreview;
 exports.MPESA_B2B = MPESA_B2B;
@@ -3252,7 +3149,6 @@ exports.PAYOUT_METHODS = PAYOUT_METHODS;
 exports.PAYSTACK = PAYSTACK;
 exports.PAY_SUPPLIER_METHODS = PAY_SUPPLIER_METHODS;
 exports.PdfPreview = PdfPreview;
-exports.PhoneInputField = PhoneInputField;
 exports.PoweredByBadge = PoweredByBadge;
 exports.PwaUpdater = PwaUpdater;
 exports.RECEIVE_METHODS = RECEIVE_METHODS;
@@ -3268,12 +3164,10 @@ exports.SyncedConfirmation = SyncedConfirmation;
 exports.TableFooter = TableFooter;
 exports.TrackingIframeModal = TrackingIframeModal;
 exports.TreasuryPaymentModal = TreasuryPaymentModal;
-exports.countryName = countryName;
 exports.exportRowsAsCsv = exportRowsAsCsv;
 exports.formatCompactCurrency = formatCompactCurrency;
 exports.formatCurrency = formatCurrency;
 exports.getPaymentMethodLabel = getPaymentMethodLabel;
-exports.listCountries = listCountries;
 exports.registerServiceWorker = registerServiceWorker;
 exports.useDocumentPreview = useDocumentPreview;
 exports.useImagePreview = useImagePreview;

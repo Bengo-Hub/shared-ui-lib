@@ -83,17 +83,14 @@ export {
   type SearchableComboboxProps,
 } from './components/combobox';
 export { PoweredByBadge, type PoweredByBadgeProps } from './components/branding/powered-by';
-export {
-  PhoneInputField,
-  type PhoneInputFieldProps,
-  CountrySelect,
-  type CountrySelectProps,
-  FlagIcon,
-  type FlagIconProps,
-  listCountries,
-  countryName,
-  type CountryEntry,
-} from './components/contact';
+// PhoneInputField/CountrySelect/FlagIcon are deliberately NOT re-exported here — they pull in
+// react-phone-number-input, a class-component library that breaks Turbopack's static-generation
+// bundling for ANY consumer's page (confirmed live: hospital-ui's static "/" route failed with
+// "Super expression must either be null or a function" purely from this barrel re-export, despite
+// never importing PhoneInputField anywhere in its own source — v0.1.73 built clean, v0.1.74 broke
+// it). Import from the dedicated subpath instead: '@bengo-hub/shared-ui-lib/contact' (already the
+// documented, actually-used pattern in every real consumer — auth-ui, treasury-ui,
+// ordering-frontend). This keeps that dependency out of every OTHER app's bundle entirely.
 export {
   DataTable,
   type DataTableProps,

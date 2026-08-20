@@ -2,8 +2,6 @@ import { useState, useRef, useMemo, useCallback, useEffect, useLayoutEffect } fr
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { createPortal } from 'react-dom';
 import { WifiOff, RefreshCw, CheckCircle2, X, ChevronsUpDown, Search, Loader2, Check, Columns3, Minus, ArrowUp, ArrowDown, ArrowUpDown, Filter, ChevronLeft, ChevronRight, FileDown, Printer, AlertTriangle, Inbox, ChevronDown } from 'lucide-react';
-import PhoneInput, { parsePhoneNumber, getCountries } from 'react-phone-number-input';
-import flags from 'react-phone-number-input/flags';
 
 // src/components/auth/sso-login-modal.tsx
 function SSOLoginModal({
@@ -2171,100 +2169,6 @@ function PoweredByBadge({
     }
   );
 }
-function PhoneInputField({
-  value,
-  onChange,
-  placeholder = "e.g. 743 793 901",
-  disabled,
-  className,
-  defaultCountry = "KE",
-  id
-}) {
-  const [displayValue, setDisplayValue] = useState(() => {
-    if (value && !value.startsWith("+")) {
-      try {
-        const parsed = parsePhoneNumber(value, defaultCountry);
-        if (parsed?.isValid()) return parsed.number;
-      } catch {
-      }
-    }
-    return value;
-  });
-  useEffect(() => {
-    if (displayValue && displayValue !== value) {
-      onChange(displayValue);
-    }
-  }, []);
-  return /* @__PURE__ */ jsx(
-    PhoneInput,
-    {
-      id,
-      international: true,
-      defaultCountry,
-      value: displayValue,
-      onChange: (v) => {
-        setDisplayValue(v);
-        onChange(v ?? "");
-      },
-      placeholder,
-      disabled,
-      className
-    }
-  );
-}
-var regionNames;
-function countryName(iso) {
-  if (regionNames === void 0) {
-    try {
-      regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-    } catch {
-      regionNames = null;
-    }
-  }
-  return regionNames?.of(iso) ?? iso;
-}
-function listCountries() {
-  return getCountries().map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name));
-}
-function FlagIcon({ code, className }) {
-  const Flag = flags[code];
-  return /* @__PURE__ */ jsx(
-    "span",
-    {
-      className: className ?? "inline-flex h-3.5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-[2px] ring-1 ring-black/10",
-      children: Flag ? /* @__PURE__ */ jsx(Flag, { title: code }) : /* @__PURE__ */ jsx("span", { className: "h-full w-full bg-muted" })
-    }
-  );
-}
-function CountrySelect({
-  value,
-  onChange,
-  placeholder = "Select a country\u2026",
-  searchPlaceholder = "Search countries\u2026",
-  disabled,
-  className
-}) {
-  const options = useMemo(
-    () => listCountries().map((c) => ({ value: c.code, label: c.name, icon: /* @__PURE__ */ jsx(FlagIcon, { code: c.code }) })),
-    []
-  );
-  const isKnown = value ? options.some((o) => o.value === value) : false;
-  return /* @__PURE__ */ jsx(
-    SearchableCombobox,
-    {
-      options,
-      value,
-      onChange,
-      valueLabel: value && !isKnown ? value : void 0,
-      placeholder,
-      searchPlaceholder,
-      emptyText: "No countries match",
-      disabled,
-      clearable: false,
-      className
-    }
-  );
-}
 function BulkActionBar({
   selectedKeys,
   actions,
@@ -3215,6 +3119,6 @@ function DataTable(props) {
   ] });
 }
 
-export { AIRTEL_MONEY, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CountrySelect, CurrencyChangeConfirmModal, DataTable, FlagIcon, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PhoneInputField, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, countryName, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, listCountries, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

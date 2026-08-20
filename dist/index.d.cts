@@ -6,10 +6,8 @@ export { O as OfflineBar, a as OfflineBarProps, b as OfflineSyncBanner, c as Off
 export { CreatedSupplier, SupplierBankFieldRenderArgs, SupplierForm, SupplierFormProps, SupplierFormValues, SupplierPaymentMethod } from './components/suppliers/index.cjs';
 export { ComboboxOption, SearchableCombobox, SearchableComboboxProps } from './components/combobox/index.cjs';
 import * as react_jsx_runtime from 'react/jsx-runtime';
-export { CountryEntry, CountrySelect, CountrySelectProps, FlagIcon, FlagIconProps, PhoneInputField, PhoneInputFieldProps, countryName, listCountries } from './components/contact/index.cjs';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.cjs';
 import 'react';
-import 'react-phone-number-input';
 
 interface PoweredByBadgeProps {
     /** Override the icon (defaults to the Codevertex Africa Limited icon). */
