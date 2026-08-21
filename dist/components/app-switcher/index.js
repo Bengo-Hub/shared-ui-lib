@@ -92,21 +92,21 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
             target: "_blank",
             rel: "noopener noreferrer",
             onClick: onNavigate,
-            className: "group flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-colors hover:bg-secondary",
+            className: "group flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-colors hover:bg-secondary",
             children: [
               /* @__PURE__ */ jsx("div", { className: `flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${ACCENT_CLASSES[color]}`, children: /* @__PURE__ */ jsx(Icon, { className: "h-5 w-5" }) }),
-              /* @__PURE__ */ jsx("span", { className: "text-xs font-semibold leading-tight text-foreground", children: svcLabel })
+              /* @__PURE__ */ jsx("span", { className: "w-full text-xs font-semibold leading-tight text-foreground", children: svcLabel })
             ]
           },
           key
         ) : /* @__PURE__ */ jsxs(
           "div",
           {
-            className: "flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center opacity-50",
+            className: "flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center opacity-50",
             title: status === "coming-soon" ? `${svcLabel} \u2014 coming soon` : svcLabel,
             children: [
               /* @__PURE__ */ jsx("div", { className: `flex h-10 w-10 items-center justify-center rounded-xl ${ACCENT_CLASSES[color]}`, children: /* @__PURE__ */ jsx(Icon, { className: "h-5 w-5" }) }),
-              /* @__PURE__ */ jsx("span", { className: "text-xs font-semibold leading-tight text-foreground", children: svcLabel }),
+              /* @__PURE__ */ jsx("span", { className: "w-full text-xs font-semibold leading-tight text-foreground", children: svcLabel }),
               status === "coming-soon" && /* @__PURE__ */ jsx("span", { className: "rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground", children: "Soon" })
             ]
           },

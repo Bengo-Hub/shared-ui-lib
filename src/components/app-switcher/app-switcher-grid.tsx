@@ -83,23 +83,29 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={onNavigate}
-                    className="group flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-colors hover:bg-secondary"
+                    // min-w-0: grid items default to min-width:auto, which sizes them to fit
+                    // their content WITHOUT wrapping — a longer label like "Online Store"
+                    // forced its column past its 1fr share and overflowed the grid's right
+                    // edge instead of wrapping, on any host narrow enough for that to matter
+                    // (e.g. AccountPanel's full-width mobile drawer, ~384px, not just the
+                    // anchored-popover case the fixed grid-cols-4 above was reasoned for).
+                    className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-colors hover:bg-secondary"
                   >
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${ACCENT_CLASSES[color]}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
+                    <span className="w-full text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
                   </a>
                 ) : (
                   <div
                     key={key}
-                    className="flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center opacity-50"
+                    className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center opacity-50"
                     title={status === 'coming-soon' ? `${svcLabel} — coming soon` : svcLabel}
                   >
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${ACCENT_CLASSES[color]}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
+                    <span className="w-full text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
                     {status === 'coming-soon' && (
                       <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                         Soon
