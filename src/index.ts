@@ -92,6 +92,11 @@ export { PoweredByBadge, type PoweredByBadgeProps } from './components/branding/
 // documented, actually-used pattern in every real consumer — auth-ui, treasury-ui,
 // ordering-frontend). This keeps that dependency out of every OTHER app's bundle entirely.
 export {
+  RichTextEditor,
+  RichText,
+  type RichTextEditorProps,
+} from './components/rich-text-editor';
+export {
   DataTable,
   type DataTableProps,
   Checkbox,

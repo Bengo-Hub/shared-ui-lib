@@ -20,6 +20,7 @@ export default defineConfig({
     "src/components/tenant/index.ts",
     "src/components/contact/index.ts",
     "src/components/careers/index.ts",
+    "src/components/rich-text-editor/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,
