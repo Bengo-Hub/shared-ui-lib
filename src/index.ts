@@ -42,6 +42,15 @@ export {
   type CurrencyChangeConfirmModalProps,
   type CurrencyChangeExampleRow,
 } from './components/payments/currency-change-confirm-modal';
+export {
+  AccountForm,
+  EMPTY_ACCOUNT_FORM,
+  isAccountFormValid,
+  type AccountType,
+  type AccountFormValue,
+  type AccountFormProps,
+  type AccountFormBankOption,
+} from './components/payments/account-form';
 export { TrackingIframeModal, type TrackingIframeModalProps } from './components/tracking/tracking-iframe-modal';
 export {
   PdfPreview,

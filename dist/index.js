@@ -745,6 +745,222 @@ function CurrencyChangeConfirmModal({
     document.body
   );
 }
+var EMPTY_ACCOUNT_FORM = {
+  account_type: "bank",
+  account_name: "",
+  bank_name: "",
+  account_number: "",
+  bank_branch: "",
+  branch_code: "",
+  currency: "KES",
+  opening_balance: ""
+};
+var inputClass = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm";
+var labelClass = "block text-xs font-medium text-muted-foreground mb-1";
+function AccountForm({
+  value,
+  onChange,
+  currencies,
+  currencyLabel,
+  banks,
+  banksLoading,
+  onVerifyBank,
+  verifying,
+  hideTypeSelector = false,
+  className
+}) {
+  const [verifiedName, setVerifiedName] = useState(null);
+  const [verifyError, setVerifyError] = useState(null);
+  const [bankCode, setBankCode] = useState("");
+  const set = (patch) => onChange({ ...value, ...patch });
+  const handleVerify = () => {
+    if (!onVerifyBank) return;
+    setVerifiedName(null);
+    setVerifyError(null);
+    onVerifyBank(value.account_number, bankCode).then((res) => {
+      if (res.accountName) {
+        setVerifiedName(res.accountName);
+        set({ account_name: res.accountName });
+      } else {
+        setVerifyError(res.error || "Could not resolve the account name \u2014 enter it manually.");
+      }
+    }).catch((e) => {
+      setVerifyError(e instanceof Error ? e.message : "Verification failed \u2014 enter the name manually.");
+    });
+  };
+  return /* @__PURE__ */ jsxs("div", { className: className ?? "space-y-4", children: [
+    !hideTypeSelector && /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: labelClass, children: "Account Type" }),
+      /* @__PURE__ */ jsx("div", { className: "grid grid-cols-3 gap-2 mt-1", children: ["bank", "mobile_money", "cash"].map((t) => /* @__PURE__ */ jsx(
+        "button",
+        {
+          type: "button",
+          onClick: () => set({ account_type: t }),
+          className: `rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${value.account_type === t ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent/30"}`,
+          children: t === "bank" ? "Bank Account" : t === "mobile_money" ? "Mobile Money" : "Cash Drawer"
+        },
+        t
+      )) })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Currency" }),
+        /* @__PURE__ */ jsx("select", { value: value.currency, onChange: (e) => set({ currency: e.target.value }), className: inputClass, children: currencies.map((c) => /* @__PURE__ */ jsx("option", { value: c, children: currencyLabel ? currencyLabel(c) : c }, c)) })
+      ] }),
+      value.account_type === "bank" && /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsxs("label", { className: labelClass, children: [
+          "Bank ",
+          banksLoading && /* @__PURE__ */ jsx("span", { className: "ml-1 text-[10px]", children: "(loading\u2026)" })
+        ] }),
+        banks && banks.length > 0 ? /* @__PURE__ */ jsxs(
+          "select",
+          {
+            value: bankCode,
+            onChange: (e) => {
+              const selected = banks.find((b) => b.code === e.target.value);
+              setBankCode(e.target.value);
+              set({ bank_name: selected?.name ?? value.bank_name });
+              setVerifiedName(null);
+              setVerifyError(null);
+            },
+            className: inputClass,
+            disabled: banksLoading,
+            children: [
+              /* @__PURE__ */ jsx("option", { value: "", children: value.bank_name ? `${value.bank_name} (change\u2026)` : "-- Select bank --" }),
+              banks.map((b) => /* @__PURE__ */ jsx("option", { value: b.code, children: b.name }, b.code))
+            ]
+          }
+        ) : /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: value.bank_name,
+            onChange: (e) => set({ bank_name: e.target.value }),
+            className: inputClass,
+            placeholder: "e.g. KCB Bank Kenya"
+          }
+        )
+      ] })
+    ] }),
+    value.account_type === "bank" && /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Account Number" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              value: value.account_number,
+              onChange: (e) => {
+                set({ account_number: e.target.value });
+                setVerifiedName(null);
+                setVerifyError(null);
+              },
+              className: inputClass,
+              placeholder: "e.g. 0123456789"
+            }
+          ),
+          onVerifyBank && /* @__PURE__ */ jsx(
+            "button",
+            {
+              type: "button",
+              disabled: !bankCode || !value.account_number || verifying,
+              onClick: handleVerify,
+              className: "shrink-0 rounded-lg border border-border px-3 py-2 text-xs font-medium hover:bg-accent/30 disabled:opacity-50",
+              title: !bankCode ? "Select a bank first" : "Verify account number",
+              children: verifying ? "\u2026" : "Verify"
+            }
+          )
+        ] }),
+        verifiedName && /* @__PURE__ */ jsxs("p", { className: "mt-1 text-[11px] text-green-600", children: [
+          "Verified: ",
+          verifiedName
+        ] }),
+        verifyError && /* @__PURE__ */ jsx("p", { className: "mt-1 text-[11px] text-amber-600", children: verifyError })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Account Name" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: value.account_name,
+            onChange: (e) => set({ account_name: e.target.value }),
+            className: inputClass,
+            placeholder: "Auto-filled on verify, or enter manually"
+          }
+        )
+      ] })
+    ] }),
+    value.account_type === "bank" && /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Bank Branch (optional)" }),
+        /* @__PURE__ */ jsx("input", { value: value.bank_branch, onChange: (e) => set({ bank_branch: e.target.value }), className: inputClass, placeholder: "e.g. Westlands" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "SWIFT / Branch Code (optional)" }),
+        /* @__PURE__ */ jsx("input", { value: value.branch_code, onChange: (e) => set({ branch_code: e.target.value }), className: inputClass, placeholder: "e.g. EQBLKENA" })
+      ] })
+    ] }),
+    value.account_type === "mobile_money" && /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Account Name" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: value.account_name,
+            onChange: (e) => set({ account_name: e.target.value }),
+            className: inputClass,
+            placeholder: "e.g. M-Pesa Till \u2014 Westlands Branch"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: labelClass, children: "Till / Paybill Number" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: value.account_number,
+            onChange: (e) => set({ account_number: e.target.value }),
+            className: inputClass,
+            placeholder: "e.g. 174379"
+          }
+        )
+      ] })
+    ] }),
+    value.account_type === "cash" && /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: labelClass, children: "Account Name" }),
+      /* @__PURE__ */ jsx(
+        "input",
+        {
+          value: value.account_name,
+          onChange: (e) => set({ account_name: e.target.value }),
+          className: inputClass,
+          placeholder: "e.g. Petty Cash \u2014 Head Office"
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: labelClass, children: "Opening Balance (optional)" }),
+      /* @__PURE__ */ jsx(
+        "input",
+        {
+          type: "number",
+          min: "0",
+          step: "0.01",
+          value: value.opening_balance,
+          onChange: (e) => set({ opening_balance: e.target.value }),
+          className: inputClass,
+          placeholder: "0.00"
+        }
+      ),
+      /* @__PURE__ */ jsx("p", { className: "mt-1 text-[11px] text-muted-foreground", children: "Posted as a real journal entry against Opening Balance Equity." })
+    ] })
+  ] });
+}
+function isAccountFormValid(value) {
+  if (!value.account_name.trim()) return false;
+  if (value.account_type === "bank") return !!value.bank_name.trim() && !!value.account_number.trim();
+  if (value.account_type === "mobile_money") return !!value.account_number.trim();
+  return true;
+}
 function TrackingIframeModal({
   open,
   onOpenChange,
@@ -3285,6 +3501,6 @@ function DataTable(props) {
   ] });
 }
 
-export { AIRTEL_MONEY, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, AccountForm, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

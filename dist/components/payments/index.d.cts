@@ -1,4 +1,5 @@
 import * as React$1 from 'react';
+import * as react_jsx_runtime from 'react/jsx-runtime';
 
 interface PaymentResult {
     intentId: string;
@@ -197,4 +198,46 @@ interface CurrencyChangeConfirmModalProps {
  */
 declare function CurrencyChangeConfirmModal({ open, fromCurrency, toCurrency, rate, rateSource, exampleAmounts, onConfirm, onCancel, loading, error, }: CurrencyChangeConfirmModalProps): React$1.ReactPortal | null;
 
-export { AIRTEL_MONEY, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, type CurrencyChangeConfirmModalProps, type CurrencyChangeExampleRow, type CurrencyMeta, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, nowDatetimeLocal };
+type AccountType = 'bank' | 'mobile_money' | 'cash';
+interface AccountFormValue {
+    account_type: AccountType;
+    account_name: string;
+    bank_name: string;
+    account_number: string;
+    bank_branch: string;
+    branch_code: string;
+    currency: string;
+    opening_balance: string;
+}
+declare const EMPTY_ACCOUNT_FORM: AccountFormValue;
+interface AccountFormBankOption {
+    code: string;
+    name: string;
+}
+interface AccountFormProps {
+    value: AccountFormValue;
+    onChange: (value: AccountFormValue) => void;
+    /** ISO codes this form's currency picker offers — pass shared-ui-lib's own SUPPORTED_CURRENCIES
+     *  (this package's `./currency`) unless the consumer has a narrower/different list. */
+    currencies: readonly string[];
+    currencyLabel?: (code: string) => string;
+    /** Optional Paystack-backed bank list + account-name verification for the `bank` type. Omit
+     *  entirely to fall back to plain manual bank-name/account-number entry (no lookup). */
+    banks?: AccountFormBankOption[];
+    banksLoading?: boolean;
+    onVerifyBank?: (accountNumber: string, bankCode: string) => Promise<{
+        accountName?: string;
+        error?: string;
+    }>;
+    verifying?: boolean;
+    /** Hide the account-type selector (e.g. a consumer that only ever creates one type inline from
+     *  a specific flow, like a "cash drawer" quick-add). Defaults to showing all three types. */
+    hideTypeSelector?: boolean;
+    className?: string;
+}
+declare function AccountForm({ value, onChange, currencies, currencyLabel, banks, banksLoading, onVerifyBank, verifying, hideTypeSelector, className, }: AccountFormProps): react_jsx_runtime.JSX.Element;
+/** True once the fields required for the CURRENT account_type are filled in — gate a "Create"
+ *  button on this rather than each consumer re-deriving the same per-type rule. */
+declare function isAccountFormValid(value: AccountFormValue): boolean;
+
+export { AIRTEL_MONEY, AccountForm, type AccountFormBankOption, type AccountFormProps, type AccountFormValue, type AccountType, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, type CurrencyChangeConfirmModalProps, type CurrencyChangeExampleRow, type CurrencyMeta, EMPTY_ACCOUNT_FORM, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, type PaymentResult, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, type SettlementMethod, SettlementModal, type SettlementModalProps, type SettlementMode, type SettlementSubmitInput, TreasuryPaymentModal, type TreasuryPaymentModalProps, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, nowDatetimeLocal };
