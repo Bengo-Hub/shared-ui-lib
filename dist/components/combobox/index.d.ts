@@ -12,8 +12,15 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
  * platform's semantic tokens (border-input, bg-background, text-muted-foreground…)
  * that the HOST app's Tailwind build resolves — the lib has no CSS pipeline of
  * its own, so consumers must include the lib's dist in their content globs.
- * Self-contained (no portal/popover dependency) so it works on Tailwind v4 +
- * @base-ui hosts (pos-ui, inventory-ui, treasury-ui…).
+ * Self-contained (no React portal) so it works on Tailwind v4 + @base-ui hosts
+ * (pos-ui, inventory-ui, treasury-ui…). The dropdown panel is `position: fixed`,
+ * computed from the trigger's own `getBoundingClientRect()` (same technique as
+ * `AnchoredPopover` in the data-table package, kept as an independent inline
+ * copy here rather than a shared import so a future change to one never risks
+ * the other's very different consumers) — an inline `absolute` panel gets
+ * clipped by any `overflow-hidden` ancestor, which is the DEFAULT for this
+ * library's own `Card` component (rounded corners), so a combobox placed
+ * inside one would have its dropdown invisibly cut off below the card's edge.
  */
 interface ComboboxOption {
     value: string;

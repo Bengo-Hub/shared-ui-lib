@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, Search, X } from 'lucide-react';
 
 /**
@@ -15,8 +15,15 @@ import { Check, ChevronsUpDown, Loader2, Search, X } from 'lucide-react';
  * platform's semantic tokens (border-input, bg-background, text-muted-foreground…)
  * that the HOST app's Tailwind build resolves — the lib has no CSS pipeline of
  * its own, so consumers must include the lib's dist in their content globs.
- * Self-contained (no portal/popover dependency) so it works on Tailwind v4 +
- * @base-ui hosts (pos-ui, inventory-ui, treasury-ui…).
+ * Self-contained (no React portal) so it works on Tailwind v4 + @base-ui hosts
+ * (pos-ui, inventory-ui, treasury-ui…). The dropdown panel is `position: fixed`,
+ * computed from the trigger's own `getBoundingClientRect()` (same technique as
+ * `AnchoredPopover` in the data-table package, kept as an independent inline
+ * copy here rather than a shared import so a future change to one never risks
+ * the other's very different consumers) — an inline `absolute` panel gets
+ * clipped by any `overflow-hidden` ancestor, which is the DEFAULT for this
+ * library's own `Card` component (rounded corners), so a combobox placed
+ * inside one would have its dropdown invisibly cut off below the card's edge.
  */
 export interface ComboboxOption {
   value: string;
@@ -91,8 +98,46 @@ export function SearchableCombobox({
   const [remoteResults, setRemoteResults] = useState<ComboboxOption[]>([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestSeq = useRef(0);
+
+  // Fixed-position panel geometry, computed from the trigger's own rect — see the file-level
+  // comment for why this can't be a plain `absolute` child. Recomputed each time the panel opens;
+  // closes (rather than repositioning) on scroll/resize like AnchoredPopover, since a stale
+  // position is worse than a closed dropdown and this control is reopened with one click.
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const anchor = ref.current;
+    if (!anchor) return;
+    const r = anchor.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const estimatedPanelHeight = 300; // search bar + max-h-60 list + optional footer, roughly
+    const top = spaceBelow < 260 && r.top > estimatedPanelHeight
+      ? Math.max(8, r.top - 4 - estimatedPanelHeight)
+      : r.bottom + 4;
+    setPanelPos({ top, left: r.left, width: r.width });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onScroll(e: Event) {
+      // Ignore scrolls originating inside the panel itself (the option list scrolling
+      // internally must not close the dropdown that contains it).
+      if (panelRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onResize() {
+      setOpen(false);
+    }
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open]);
 
   // The selected option may only exist in a past remote result set (not in the
   // prefetched list), so remember it for the closed-state label.
@@ -206,8 +251,12 @@ export function SearchableCombobox({
         </span>
       </button>
 
-      {open && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+      {open && panelPos && (
+        <div
+          ref={panelRef}
+          style={{ position: 'fixed', top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 }}
+          className="overflow-hidden rounded-xl border border-border bg-card shadow-xl"
+        >
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input

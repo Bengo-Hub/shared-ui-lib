@@ -1964,8 +1964,36 @@ function SearchableCombobox({
   const [remoteResults, setRemoteResults] = useState([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
   const ref = useRef(null);
+  const panelRef = useRef(null);
   const debounceRef = useRef(null);
   const requestSeq = useRef(0);
+  const [panelPos, setPanelPos] = useState(null);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const anchor = ref.current;
+    if (!anchor) return;
+    const r = anchor.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const estimatedPanelHeight = 300;
+    const top = spaceBelow < 260 && r.top > estimatedPanelHeight ? Math.max(8, r.top - 4 - estimatedPanelHeight) : r.bottom + 4;
+    setPanelPos({ top, left: r.left, width: r.width });
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    function onScroll(e) {
+      if (panelRef.current?.contains(e.target)) return;
+      setOpen(false);
+    }
+    function onResize() {
+      setOpen(false);
+    }
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [open]);
   const [selectedCache, setSelectedCache] = useState(void 0);
   const selected = options.find((o) => o.value === value) ?? (selectedCache && selectedCache.value === value ? selectedCache : void 0) ?? (value && valueLabel ? { value, label: valueLabel } : void 0);
   const localMatches = useMemo(() => {
@@ -2061,55 +2089,63 @@ function SearchableCombobox({
         ]
       }
     ),
-    open && /* @__PURE__ */ jsxs("div", { className: "absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-xl", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-border px-3 py-2", children: [
-        /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 shrink-0 text-muted-foreground" }),
-        /* @__PURE__ */ jsx(
-          "input",
-          {
-            autoFocus: true,
-            value: query,
-            onChange: (e) => setQuery(e.target.value),
-            placeholder: searchPlaceholder,
-            className: "w-full bg-transparent text-sm text-foreground focus:outline-none"
-          }
-        ),
-        busy && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 shrink-0 animate-spin text-muted-foreground" })
-      ] }),
-      /* @__PURE__ */ jsxs("ul", { className: "max-h-60 overflow-y-auto py-1", children: [
-        merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : emptyText }) : merged.map((o) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
-          "button",
-          {
-            type: "button",
-            onClick: () => select(o),
-            className: "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60",
-            children: [
-              /* @__PURE__ */ jsxs("span", { className: "flex min-w-0 items-center gap-2", children: [
-                o.icon,
-                /* @__PURE__ */ jsxs("span", { className: "min-w-0", children: [
-                  /* @__PURE__ */ jsxs("span", { className: "flex items-baseline gap-2", children: [
-                    /* @__PURE__ */ jsx("span", { className: "truncate text-foreground", children: o.label }),
-                    o.hint && /* @__PURE__ */ jsx("span", { className: "shrink-0 text-xs text-muted-foreground", children: o.hint })
+    open && panelPos && /* @__PURE__ */ jsxs(
+      "div",
+      {
+        ref: panelRef,
+        style: { position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 },
+        className: "overflow-hidden rounded-xl border border-border bg-card shadow-xl",
+        children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-border px-3 py-2", children: [
+            /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 shrink-0 text-muted-foreground" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                autoFocus: true,
+                value: query,
+                onChange: (e) => setQuery(e.target.value),
+                placeholder: searchPlaceholder,
+                className: "w-full bg-transparent text-sm text-foreground focus:outline-none"
+              }
+            ),
+            busy && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 shrink-0 animate-spin text-muted-foreground" })
+          ] }),
+          /* @__PURE__ */ jsxs("ul", { className: "max-h-60 overflow-y-auto py-1", children: [
+            merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : emptyText }) : merged.map((o) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: () => select(o),
+                className: "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60",
+                children: [
+                  /* @__PURE__ */ jsxs("span", { className: "flex min-w-0 items-center gap-2", children: [
+                    o.icon,
+                    /* @__PURE__ */ jsxs("span", { className: "min-w-0", children: [
+                      /* @__PURE__ */ jsxs("span", { className: "flex items-baseline gap-2", children: [
+                        /* @__PURE__ */ jsx("span", { className: "truncate text-foreground", children: o.label }),
+                        o.hint && /* @__PURE__ */ jsx("span", { className: "shrink-0 text-xs text-muted-foreground", children: o.hint })
+                      ] }),
+                      o.description && /* @__PURE__ */ jsx("span", { className: "block truncate text-xs text-muted-foreground", children: o.description })
+                    ] })
                   ] }),
-                  o.description && /* @__PURE__ */ jsx("span", { className: "block truncate text-xs text-muted-foreground", children: o.description })
-                ] })
-              ] }),
-              o.value === value && /* @__PURE__ */ jsx(Check, { className: "h-4 w-4 shrink-0 text-primary" })
-            ]
-          }
-        ) }, o.value)),
-        hasMore && onLoadMore && /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(
-          "button",
-          {
-            type: "button",
-            onClick: onLoadMore,
-            className: "w-full px-3 py-2 text-center text-xs font-medium text-primary hover:bg-muted/60",
-            children: "Load more\u2026"
-          }
-        ) })
-      ] }),
-      footer && /* @__PURE__ */ jsx("div", { className: "border-t border-border p-1", children: footer })
-    ] })
+                  o.value === value && /* @__PURE__ */ jsx(Check, { className: "h-4 w-4 shrink-0 text-primary" })
+                ]
+              }
+            ) }, o.value)),
+            hasMore && onLoadMore && /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(
+              "button",
+              {
+                type: "button",
+                onClick: onLoadMore,
+                className: "w-full px-3 py-2 text-center text-xs font-medium text-primary hover:bg-muted/60",
+                children: "Load more\u2026"
+              }
+            ) })
+          ] }),
+          footer && /* @__PURE__ */ jsx("div", { className: "border-t border-border p-1", children: footer })
+        ]
+      }
+    )
   ] });
 }
 
