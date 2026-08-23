@@ -426,7 +426,8 @@ function PoweredByBadge({
   layout = "row",
   iconClassName,
   href = "https://codevertexafrica.com",
-  className
+  className,
+  partner
 }) {
   const stacked = layout === "stacked";
   const iconSize = iconClassName ?? (stacked ? "h-10 w-10" : "h-7 w-7");
@@ -445,11 +446,30 @@ function PoweredByBadge({
         /* @__PURE__ */ jsxRuntime.jsx("span", { className: "shrink-0 flex items-center justify-center rounded-2xl bg-white ring-1 ring-black/5 shadow-sm p-1", children: /* @__PURE__ */ jsxRuntime.jsx("img", { src: iconUrl, alt: "Codevertex", className: cx(iconSize, "object-contain") }) }),
         stacked ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex flex-col items-start leading-tight text-left uppercase", children: [
           /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-[10px] font-bold tracking-wider text-foreground", children: "Powered by" }),
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm font-extrabold tracking-wide whitespace-nowrap", style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" })
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-sm font-extrabold tracking-wide whitespace-nowrap", style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" }),
+          partner && /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-[9px] font-semibold tracking-wide text-muted-foreground whitespace-nowrap", children: [
+            "Sold & supported by ",
+            partner.name
+          ] })
         ] }) : /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-extrabold uppercase tracking-wide whitespace-nowrap", children: [
           /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-foreground", children: "Powered by" }),
           " ",
-          /* @__PURE__ */ jsxRuntime.jsx("span", { style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" })
+          /* @__PURE__ */ jsxRuntime.jsx("span", { style: { color: BRAND_ORANGE }, children: "Codevertex Africa Limited" }),
+          partner && /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-foreground/40 mx-1.5", children: "|" }),
+            partner.logoUrl && /* @__PURE__ */ jsxRuntime.jsx(
+              "img",
+              {
+                src: partner.logoUrl,
+                alt: partner.name,
+                className: "inline-block h-4 w-4 rounded-sm object-contain align-middle mr-1"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-foreground/70 normal-case font-semibold", children: [
+              "Sold & supported by ",
+              partner.name
+            ] })
+          ] })
         ] })
       ]
     }

@@ -10,6 +10,16 @@ export { RichText, RichTextEditor, RichTextEditorProps } from './components/rich
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.cjs';
 import 'react';
 
+/** Certified-reseller co-branding attribution — see the reseller-partner-program plan §6A/§9.
+ *  Populated only when the current tenant has a reseller of record; the platform mark always
+ *  stays primary and visible (co-branding, never white-label — §6A's Merchant-of-Record split). */
+interface PoweredByBadgePartner {
+    /** The certified partner/reseller's display name. */
+    name: string;
+    /** Optional small partner logo, shown inline next to the attribution text. Only rendered in
+     *  `layout="row"` — `layout="stacked"` (the compact PIN-login panel) stays text-only for space. */
+    logoUrl?: string;
+}
 interface PoweredByBadgeProps {
     /** Override the icon (defaults to the Codevertex Africa Limited icon). */
     iconUrl?: string;
@@ -24,7 +34,11 @@ interface PoweredByBadgeProps {
     iconClassName?: string;
     href?: string;
     className?: string;
+    /** Optional certified-reseller attribution rendered ALONGSIDE the Codevertex mark (never
+     *  replacing it) — e.g. "Sold & supported by {partner.name}". Omit entirely for the default,
+     *  unchanged badge; every existing call site with no `partner` renders byte-for-byte as before. */
+    partner?: PoweredByBadgePartner;
 }
-declare function PoweredByBadge({ iconUrl, variant, layout, iconClassName, href, className, }: PoweredByBadgeProps): react_jsx_runtime.JSX.Element;
+declare function PoweredByBadge({ iconUrl, variant, layout, iconClassName, href, className, partner, }: PoweredByBadgeProps): react_jsx_runtime.JSX.Element;
 
 export { PoweredByBadge, type PoweredByBadgeProps };

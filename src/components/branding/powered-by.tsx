@@ -18,6 +18,17 @@ const CODEVERTEX_ICON_URL = 'https://codevertexafrica.com/icon.svg';
 /** Codevertex Africa Limited brand orange — the accent the company name is set in on the mark. */
 const BRAND_ORANGE = '#E8631E';
 
+/** Certified-reseller co-branding attribution — see the reseller-partner-program plan §6A/§9.
+ *  Populated only when the current tenant has a reseller of record; the platform mark always
+ *  stays primary and visible (co-branding, never white-label — §6A's Merchant-of-Record split). */
+export interface PoweredByBadgePartner {
+  /** The certified partner/reseller's display name. */
+  name: string;
+  /** Optional small partner logo, shown inline next to the attribution text. Only rendered in
+   *  `layout="row"` — `layout="stacked"` (the compact PIN-login panel) stays text-only for space. */
+  logoUrl?: string;
+}
+
 export interface PoweredByBadgeProps {
   /** Override the icon (defaults to the Codevertex Africa Limited icon). */
   iconUrl?: string;
@@ -32,6 +43,10 @@ export interface PoweredByBadgeProps {
   iconClassName?: string;
   href?: string;
   className?: string;
+  /** Optional certified-reseller attribution rendered ALONGSIDE the Codevertex mark (never
+   *  replacing it) — e.g. "Sold & supported by {partner.name}". Omit entirely for the default,
+   *  unchanged badge; every existing call site with no `partner` renders byte-for-byte as before. */
+  partner?: PoweredByBadgePartner;
 }
 
 export function PoweredByBadge({
@@ -41,6 +56,7 @@ export function PoweredByBadge({
   iconClassName,
   href = 'https://codevertexafrica.com',
   className,
+  partner,
 }: PoweredByBadgeProps) {
   const stacked = layout === 'stacked';
   const iconSize = iconClassName ?? (stacked ? 'h-10 w-10' : 'h-7 w-7');
@@ -67,11 +83,31 @@ export function PoweredByBadge({
           <span className="text-sm font-extrabold tracking-wide whitespace-nowrap" style={{ color: BRAND_ORANGE }}>
             Codevertex Africa Limited
           </span>
+          {partner && (
+            <span className="text-[9px] font-semibold tracking-wide text-muted-foreground whitespace-nowrap">
+              Sold &amp; supported by {partner.name}
+            </span>
+          )}
         </span>
       ) : (
         <span className="text-xs font-extrabold uppercase tracking-wide whitespace-nowrap">
           <span className="text-foreground">Powered by</span>{' '}
           <span style={{ color: BRAND_ORANGE }}>Codevertex Africa Limited</span>
+          {partner && (
+            <>
+              <span className="text-foreground/40 mx-1.5">|</span>
+              {partner.logoUrl && (
+                <img
+                  src={partner.logoUrl}
+                  alt={partner.name}
+                  className="inline-block h-4 w-4 rounded-sm object-contain align-middle mr-1"
+                />
+              )}
+              <span className="text-foreground/70 normal-case font-semibold">
+                Sold &amp; supported by {partner.name}
+              </span>
+            </>
+          )}
         </span>
       )}
     </a>
