@@ -166,7 +166,7 @@ export function SettlementModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !isPending && onClose()}>
-      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
             <h3 className="text-base font-bold text-gray-900">{title}</h3>
@@ -184,15 +184,27 @@ export function SettlementModal({
               <p className="font-semibold text-gray-900">{subjectName}</p>
               <p className="text-xs text-gray-500">{amountLabel}: {fmt(amountValue)}</p>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500">Amount ({currency})</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Amount ({currency})</label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Payment date &amp; time</label>
+                <input
+                  type="datetime-local"
+                  value={effectiveAt}
+                  max={nowDatetimeLocal()}
+                  onChange={(e) => setEffectiveAt(e.target.value)}
+                  className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+                />
+              </div>
             </div>
             {overpaid && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
@@ -217,40 +229,34 @@ export function SettlementModal({
                 </div>
               </div>
             )}
-            <div>
-              <label className="text-xs font-semibold text-gray-500">Payment date &amp; time</label>
-              <input
-                type="datetime-local"
-                value={effectiveAt}
-                max={nowDatetimeLocal()}
-                onChange={(e) => setEffectiveAt(e.target.value)}
-                className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-              />
-            </div>
             {extraFields}
-            {methods.length > 0 && (
-              <div>
-                <label className="text-xs font-semibold text-gray-500">Method</label>
-                <select
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                  className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-                >
-                  {methods.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-                </select>
-              </div>
-            )}
-            {(selectedMethod?.requiresReference || mode === 'apply_to_debt') && (
-              <div>
-                <label className="text-xs font-semibold text-gray-500">
-                  Reference {selectedMethod?.requiresReference ? '' : '(optional)'}
-                </label>
-                <input
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  placeholder="M-Pesa code, cheque no., etc."
-                  className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-                />
+            {(methods.length > 0 || selectedMethod?.requiresReference || mode === 'apply_to_debt') && (
+              <div className={`grid gap-3 ${methods.length > 0 && (selectedMethod?.requiresReference || mode === 'apply_to_debt') ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {methods.length > 0 && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500">Method</label>
+                    <select
+                      value={method}
+                      onChange={(e) => setMethod(e.target.value)}
+                      className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+                    >
+                      {methods.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                    </select>
+                  </div>
+                )}
+                {(selectedMethod?.requiresReference || mode === 'apply_to_debt') && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500">
+                      Reference {selectedMethod?.requiresReference ? '' : '(optional)'}
+                    </label>
+                    <input
+                      value={reference}
+                      onChange={(e) => setReference(e.target.value)}
+                      placeholder="M-Pesa code, cheque no., etc."
+                      className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                )}
               </div>
             )}
             {error && <p className="text-xs text-red-600">{error}</p>}

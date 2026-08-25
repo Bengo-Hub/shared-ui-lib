@@ -463,7 +463,7 @@ function SettlementModal({
     }
   };
   return reactDom.createPortal(
-    /* @__PURE__ */ jsxRuntime.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4", onClick: () => !isPending && onClose(), children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-md", onClick: (e) => e.stopPropagation(), children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "bg-white rounded-2xl shadow-xl overflow-hidden", children: [
+    /* @__PURE__ */ jsxRuntime.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4", onClick: () => !isPending && onClose(), children: /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-full max-w-xl", onClick: (e) => e.stopPropagation(), children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "bg-white rounded-2xl shadow-xl overflow-hidden", children: [
       /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-5 py-4 border-b border-gray-200", children: [
         /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-base font-bold text-gray-900", children: title }),
         /* @__PURE__ */ jsxRuntime.jsx(
@@ -489,22 +489,37 @@ function SettlementModal({
             fmt(amountValue)
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
-            "Amount (",
-            currency,
-            ")"
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-3", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
+              "Amount (",
+              currency,
+              ")"
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "input",
+              {
+                type: "number",
+                inputMode: "decimal",
+                value: amount,
+                onChange: (e) => setAmount(e.target.value),
+                className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+              }
+            )
           ] }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "input",
-            {
-              type: "number",
-              inputMode: "decimal",
-              value: amount,
-              onChange: (e) => setAmount(e.target.value),
-              className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-            }
-          )
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Payment date & time" }),
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "input",
+              {
+                type: "datetime-local",
+                value: effectiveAt,
+                max: nowDatetimeLocal(),
+                onChange: (e) => setEffectiveAt(e.target.value),
+                className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+              }
+            )
+          ] })
         ] }),
         overpaid && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2", children: [
           /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs font-medium text-amber-800", children: [
@@ -535,46 +550,35 @@ function SettlementModal({
             )
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Payment date & time" }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "input",
-            {
-              type: "datetime-local",
-              value: effectiveAt,
-              max: nowDatetimeLocal(),
-              onChange: (e) => setEffectiveAt(e.target.value),
-              className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-            }
-          )
-        ] }),
         extraFields,
-        methods.length > 0 && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Method" }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "select",
-            {
-              value: method,
-              onChange: (e) => setMethod(e.target.value),
-              className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black",
-              children: methods.map((m) => /* @__PURE__ */ jsxRuntime.jsx("option", { value: m.value, children: m.label }, m.value))
-            }
-          )
-        ] }),
-        (selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
-            "Reference ",
-            selectedMethod?.requiresReference ? "" : "(optional)"
+        (methods.length > 0 || selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `grid gap-3 ${methods.length > 0 && (selectedMethod?.requiresReference || mode === "apply_to_debt") ? "grid-cols-2" : "grid-cols-1"}`, children: [
+          methods.length > 0 && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Method" }),
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "select",
+              {
+                value: method,
+                onChange: (e) => setMethod(e.target.value),
+                className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black",
+                children: methods.map((m) => /* @__PURE__ */ jsxRuntime.jsx("option", { value: m.value, children: m.label }, m.value))
+              }
+            )
           ] }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "input",
-            {
-              value: reference,
-              onChange: (e) => setReference(e.target.value),
-              placeholder: "M-Pesa code, cheque no., etc.",
-              className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
-            }
-          )
+          (selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
+              "Reference ",
+              selectedMethod?.requiresReference ? "" : "(optional)"
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "input",
+              {
+                value: reference,
+                onChange: (e) => setReference(e.target.value),
+                placeholder: "M-Pesa code, cheque no., etc.",
+                className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
+              }
+            )
+          ] })
         ] }),
         error && /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-xs text-red-600", children: error }),
         /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-2 pt-1", children: [
