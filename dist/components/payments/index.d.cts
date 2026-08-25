@@ -83,6 +83,11 @@ interface SettlementSubmitInput {
      *  but editable so a payment collected earlier can be backdated instead of always stamping the
      *  moment it was entered into the system. */
     effectiveAt?: string;
+    /** Only present when `allowOverpayment` is set AND the entered amount exceeds `amountValue`:
+     *  'change' (default) means the excess is physical change handed back, nothing to record;
+     *  'store_credit' means the caller should ask the backend to bank the excess as the
+     *  customer's store credit instead. Absent entirely for a non-overpaid submission. */
+    overpaymentAction?: 'change' | 'store_credit';
 }
 /** Value for an `<input type="datetime-local">` representing the current local time (minute precision). */
 declare function nowDatetimeLocal(): string;
@@ -101,6 +106,11 @@ interface SettlementModalProps {
     defaultAmount?: number;
     /** Client-side cap (server remains authoritative) — omit to skip the check. */
     maxAmount?: number;
+    /** When true, an amount typed above `amountValue` is allowed (instead of being blocked by
+     *  `maxAmount`) and a "Give change" / "Add to store credit" choice is shown so the caller
+     *  learns, via `onSubmit`'s `overpaymentAction`, what to do with the difference. Omit (or
+     *  false) to leave every other surface's behavior byte-for-byte unchanged. */
+    allowOverpayment?: boolean;
     /** Method list for this mode — pass one of the exported registries, or a custom subset. */
     methods: SettlementMethod[];
     /** Called on Confirm; throw/reject to show the error inline and keep the modal open. */
@@ -119,7 +129,7 @@ interface SettlementModalProps {
  * whichever endpoint applies (treasury AR/AP, pos-api credit settlement) — this component only
  * owns the amount/method/reference form and its validation.
  */
-declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, methods, onSubmit, onClose, isPending, extraFields, }: SettlementModalProps): React$1.ReactPortal | null;
+declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, }: SettlementModalProps): React$1.ReactPortal | null;
 
 /**
  * The ONE currency registry + money formatter shared by every frontend (pos-ui, treasury-ui,

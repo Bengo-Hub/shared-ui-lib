@@ -52,6 +52,11 @@ export interface SettlementSubmitInput {
    *  but editable so a payment collected earlier can be backdated instead of always stamping the
    *  moment it was entered into the system. */
   effectiveAt?: string;
+  /** Only present when `allowOverpayment` is set AND the entered amount exceeds `amountValue`:
+   *  'change' (default) means the excess is physical change handed back, nothing to record;
+   *  'store_credit' means the caller should ask the backend to bank the excess as the
+   *  customer's store credit instead. Absent entirely for a non-overpaid submission. */
+  overpaymentAction?: 'change' | 'store_credit';
 }
 
 /** Value for an `<input type="datetime-local">` representing the current local time (minute precision). */
@@ -82,6 +87,11 @@ export interface SettlementModalProps {
   defaultAmount?: number;
   /** Client-side cap (server remains authoritative) — omit to skip the check. */
   maxAmount?: number;
+  /** When true, an amount typed above `amountValue` is allowed (instead of being blocked by
+   *  `maxAmount`) and a "Give change" / "Add to store credit" choice is shown so the caller
+   *  learns, via `onSubmit`'s `overpaymentAction`, what to do with the difference. Omit (or
+   *  false) to leave every other surface's behavior byte-for-byte unchanged. */
+  allowOverpayment?: boolean;
   /** Method list for this mode — pass one of the exported registries, or a custom subset. */
   methods: SettlementMethod[];
   /** Called on Confirm; throw/reject to show the error inline and keep the modal open. */
@@ -103,12 +113,13 @@ export interface SettlementModalProps {
  */
 export function SettlementModal({
   open, mode, title, subjectName, amountLabel, amountValue, currency = 'KES',
-  defaultAmount, maxAmount, methods, onSubmit, onClose, isPending = false, extraFields,
+  defaultAmount, maxAmount, allowOverpayment = false, methods, onSubmit, onClose, isPending = false, extraFields,
 }: SettlementModalProps) {
   const [amount, setAmount] = useState(String(defaultAmount ?? amountValue));
   const [method, setMethod] = useState(methods[0]?.value ?? '');
   const [reference, setReference] = useState('');
   const [effectiveAt, setEffectiveAt] = useState(nowDatetimeLocal());
+  const [overpaymentAction, setOverpaymentAction] = useState<'change' | 'store_credit'>('change');
   const [error, setError] = useState('');
 
   const selectedMethod = useMemo(() => methods.find((m) => m.value === method), [methods, method]);
@@ -116,6 +127,10 @@ export function SettlementModal({
   if (!open || typeof document === 'undefined') return null;
 
   const fmt = (v: number) => `${currency} ${v.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const parsedAmount = parseFloat(amount) || 0;
+  const overpaid = allowOverpayment && parsedAmount > amountValue + 0.0001;
+  const surplus = overpaid ? parsedAmount - amountValue : 0;
 
   const submit = async () => {
     const amt = parseFloat(amount);
@@ -142,6 +157,7 @@ export function SettlementModal({
         method: methods.length ? method : undefined,
         reference: reference.trim() || undefined,
         effectiveAt: datetimeLocalToISO(effectiveAt),
+        overpaymentAction: overpaid ? overpaymentAction : undefined,
       });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong.');
@@ -178,6 +194,29 @@ export function SettlementModal({
                 className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
               />
             </div>
+            {overpaid && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <p className="text-xs font-medium text-amber-800">
+                  This is {fmt(surplus)} more than {amountLabel.toLowerCase()}. What should happen to the difference?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOverpaymentAction('change')}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-semibold border ${overpaymentAction === 'change' ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300'}`}
+                  >
+                    Give change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOverpaymentAction('store_credit')}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-semibold border ${overpaymentAction === 'store_credit' ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300'}`}
+                  >
+                    Add to store credit
+                  </button>
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-xs font-semibold text-gray-500">Payment date &amp; time</label>
               <input

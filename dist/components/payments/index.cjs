@@ -276,6 +276,7 @@ function SettlementModal({
   currency = "KES",
   defaultAmount,
   maxAmount,
+  allowOverpayment = false,
   methods,
   onSubmit,
   onClose,
@@ -286,10 +287,14 @@ function SettlementModal({
   const [method, setMethod] = react.useState(methods[0]?.value ?? "");
   const [reference, setReference] = react.useState("");
   const [effectiveAt, setEffectiveAt] = react.useState(nowDatetimeLocal());
+  const [overpaymentAction, setOverpaymentAction] = react.useState("change");
   const [error, setError] = react.useState("");
   const selectedMethod = react.useMemo(() => methods.find((m) => m.value === method), [methods, method]);
   if (!open || typeof document === "undefined") return null;
   const fmt = (v) => `${currency} ${v.toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const parsedAmount = parseFloat(amount) || 0;
+  const overpaid = allowOverpayment && parsedAmount > amountValue + 1e-4;
+  const surplus = overpaid ? parsedAmount - amountValue : 0;
   const submit = async () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) {
@@ -314,7 +319,8 @@ function SettlementModal({
         amount: amt,
         method: methods.length ? method : void 0,
         reference: reference.trim() || void 0,
-        effectiveAt: datetimeLocalToISO(effectiveAt)
+        effectiveAt: datetimeLocalToISO(effectiveAt),
+        overpaymentAction: overpaid ? overpaymentAction : void 0
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -363,6 +369,35 @@ function SettlementModal({
               className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
             }
           )
+        ] }),
+        overpaid && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs font-medium text-amber-800", children: [
+            "This is ",
+            fmt(surplus),
+            " more than ",
+            amountLabel.toLowerCase(),
+            ". What should happen to the difference?"
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "button",
+              {
+                type: "button",
+                onClick: () => setOverpaymentAction("change"),
+                className: `flex-1 py-1.5 rounded-md text-xs font-semibold border ${overpaymentAction === "change" ? "bg-black text-white border-black" : "bg-white text-gray-700 border-gray-300"}`,
+                children: "Give change"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntime.jsx(
+              "button",
+              {
+                type: "button",
+                onClick: () => setOverpaymentAction("store_credit"),
+                className: `flex-1 py-1.5 rounded-md text-xs font-semibold border ${overpaymentAction === "store_credit" ? "bg-black text-white border-black" : "bg-white text-gray-700 border-gray-300"}`,
+                children: "Add to store credit"
+              }
+            )
+          ] })
         ] }),
         /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
           /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Payment date & time" }),
