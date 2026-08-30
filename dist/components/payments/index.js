@@ -870,6 +870,20 @@ function isAccountFormValid(value) {
   return true;
 }
 
-export { AIRTEL_MONEY, AccountForm, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, EMPTY_ACCOUNT_FORM, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, SettlementModal, TreasuryPaymentModal, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, nowDatetimeLocal };
+// src/components/payments/default-account.ts
+function resolveDefaultAccount(accounts, method, outletId) {
+  const active = (accounts ?? []).filter((a) => a.is_active !== false);
+  if (method) {
+    const matches = active.filter((a) => (a.default_payment_methods ?? []).includes(method));
+    const outletMatch = outletId ? matches.find((a) => a.outlet_id === outletId) : void 0;
+    if (outletMatch) return outletMatch;
+    const tenantWideMatch = matches.find((a) => !a.outlet_id);
+    if (tenantWideMatch) return tenantWideMatch;
+    if (matches.length) return matches[0];
+  }
+  return active.find((a) => a.account_type === "cash");
+}
+
+export { AIRTEL_MONEY, AccountForm, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CurrencyChangeConfirmModal, EMPTY_ACCOUNT_FORM, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, SettlementModal, TreasuryPaymentModal, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, nowDatetimeLocal, resolveDefaultAccount };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

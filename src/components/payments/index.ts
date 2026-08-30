@@ -52,3 +52,7 @@ export {
   type AccountFormProps,
   type AccountFormBankOption,
 } from './account-form';
+export {
+  resolveDefaultAccount,
+  type DefaultAccountCandidate,
+} from './default-account';

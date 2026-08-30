@@ -872,6 +872,20 @@ function isAccountFormValid(value) {
   return true;
 }
 
+// src/components/payments/default-account.ts
+function resolveDefaultAccount(accounts, method, outletId) {
+  const active = (accounts ?? []).filter((a) => a.is_active !== false);
+  if (method) {
+    const matches = active.filter((a) => (a.default_payment_methods ?? []).includes(method));
+    const outletMatch = outletId ? matches.find((a) => a.outlet_id === outletId) : void 0;
+    if (outletMatch) return outletMatch;
+    const tenantWideMatch = matches.find((a) => !a.outlet_id);
+    if (tenantWideMatch) return tenantWideMatch;
+    if (matches.length) return matches[0];
+  }
+  return active.find((a) => a.account_type === "cash");
+}
+
 exports.AIRTEL_MONEY = AIRTEL_MONEY;
 exports.AccountForm = AccountForm;
 exports.BANK = BANK;
@@ -905,5 +919,6 @@ exports.formatCurrency = formatCurrency;
 exports.getPaymentMethodLabel = getPaymentMethodLabel;
 exports.isAccountFormValid = isAccountFormValid;
 exports.nowDatetimeLocal = nowDatetimeLocal;
+exports.resolveDefaultAccount = resolveDefaultAccount;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map
