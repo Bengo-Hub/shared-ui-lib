@@ -4,7 +4,7 @@ export { TrackingIframeModal, TrackingIframeModalProps } from './components/trac
 export { D as DocumentPreviewProps, I as ImagePreview, a as ImagePreviewProps, b as ImagePreviewPropsShape, O as OpenImagePreviewOptions, c as OpenPreviewOptions, P as PdfPreview, d as PdfPreviewProps, u as useDocumentPreview, e as useImagePreview } from './use-image-preview-BunCXG40.cjs';
 export { O as OfflineBar, a as OfflineBarProps, b as OfflineSyncBanner, c as OfflineSyncBannerProps, d as OfflineSyncState, P as PwaUpdater, e as PwaUpdaterProps, S as SyncedConfirmation, U as UseOfflineSyncOptions, r as registerServiceWorker, u as useOfflineSync, f as useOnlineStatus } from './use-offline-sync-An_S9Hq1.cjs';
 export { CreatedSupplier, SupplierBankFieldRenderArgs, SupplierForm, SupplierFormProps, SupplierFormValues, SupplierPaymentMethod } from './components/suppliers/index.cjs';
-export { ComboboxOption, SearchableCombobox, SearchableComboboxProps } from './components/combobox/index.cjs';
+export { C as ComboboxOption, S as SearchableCombobox, a as SearchableComboboxProps } from './searchable-combobox-DVA5iCiB.cjs';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 export { RichText, RichTextEditor, RichTextEditorProps } from './components/rich-text-editor/index.cjs';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.cjs';

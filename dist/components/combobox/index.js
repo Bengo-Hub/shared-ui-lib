@@ -213,7 +213,173 @@ function SearchableCombobox({
     )
   ] });
 }
+function cx2(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+function MultiSelectCombobox({
+  options,
+  values,
+  onChange,
+  placeholder = "Select\u2026",
+  searchPlaceholder = "Search\u2026",
+  emptyText = "No matches",
+  disabled,
+  className,
+  footer
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef(null);
+  const panelRef = useRef(null);
+  const [panelPos, setPanelPos] = useState(null);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const anchor = ref.current;
+    if (!anchor) return;
+    const r = anchor.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const estimatedPanelHeight = 300;
+    const top = spaceBelow < 260 && r.top > estimatedPanelHeight ? Math.max(8, r.top - 4 - estimatedPanelHeight) : r.bottom + 4;
+    setPanelPos({ top, left: r.left, width: r.width });
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    function onScroll(e) {
+      if (panelRef.current?.contains(e.target)) return;
+      setOpen(false);
+    }
+    function onResize() {
+      setOpen(false);
+    }
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [open]);
+  const close = useCallback(() => {
+    setOpen(false);
+    setQuery("");
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) close();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") close();
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open, close]);
+  const selected = useMemo(
+    () => values.map((v) => options.find((o) => o.value === v) ?? { value: v, label: v }),
+    [values, options]
+  );
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter(
+      (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q) || (o.description ?? "").toLowerCase().includes(q)
+    );
+  }, [options, query]);
+  function toggle(value) {
+    onChange(values.includes(value) ? values.filter((v) => v !== value) : [...values, value]);
+  }
+  function remove(value) {
+    onChange(values.filter((v) => v !== value));
+  }
+  return /* @__PURE__ */ jsxs("div", { ref, className: cx2("relative", className), children: [
+    /* @__PURE__ */ jsxs(
+      "button",
+      {
+        type: "button",
+        disabled,
+        onClick: () => open ? close() : setOpen(true),
+        className: "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-xl border border-input bg-background px-2.5 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60",
+        children: [
+          selected.length === 0 && /* @__PURE__ */ jsx("span", { className: "px-0.5 text-muted-foreground", children: placeholder }),
+          selected.map((o) => /* @__PURE__ */ jsxs(
+            "span",
+            {
+              className: "inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground",
+              children: [
+                o.icon,
+                o.label,
+                !disabled && /* @__PURE__ */ jsx(
+                  X,
+                  {
+                    className: "h-3 w-3 text-muted-foreground hover:text-foreground",
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      remove(o.value);
+                    }
+                  }
+                )
+              ]
+            },
+            o.value
+          )),
+          /* @__PURE__ */ jsx(ChevronsUpDown, { className: "ml-auto h-4 w-4 shrink-0 text-muted-foreground" })
+        ]
+      }
+    ),
+    open && panelPos && /* @__PURE__ */ jsxs(
+      "div",
+      {
+        ref: panelRef,
+        style: { position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 },
+        className: "overflow-hidden rounded-xl border border-border bg-card shadow-xl",
+        children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-border px-3 py-2", children: [
+            /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 shrink-0 text-muted-foreground" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                autoFocus: true,
+                value: query,
+                onChange: (e) => setQuery(e.target.value),
+                placeholder: searchPlaceholder,
+                className: "w-full bg-transparent text-sm text-foreground focus:outline-none"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsx("ul", { className: "max-h-60 overflow-y-auto py-1", children: matches.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: emptyText }) : matches.map((o) => {
+            const isSelected = values.includes(o.value);
+            return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: () => toggle(o.value),
+                className: "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60",
+                children: [
+                  /* @__PURE__ */ jsxs("span", { className: "flex min-w-0 items-center gap-2", children: [
+                    o.icon,
+                    /* @__PURE__ */ jsxs("span", { className: "min-w-0", children: [
+                      /* @__PURE__ */ jsxs("span", { className: "flex items-baseline gap-2", children: [
+                        /* @__PURE__ */ jsx("span", { className: "truncate text-foreground", children: o.label }),
+                        o.hint && /* @__PURE__ */ jsx("span", { className: "shrink-0 text-xs text-muted-foreground", children: o.hint })
+                      ] }),
+                      o.description && /* @__PURE__ */ jsx("span", { className: "block truncate text-xs text-muted-foreground", children: o.description })
+                    ] })
+                  ] }),
+                  isSelected && /* @__PURE__ */ jsx(Check, { className: "h-4 w-4 shrink-0 text-primary" })
+                ]
+              }
+            ) }, o.value);
+          }) }),
+          footer && /* @__PURE__ */ jsx("div", { className: "border-t border-border p-1", children: footer })
+        ]
+      }
+    )
+  ] });
+}
 
-export { SearchableCombobox };
+export { MultiSelectCombobox, SearchableCombobox };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
