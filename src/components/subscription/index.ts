@@ -1,4 +1,5 @@
 export { SubscriptionBanner, type SubscriptionBannerProps, type UsageAlert } from './subscription-banner';
+export { LimitReachedModal, type LimitReachedModalProps, type LimitReachedInfo } from './limit-reached-modal';
 export { SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag } from './service-tags';
 export {
   SubscriptionProvider,

@@ -41,6 +41,52 @@ interface SubscriptionBannerProps {
 declare function SubscriptionBanner({ status, plan, isExpired, isInGracePeriod, expiresAt, gracePeriodEndsAt, daysUntilExpiry, needsSubscription, isPlatformOwner, isCommercialTenant, isLoading, isHydrated, isServiceCharge, isDemo, isPerpetual, upgradeUrl, billingUrl, usageAlerts, brandColor, }: SubscriptionBannerProps): react_jsx_runtime.JSX.Element | null;
 
 /**
+ * The structured 402 body every service's usage-limit gate returns (pos-api's gate.go
+ * writeLimitReached, subscriptions-api's usage.go ReportUsage) — the shape a host app's
+ * error interceptor decodes into its local `useLimitModal` store before rendering this.
+ */
+interface LimitReachedInfo {
+    metric: string;
+    limit: number;
+    used: number;
+    overageEligible?: boolean;
+    overageUnitPrice?: number;
+    overageUnit?: string;
+    accruedOverageKes?: number;
+    upgradeUrl?: string;
+}
+interface LimitReachedModalProps {
+    open: boolean;
+    info: LimitReachedInfo | null;
+    onClose: () => void;
+    /** Full URL to the subscriptions-ui subscribe page, used when info.upgradeUrl is absent. */
+    subscribeUrl: string;
+    /** Formats a KES amount for display. Defaults to a plain "KES 375" formatter — pass the
+     *  host app's own currency-aware formatter (e.g. pos-ui's tenant-currency formatCurrency)
+     *  when the tenant may be on a non-KES currency. */
+    formatCurrency?: (amountKes: number) => string;
+    /** When provided, an "Enable extra usage" button appears for overage-eligible metrics with
+     *  a seeded price. Called on click; the modal shows a spinner while the promise is pending.
+     *  Resolve true on success (the modal closes and onRetry fires), false on failure (the modal
+     *  stays open — showing an error toast for the failure is the host's responsibility).
+     *  Omit entirely for apps whose plan limits are purely structural (never overage-eligible,
+     *  e.g. inventory/treasury) — the modal then always renders the plain "Upgrade plan" CTA. */
+    onEnableOverage?: () => Promise<boolean>;
+    /** Called after onEnableOverage resolves true, so the host can retry the action that hit
+     *  the limit (e.g. re-submit the order/request that received the 402). */
+    onRetry?: () => void;
+}
+/**
+ * Global usage-limit-reached modal. Mounted once near an app's root; opened imperatively
+ * (via the host's own useLimitModal-style store) when a mutation returns a structured 402.
+ * The single canonical implementation of this UI — pos-ui, inventory-ui, and treasury-ui
+ * each maintained a near-identical hand-copied version of this component before it was
+ * extracted here; keep host-app-specific wiring (overage enrollment, currency formatting,
+ * exemption checks) in each app's thin local wrapper, not in this component.
+ */
+declare function LimitReachedModal({ open, info, onClose, subscribeUrl, formatCurrency, onEnableOverage, onRetry, }: LimitReachedModalProps): react_jsx_runtime.JSX.Element | null;
+
+/**
  * Canonical service tag values for all billable Codevertex services.
  *
  * Platform-level services (auth, subscriptions, codevertex-website) are NOT included
@@ -229,4 +275,4 @@ declare function UpgradeDialog({ feature, open, onClose, title, description, }: 
 }): react_jsx_runtime.JSX.Element | null;
 declare function FeatureLock({ feature, mode, children, className, title, description }: FeatureLockProps): react_jsx_runtime.JSX.Element;
 
-export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };

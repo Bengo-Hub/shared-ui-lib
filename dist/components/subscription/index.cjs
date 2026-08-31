@@ -499,6 +499,105 @@ function SubscriptionBanner({
   }
   return null;
 }
+function prettyMetric(m) {
+  return m.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+var defaultFormatCurrency = (n) => `KES ${n.toLocaleString()}`;
+function LimitReachedModal({
+  open,
+  info,
+  onClose,
+  subscribeUrl,
+  formatCurrency = defaultFormatCurrency,
+  onEnableOverage,
+  onRetry
+}) {
+  const [enabling, setEnabling] = react.useState(false);
+  if (!open || !info) return null;
+  const canOverage = !!(onEnableOverage && info.overageEligible && info.overageUnitPrice && info.overageUnitPrice > 0);
+  const handleEnable = async () => {
+    if (!onEnableOverage) return;
+    setEnabling(true);
+    const ok = await onEnableOverage();
+    setEnabling(false);
+    if (ok) {
+      onClose();
+      onRetry?.();
+    }
+  };
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", role: "alertdialog", "aria-modal": "true", children: [
+    /* @__PURE__ */ jsxRuntime.jsx("div", { className: "fixed inset-0 bg-black/60 backdrop-blur-sm", onClick: onClose }),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative z-50 w-full max-w-sm mx-4 rounded-xl border border-border bg-card shadow-lg p-6 space-y-4", children: [
+      /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex size-11 items-center justify-center rounded-full bg-amber-500/15", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Gauge, { className: "size-5 text-amber-500" }) }),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-1", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("h2", { className: "text-lg font-semibold", children: [
+          prettyMetric(info.metric),
+          " limit reached"
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-muted-foreground", children: [
+          "Your plan allows ",
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: info.limit.toLocaleString() }),
+          " ",
+          prettyMetric(info.metric).toLowerCase(),
+          " this period and you've used",
+          " ",
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: info.used.toLocaleString() }),
+          "."
+        ] })
+      ] }),
+      canOverage ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-3 rounded-lg border border-border bg-muted/30 p-3 text-sm", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-muted-foreground", children: "Extra usage price" }),
+          /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "font-semibold", children: [
+            formatCurrency(info.overageUnitPrice),
+            info.overageUnit ? ` ${info.overageUnit}` : ""
+          ] })
+        ] }),
+        !!info.accruedOverageKes && info.accruedOverageKes > 0 && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-muted-foreground", children: "Accrued this period" }),
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: formatCurrency(info.accruedOverageKes) })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-xs text-muted-foreground", children: "Enable extra usage to keep working now. The overage is added to your next renewal invoice; you can turn it off any time in Settings \u2192 Subscription." })
+      ] }) : /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-muted-foreground", children: "This limit can't be extended with pay-as-you-go usage. Upgrade your plan to raise it." }),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex gap-3 pt-2", children: [
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onClose,
+            className: "flex-1 inline-flex items-center justify-center rounded-lg border border-input px-4 py-2 text-sm font-medium hover:bg-accent transition-colors",
+            children: "Not now"
+          }
+        ),
+        canOverage ? /* @__PURE__ */ jsxRuntime.jsxs(
+          "button",
+          {
+            type: "button",
+            onClick: handleEnable,
+            disabled: enabling,
+            className: "flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60",
+            children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
+              enabling ? "Enabling\u2026" : "Enable extra usage"
+            ]
+          }
+        ) : /* @__PURE__ */ jsxRuntime.jsxs(
+          "a",
+          {
+            href: info.upgradeUrl || `${subscribeUrl}/subscribe`,
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className: "flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors",
+            children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "size-4" }),
+              "Upgrade plan"
+            ]
+          }
+        )
+      ] })
+    ] })
+  ] });
+}
 
 // src/components/subscription/service-tags.ts
 var SERVICE_TAGS = {
@@ -818,6 +917,7 @@ function FeatureLock({ feature, mode = "overlay", children, className, title, de
 exports.FeatureGate = FeatureGate;
 exports.FeatureLock = FeatureLock;
 exports.FeatureLockBanner = FeatureLockBanner;
+exports.LimitReachedModal = LimitReachedModal;
 exports.SERVICE_TAGS = SERVICE_TAGS;
 exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
 exports.SubscriptionBanner = SubscriptionBanner;
