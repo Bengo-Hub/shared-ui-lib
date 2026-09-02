@@ -126,6 +126,21 @@ export function SearchableCombobox({
       // Ignore scrolls originating inside the panel itself (the option list scrolling
       // internally must not close the dropdown that contains it).
       if (panelRef.current?.contains(e.target as Node)) return;
+      const anchor = ref.current;
+      if (!anchor) return;
+      const target = e.target;
+      // Only a scroll that can actually move the trigger on screen invalidates `panelPos` —
+      // i.e. the document/window itself, or an ancestor scrollable container of the trigger
+      // (this also covers a modal's own overflow-y-auto body, which DOES move the trigger).
+      // `window`/`document` fire 'scroll' as the delegated target for the whole-page scroll;
+      // anything else (a sidebar list, an unrelated card, a browser scroll-anchoring nudge on
+      // some other element, a synthetic event dispatched elsewhere) can't move the trigger and
+      // must not close a dropdown that's still correctly positioned.
+      const isRelevant =
+        target === document ||
+        target === window ||
+        (target instanceof Node && target.contains(anchor));
+      if (!isRelevant) return;
       setOpen(false);
     }
     function onResize() {

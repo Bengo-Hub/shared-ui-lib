@@ -2244,6 +2244,11 @@ function SearchableCombobox({
     if (!open) return;
     function onScroll(e) {
       if (panelRef.current?.contains(e.target)) return;
+      const anchor = ref.current;
+      if (!anchor) return;
+      const target = e.target;
+      const isRelevant = target === document || target === window || target instanceof Node && target.contains(anchor);
+      if (!isRelevant) return;
       setOpen(false);
     }
     function onResize() {
