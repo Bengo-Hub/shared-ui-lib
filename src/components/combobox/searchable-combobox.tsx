@@ -122,7 +122,16 @@ export function SearchableCombobox({
 
   useEffect(() => {
     if (!open) return;
+    // Grace window right after opening: the search input's `autoFocus` below reliably pops
+    // the on-screen keyboard on phones/tablets, and that keyboard opening itself fires a
+    // page 'scroll' (the browser keeping the focused input visible above the keyboard) and/or
+    // a 'resize' (viewport shrinking) — neither is a real user scroll/resize, but both used to
+    // be treated as one, closing the panel the instant it opened on touch devices. Ignore
+    // scroll/resize for a brief window to let that settle before arming the real close logic.
+    const openedAt = Date.now();
+    const KEYBOARD_SETTLE_MS = 400;
     function onScroll(e: Event) {
+      if (Date.now() - openedAt < KEYBOARD_SETTLE_MS) return;
       // Ignore scrolls originating inside the panel itself (the option list scrolling
       // internally must not close the dropdown that contains it).
       if (panelRef.current?.contains(e.target as Node)) return;
@@ -144,6 +153,7 @@ export function SearchableCombobox({
       setOpen(false);
     }
     function onResize() {
+      if (Date.now() - openedAt < KEYBOARD_SETTLE_MS) return;
       setOpen(false);
     }
     window.addEventListener('scroll', onScroll, true);

@@ -95,7 +95,10 @@ function SearchableCombobox({
   }, [open]);
   react.useEffect(() => {
     if (!open) return;
+    const openedAt = Date.now();
+    const KEYBOARD_SETTLE_MS = 400;
     function onScroll(e) {
+      if (Date.now() - openedAt < KEYBOARD_SETTLE_MS) return;
       if (panelRef.current?.contains(e.target)) return;
       const anchor = ref.current;
       if (!anchor) return;
@@ -105,6 +108,7 @@ function SearchableCombobox({
       setOpen(false);
     }
     function onResize() {
+      if (Date.now() - openedAt < KEYBOARD_SETTLE_MS) return;
       setOpen(false);
     }
     window.addEventListener("scroll", onScroll, true);
