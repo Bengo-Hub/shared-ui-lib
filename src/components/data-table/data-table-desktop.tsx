@@ -132,23 +132,33 @@ export function DataTableDesktop<T>(props: DataTableDesktopProps<T>) {
                   key={col.key}
                   className={cx(
                     cellPad,
-                    'font-medium text-muted-foreground whitespace-nowrap',
+                    'font-medium text-muted-foreground',
                     ALIGN[col.align ?? 'left'],
                     col.hideBelow && HIDE[col.hideBelow],
                     col.headerClassName,
                   )}
                 >
-                  <span className={cx('inline-flex items-center gap-1', col.align === 'right' && 'flex-row-reverse')}>
-                    {col.header}
+                  {/* Header labels wrap instead of forcing `nowrap` (which used to make a long
+                      label like "Accession / Barcode Number" claim a wide column even when every
+                      value in it is short, e.g. "892-2026") — the browser's default table-layout
+                      then sizes each column from its real content, and the freed width goes to
+                      columns that actually need it (e.g. Title). `items-start` keeps the sort/
+                      filter icon pinned to the label's first line when it wraps to two. */}
+                  <span className={cx('inline-flex items-start gap-1', col.align === 'right' && 'flex-row-reverse')}>
+                    <span className="whitespace-normal">{col.header}</span>
                     {col.sortable && (
-                      <SortButton dir={sort?.key === col.key ? sort.dir : null} onCycle={() => cycleSort(col.key)} />
+                      <span className="shrink-0">
+                        <SortButton dir={sort?.key === col.key ? sort.dir : null} onCycle={() => cycleSort(col.key)} />
+                      </span>
                     )}
                     {col.filterable && (
-                      <FunnelFilter
-                        options={funnelOptionsFor(col)}
-                        state={filters[col.key]}
-                        onChange={(st) => setColumnFilter(col.key, st)}
-                      />
+                      <span className="shrink-0">
+                        <FunnelFilter
+                          options={funnelOptionsFor(col)}
+                          state={filters[col.key]}
+                          onChange={(st) => setColumnFilter(col.key, st)}
+                        />
+                      </span>
                     )}
                   </span>
                 </th>

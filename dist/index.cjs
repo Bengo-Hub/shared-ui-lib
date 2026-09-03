@@ -3069,22 +3069,22 @@ function DataTableDesktop(props) {
           {
             className: cx2(
               cellPad,
-              "font-medium text-muted-foreground whitespace-nowrap",
+              "font-medium text-muted-foreground",
               ALIGN[col.align ?? "left"],
               col.hideBelow && HIDE[col.hideBelow],
               col.headerClassName
             ),
-            children: /* @__PURE__ */ jsxRuntime.jsxs("span", { className: cx2("inline-flex items-center gap-1", col.align === "right" && "flex-row-reverse"), children: [
-              col.header,
-              col.sortable && /* @__PURE__ */ jsxRuntime.jsx(SortButton, { dir: sort?.key === col.key ? sort.dir : null, onCycle: () => cycleSort(col.key) }),
-              col.filterable && /* @__PURE__ */ jsxRuntime.jsx(
+            children: /* @__PURE__ */ jsxRuntime.jsxs("span", { className: cx2("inline-flex items-start gap-1", col.align === "right" && "flex-row-reverse"), children: [
+              /* @__PURE__ */ jsxRuntime.jsx("span", { className: "whitespace-normal", children: col.header }),
+              col.sortable && /* @__PURE__ */ jsxRuntime.jsx("span", { className: "shrink-0", children: /* @__PURE__ */ jsxRuntime.jsx(SortButton, { dir: sort?.key === col.key ? sort.dir : null, onCycle: () => cycleSort(col.key) }) }),
+              col.filterable && /* @__PURE__ */ jsxRuntime.jsx("span", { className: "shrink-0", children: /* @__PURE__ */ jsxRuntime.jsx(
                 FunnelFilter,
                 {
                   options: funnelOptionsFor(col),
                   state: filters[col.key],
                   onChange: (st) => setColumnFilter(col.key, st)
                 }
-              )
+              ) })
             ] })
           },
           col.key
