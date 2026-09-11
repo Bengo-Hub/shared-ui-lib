@@ -637,6 +637,8 @@ var EMPTY = {
   planCode: null,
   tierOrder: null,
   catalog: {},
+  activeServiceTags: [],
+  serviceUnlockPlans: {},
   upgradeBaseUrl: ""
 };
 var SubscriptionContext = react.createContext(EMPTY);
@@ -647,7 +649,7 @@ function SubscriptionProvider({
   const v = react.useMemo(
     () => ({ ...EMPTY, ...value }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [value.features, value.limits, value.isExempt, value.status, value.isLoading, value.planCode, value.tierOrder, value.catalog, value.upgradeBaseUrl]
+    [value.features, value.limits, value.isExempt, value.status, value.isLoading, value.planCode, value.tierOrder, value.catalog, value.activeServiceTags, value.serviceUnlockPlans, value.upgradeBaseUrl]
   );
   return /* @__PURE__ */ jsxRuntime.jsx(SubscriptionContext.Provider, { value: v, children });
 }
@@ -675,6 +677,11 @@ function isFeatureUnlocked(e, code) {
     return true;
   }
   return false;
+}
+function isServiceUnlocked(e, serviceTag) {
+  if (e.isExempt) return true;
+  if (!e.activeServiceTags || e.activeServiceTags.length === 0) return true;
+  return e.activeServiceTags.includes(serviceTag);
 }
 function useFeature(code) {
   const e = react.useContext(SubscriptionContext);
@@ -913,6 +920,173 @@ function FeatureLock({ feature, mode = "overlay", children, className, title, de
     dialog
   ] });
 }
+function useServiceUpgrade(serviceTag) {
+  const e = react.useContext(SubscriptionContext);
+  const plan = e.serviceUnlockPlans?.[serviceTag];
+  const locked = !isServiceUnlocked(e, serviceTag);
+  const tierLabel = plan?.planName || "a higher plan";
+  const upgradeHref = react.useMemo(() => {
+    const base = (e.upgradeBaseUrl || "https://pricing.codevertexafrica.com").replace(/\/$/, "");
+    const params = new URLSearchParams();
+    params.set("service", serviceTag);
+    if (plan?.planCode) params.set("plan", plan.planCode);
+    const qs = params.toString();
+    return `${base}/plans${qs ? `?${qs}` : ""}`;
+  }, [e.upgradeBaseUrl, serviceTag, plan?.planCode]);
+  return { locked, isLoading: !!e.isLoading, plan, tierLabel, upgradeHref };
+}
+function ServiceUpgradeDialog({
+  serviceTag,
+  open,
+  onClose,
+  title,
+  description
+}) {
+  const { plan, tierLabel, upgradeHref } = useServiceUpgrade(serviceTag);
+  if (!open) return null;
+  const serviceLabel = title || `The ${serviceTag} module`;
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    "div",
+    {
+      className: "fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4",
+      role: "dialog",
+      "aria-modal": "true",
+      onClick: onClose,
+      children: /* @__PURE__ */ jsxRuntime.jsxs(
+        "div",
+        {
+          className: "w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl",
+          onClick: (ev) => ev.stopPropagation(),
+          children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-4 flex items-start justify-between gap-4", children: [
+              /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("span", { className: "flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-500", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-5 w-5" }) }),
+                /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+                  /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-base font-bold text-foreground", children: "Upgrade to unlock" }),
+                  /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs text-muted-foreground", children: [
+                    "Available on ",
+                    tierLabel
+                  ] })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: onClose,
+                  "aria-label": "Close",
+                  className: "flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent",
+                  children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.X, { className: "h-4 w-4" })
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-sm text-foreground", children: [
+              /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: serviceLabel }),
+              " ",
+              description || `is not included in your current plan. Upgrade to ${tierLabel} to unlock it.`
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-6 flex gap-3", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: onClose,
+                  className: "flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-accent",
+                  children: "Not now"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsxs(
+                "a",
+                {
+                  href: upgradeHref,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90",
+                  children: [
+                    /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "h-4 w-4" }),
+                    "Upgrade",
+                    plan?.planName ? ` to ${plan.planName}` : ""
+                  ]
+                }
+              )
+            ] })
+          ]
+        }
+      )
+    }
+  );
+}
+function ServiceLock({ serviceTag, mode = "block", children, className, title, description }) {
+  const { locked, isLoading, tierLabel } = useServiceUpgrade(serviceTag);
+  const [dialogOpen, setDialogOpen] = react.useState(false);
+  if (isLoading || !locked) return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children });
+  const open = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setDialogOpen(true);
+  };
+  const dialog = /* @__PURE__ */ jsxRuntime.jsx(ServiceUpgradeDialog, { serviceTag, open: dialogOpen, onClose: () => setDialogOpen(false), title, description });
+  if (mode === "badge") {
+    return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntime.jsxs(
+        "span",
+        {
+          className: "group/lock relative inline-flex w-full items-center " + (className ?? ""),
+          onClickCapture: open,
+          role: "button",
+          tabIndex: 0,
+          onKeyDown: (ev) => (ev.key === "Enter" || ev.key === " ") && open(ev),
+          title: `Available on ${tierLabel} \u2014 click to upgrade`,
+          children: [
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "pointer-events-none flex-1", children }),
+            /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "ml-1 flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-500", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-2.5 w-2.5" }),
+              tierLabel
+            ] })
+          ]
+        }
+      ),
+      dialog
+    ] });
+  }
+  if (mode === "overlay") {
+    return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative " + (className ?? ""), children: [
+      /* @__PURE__ */ jsxRuntime.jsx("div", { className: "pointer-events-none select-none opacity-60", "aria-disabled": true, children }),
+      /* @__PURE__ */ jsxRuntime.jsx(
+        "button",
+        {
+          type: "button",
+          onClick: open,
+          "aria-label": `Locked \u2014 available on ${tierLabel}. Click to upgrade.`,
+          className: "absolute inset-0 z-10 flex items-start justify-end p-1.5",
+          title: `Available on ${tierLabel} \u2014 click to upgrade`,
+          children: /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-500 shadow-sm", children: [
+            /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-2.5 w-2.5" }),
+            tierLabel
+          ] })
+        }
+      ),
+      dialog
+    ] });
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-6 py-12 text-center " + (className ?? ""), children: [
+    /* @__PURE__ */ jsxRuntime.jsx("span", { className: "flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Lock, { className: "h-6 w-6" }) }),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-base font-bold text-foreground", children: title ?? "This service needs an upgrade" }),
+      /* @__PURE__ */ jsxRuntime.jsx("p", { className: "max-w-md text-sm text-muted-foreground", children: description ?? `This service is not included in your current plan. Available on ${tierLabel}.` })
+    ] }),
+    /* @__PURE__ */ jsxRuntime.jsxs(
+      "button",
+      {
+        onClick: () => setDialogOpen(true),
+        className: "inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90",
+        children: [
+          /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Zap, { className: "h-4 w-4" }),
+          "Upgrade to unlock"
+        ]
+      }
+    ),
+    dialog
+  ] });
+}
 
 exports.FeatureGate = FeatureGate;
 exports.FeatureLock = FeatureLock;
@@ -920,16 +1094,20 @@ exports.FeatureLockBanner = FeatureLockBanner;
 exports.LimitReachedModal = LimitReachedModal;
 exports.SERVICE_TAGS = SERVICE_TAGS;
 exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
+exports.ServiceLock = ServiceLock;
+exports.ServiceUpgradeDialog = ServiceUpgradeDialog;
 exports.SubscriptionBanner = SubscriptionBanner;
 exports.SubscriptionContext = SubscriptionContext;
 exports.SubscriptionProvider = SubscriptionProvider;
 exports.UpgradeBadge = UpgradeBadge;
 exports.UpgradeDialog = UpgradeDialog;
 exports.isFeatureUnlocked = isFeatureUnlocked;
+exports.isServiceUnlocked = isServiceUnlocked;
 exports.useAnyFeature = useAnyFeature;
 exports.useEntitlements = useEntitlements;
 exports.useFeature = useFeature;
 exports.useFeatureUpgrade = useFeatureUpgrade;
 exports.useLimit = useLimit;
+exports.useServiceUpgrade = useServiceUpgrade;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

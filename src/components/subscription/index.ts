@@ -12,8 +12,10 @@ export {
   useAnyFeature,
   useLimit,
   isFeatureUnlocked,
+  isServiceUnlocked,
   type SubscriptionEntitlements,
   type FeatureCatalogEntry,
+  type ServiceUnlockPlan,
   type FeatureGateProps,
 } from './feature-gate';
 export {
@@ -23,3 +25,10 @@ export {
   type FeatureLockMode,
   type FeatureLockProps,
 } from './feature-lock';
+export {
+  ServiceLock,
+  ServiceUpgradeDialog,
+  useServiceUpgrade,
+  type ServiceLockMode,
+  type ServiceLockProps,
+} from './service-lock';

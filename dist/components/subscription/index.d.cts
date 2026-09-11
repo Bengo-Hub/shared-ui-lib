@@ -136,6 +136,19 @@ interface FeatureCatalogEntry {
     serviceTag?: string;
     label?: string;
 }
+/**
+ * ServiceUnlockPlan is the cheapest active plan that grants WHOLE-MODULE access to a service
+ * tag (from subscriptions-api GET /features/catalog: serviceUnlockPlans[tag]). Distinct from
+ * FeatureCatalogEntry: a feature code's minPlanCode names the plan unlocking one capability,
+ * while this names the plan unlocking an entire service (e.g. "erp") — the tenant's
+ * RequireServiceAccess("erp") gate is keyed on the tag, not on any single feature code.
+ */
+interface ServiceUnlockPlan {
+    planCode: string;
+    planName: string;
+    tierOrder: number;
+    price: number;
+}
 interface SubscriptionEntitlements {
     features: string[];
     limits: Record<string, number>;
@@ -147,6 +160,12 @@ interface SubscriptionEntitlements {
     tierOrder?: number | null;
     /** feature code → tier metadata, keyed as returned by GET /features/catalog. */
     catalog?: Record<string, FeatureCatalogEntry>;
+    /** Whole-module service tags (pos/inventory/erp/...) the tenant's plan currently covers —
+     * the union of the plan's own service_tag and every entitled feature's service_tag, mirroring
+     * subscriptions-api's resolveActiveServiceTags. Backs ServiceLock/useServiceUpgrade. */
+    activeServiceTags?: string[];
+    /** service tag → cheapest plan that grants it, from GET /features/catalog's serviceUnlockPlans. */
+    serviceUnlockPlans?: Record<string, ServiceUnlockPlan>;
     /** Base URL of the pricing UI (e.g. NEXT_PUBLIC_SUBSCRIPTIONS_UI_URL). Upgrade links target it. */
     upgradeBaseUrl?: string;
 }
@@ -178,6 +197,15 @@ declare function useEntitlements(): SubscriptionEntitlements;
  * never accidentally disabled.
  */
 declare function isFeatureUnlocked(e: SubscriptionEntitlements, code: string): boolean;
+/**
+ * isServiceUnlocked reports whether the tenant's plan covers a whole service/module — the
+ * frontend counterpart to the backend's RequireServiceAccess(serviceTag) gate. Unlike
+ * isFeatureUnlocked there's no tier-rank fallback: activeServiceTags is already the fully
+ * resolved server-side union (plan's own service_tag + every entitled feature's service_tag),
+ * so membership is the whole check. Absent activeServiceTags (an app that hasn't threaded it
+ * through yet) fails open — never block on data the entitlements payload doesn't carry.
+ */
+declare function isServiceUnlocked(e: SubscriptionEntitlements, serviceTag: string): boolean;
 /** useFeature reports whether a feature code is enabled (exempt + tier-aware, see isFeatureUnlocked). */
 declare function useFeature(code: string): boolean;
 /** useAnyFeature reports whether ANY of the given feature codes is enabled. */
@@ -275,4 +303,44 @@ declare function UpgradeDialog({ feature, open, onClose, title, description, }: 
 }): react_jsx_runtime.JSX.Element | null;
 declare function FeatureLock({ feature, mode, children, className, title, description }: FeatureLockProps): react_jsx_runtime.JSX.Element;
 
-export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, type ServiceTag, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit };
+/**
+ * ServiceLock — the whole-module counterpart to FeatureLock. Where FeatureLock gates one
+ * capability (a feature code), ServiceLock gates an entire service/module (a service tag —
+ * "erp", "inventory", ...), matching the backend's RequireServiceAccess(serviceTag) gate.
+ *
+ * Same "show, don't hide" contract and render modes as FeatureLock, but defaults to mode="block"
+ * (a full replacement card) rather than "overlay" — a whole locked MODULE is normally a
+ * dedicated page/section, not a single dimmed control.
+ */
+type ServiceLockMode = "overlay" | "badge" | "block";
+interface ServiceLockProps {
+    serviceTag: string;
+    mode?: ServiceLockMode;
+    children: React__default.ReactNode;
+    className?: string;
+    /** Optional copy overrides for the block/dialog. */
+    title?: string;
+    description?: string;
+}
+/** Resolve the plan that would unlock a service tag + a pricing deep-link naming it. */
+declare function useServiceUpgrade(serviceTag: string): {
+    locked: boolean;
+    isLoading: boolean;
+    plan?: ServiceUnlockPlan;
+    tierLabel: string;
+    upgradeHref: string;
+};
+/**
+ * ServiceUpgradeDialog — the service-tag counterpart to UpgradeDialog. Names the specific plan
+ * that unlocks the whole module (not just one feature within it) and links to the pricing UI.
+ */
+declare function ServiceUpgradeDialog({ serviceTag, open, onClose, title, description, }: {
+    serviceTag: string;
+    open: boolean;
+    onClose: () => void;
+    title?: string;
+    description?: string;
+}): react_jsx_runtime.JSX.Element | null;
+declare function ServiceLock({ serviceTag, mode, children, className, title, description }: ServiceLockProps): react_jsx_runtime.JSX.Element;
+
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, type ServiceLockMode, type ServiceLockProps, type ServiceTag, type ServiceUnlockPlan, ServiceUpgradeDialog, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, isServiceUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };

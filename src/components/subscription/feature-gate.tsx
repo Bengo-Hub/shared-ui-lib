@@ -26,6 +26,20 @@ export interface FeatureCatalogEntry {
   label?: string;
 }
 
+/**
+ * ServiceUnlockPlan is the cheapest active plan that grants WHOLE-MODULE access to a service
+ * tag (from subscriptions-api GET /features/catalog: serviceUnlockPlans[tag]). Distinct from
+ * FeatureCatalogEntry: a feature code's minPlanCode names the plan unlocking one capability,
+ * while this names the plan unlocking an entire service (e.g. "erp") — the tenant's
+ * RequireServiceAccess("erp") gate is keyed on the tag, not on any single feature code.
+ */
+export interface ServiceUnlockPlan {
+  planCode: string;
+  planName: string;
+  tierOrder: number;
+  price: number;
+}
+
 export interface SubscriptionEntitlements {
   features: string[];
   limits: Record<string, number>;
@@ -37,6 +51,12 @@ export interface SubscriptionEntitlements {
   tierOrder?: number | null;
   /** feature code → tier metadata, keyed as returned by GET /features/catalog. */
   catalog?: Record<string, FeatureCatalogEntry>;
+  /** Whole-module service tags (pos/inventory/erp/...) the tenant's plan currently covers —
+   * the union of the plan's own service_tag and every entitled feature's service_tag, mirroring
+   * subscriptions-api's resolveActiveServiceTags. Backs ServiceLock/useServiceUpgrade. */
+  activeServiceTags?: string[];
+  /** service tag → cheapest plan that grants it, from GET /features/catalog's serviceUnlockPlans. */
+  serviceUnlockPlans?: Record<string, ServiceUnlockPlan>;
   /** Base URL of the pricing UI (e.g. NEXT_PUBLIC_SUBSCRIPTIONS_UI_URL). Upgrade links target it. */
   upgradeBaseUrl?: string;
 }
@@ -50,6 +70,8 @@ const EMPTY: SubscriptionEntitlements = {
   planCode: null,
   tierOrder: null,
   catalog: {},
+  activeServiceTags: [],
+  serviceUnlockPlans: {},
   upgradeBaseUrl: "",
 };
 
@@ -71,7 +93,7 @@ export function SubscriptionProvider({
   const v = useMemo(
     () => ({ ...EMPTY, ...value }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [value.features, value.limits, value.isExempt, value.status, value.isLoading, value.planCode, value.tierOrder, value.catalog, value.upgradeBaseUrl],
+    [value.features, value.limits, value.isExempt, value.status, value.isLoading, value.planCode, value.tierOrder, value.catalog, value.activeServiceTags, value.serviceUnlockPlans, value.upgradeBaseUrl],
   );
   return <SubscriptionContext.Provider value={v}>{children}</SubscriptionContext.Provider>;
 }
@@ -140,6 +162,20 @@ export function isFeatureUnlocked(e: SubscriptionEntitlements, code: string): bo
     return true;
   }
   return false;
+}
+
+/**
+ * isServiceUnlocked reports whether the tenant's plan covers a whole service/module — the
+ * frontend counterpart to the backend's RequireServiceAccess(serviceTag) gate. Unlike
+ * isFeatureUnlocked there's no tier-rank fallback: activeServiceTags is already the fully
+ * resolved server-side union (plan's own service_tag + every entitled feature's service_tag),
+ * so membership is the whole check. Absent activeServiceTags (an app that hasn't threaded it
+ * through yet) fails open — never block on data the entitlements payload doesn't carry.
+ */
+export function isServiceUnlocked(e: SubscriptionEntitlements, serviceTag: string): boolean {
+  if (e.isExempt) return true;
+  if (!e.activeServiceTags || e.activeServiceTags.length === 0) return true;
+  return e.activeServiceTags.includes(serviceTag);
 }
 
 /** useFeature reports whether a feature code is enabled (exempt + tier-aware, see isFeatureUnlocked). */
