@@ -57,6 +57,10 @@ var defaultTenantCacheAdapter = {
 };
 
 // src/components/tenant/tenant-api.ts
+function serviceBrandingFor(brand, service) {
+  const entry = brand?.serviceBranding?.[service];
+  return entry && typeof entry === "object" ? entry : null;
+}
 function parseBrandFromTenant(t) {
   const meta = t.metadata || {};
   const logoUrl = t.logo_url ?? meta.logo_url ?? meta.logoUrl ?? null;
@@ -74,7 +78,8 @@ function parseBrandFromTenant(t) {
     orgName: typeof orgName === "string" ? orgName : t.name ?? "",
     useCase: t.use_case ?? "other",
     posScreensaverUrl: typeof posScreensaverUrl === "string" ? posScreensaverUrl : null,
-    contactEmail: typeof t.contact_email === "string" && t.contact_email ? t.contact_email : null
+    contactEmail: typeof t.contact_email === "string" && t.contact_email ? t.contact_email : null,
+    serviceBranding: t.metadata?.service_branding && typeof t.metadata.service_branding === "object" ? t.metadata.service_branding : void 0
   };
 }
 async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAdapter, onFresh) {
@@ -230,7 +235,9 @@ function TenantBrandingProvider({
       root.style.setProperty("--primary-dark", `${hue} 68% 40%`);
     }
   }, [effectiveBrand, applyCssVariables, DEFAULT_BRAND]);
-  const getServiceTitle = (appName) => {
+  const getServiceTitle = (appName, serviceKey) => {
+    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey)?.name : void 0;
+    if (custom) return custom;
     const tenantName = effectiveBrand?.orgName || effectiveBrand?.name || "";
     const firstWord = tenantName.split(" ")[0] || slug || "";
     return firstWord ? `${firstWord} ${appName}` : appName;
@@ -261,6 +268,6 @@ function useTenantBranding() {
   return context;
 }
 
-export { TenantBrandingProvider, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, useTenantBranding };
+export { TenantBrandingProvider, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, serviceBrandingFor, useTenantBranding };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

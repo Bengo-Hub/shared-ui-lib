@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchTenantBySlug, type TenantBrand } from './tenant-api';
+import { fetchTenantBySlug, serviceBrandingFor, type TenantBrand } from './tenant-api';
 import { defaultTenantCacheAdapter, type TenantCacheAdapter } from './kv-cache';
 
 function hexToRgbTriplet(hex: string): string {
@@ -63,7 +63,12 @@ export interface TenantBrandingContextType {
   tenant: TenantBrand | null;
   isLoading: boolean;
   error: Error | null;
-  getServiceTitle: (appName: string) => string;
+  /**
+   * App title for headers: the tenant's own name for this app when `serviceKey` is given and the
+   * tenant set one (auth-api `service_branding`, e.g. "Loft Till" for pos), else
+   * "<First word of tenant> <appName>".
+   */
+  getServiceTitle: (appName: string, serviceKey?: string) => string;
 }
 
 const TenantBrandingContext = createContext<TenantBrandingContextType | undefined>(undefined);
@@ -182,7 +187,9 @@ export function TenantBrandingProvider({
     }
   }, [effectiveBrand, applyCssVariables, DEFAULT_BRAND]);
 
-  const getServiceTitle = (appName: string) => {
+  const getServiceTitle = (appName: string, serviceKey?: string) => {
+    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey)?.name : undefined;
+    if (custom) return custom;
     const tenantName = effectiveBrand?.orgName || effectiveBrand?.name || '';
     // Falls back to the slug (never a hardcoded platform name) while nothing has resolved yet.
     const firstWord = tenantName.split(' ')[0] || slug || '';

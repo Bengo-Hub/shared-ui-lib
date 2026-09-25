@@ -78,7 +78,22 @@ interface TenantBrand {
     posScreensaverUrl?: string | null;
     /** Tenant contact email — used as a default payer email so cashiers needn't type one. Optional — pos-ui only. */
     contactEmail?: string | null;
+    /**
+     * The tenant's own names and icons per app (auth-api metadata `service_branding`), keyed by
+     * service: ordering, pos, logistics, rider. See getServiceTitle(appName, serviceKey).
+     */
+    serviceBranding?: Record<string, ServiceBrandingEntry>;
 }
+/** One app's tenant branding (auth-api tenant metadata `service_branding.<service>`). */
+interface ServiceBrandingEntry {
+    name?: string;
+    short_name?: string;
+    tagline?: string;
+    theme_color?: string;
+    icon_url?: string;
+}
+/** The tenant's branding for one app, or null when it uses the default. */
+declare function serviceBrandingFor(brand: Pick<TenantBrand, 'serviceBranding'> | null | undefined, service: string): ServiceBrandingEntry | null;
 declare function parseBrandFromTenant(t: TenantResponse): TenantBrand;
 /**
  * Cache-first, background-refresh tenant lookup: a cached hit paints instantly (branding
@@ -106,7 +121,12 @@ interface TenantBrandingContextType {
     tenant: TenantBrand | null;
     isLoading: boolean;
     error: Error | null;
-    getServiceTitle: (appName: string) => string;
+    /**
+     * App title for headers: the tenant's own name for this app when `serviceKey` is given and the
+     * tenant set one (auth-api `service_branding`, e.g. "Loft Till" for pos), else
+     * "<First word of tenant> <appName>".
+     */
+    getServiceTitle: (appName: string, serviceKey?: string) => string;
 }
 interface TenantBrandingProviderProps {
     children: ReactNode;
@@ -133,4 +153,4 @@ interface TenantBrandingProviderProps {
 declare function TenantBrandingProvider({ children, slug, authApiBase, cache, defaultPrimaryColor, defaultSecondaryColor, applyCssVariables, }: TenantBrandingProviderProps): react_jsx_runtime.JSX.Element;
 declare function useTenantBranding(): TenantBrandingContextType;
 
-export { type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, useTenantBranding };
+export { type ServiceBrandingEntry, type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, serviceBrandingFor, useTenantBranding };

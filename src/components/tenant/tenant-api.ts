@@ -57,6 +57,26 @@ export interface TenantBrand {
   posScreensaverUrl?: string | null;
   /** Tenant contact email — used as a default payer email so cashiers needn't type one. Optional — pos-ui only. */
   contactEmail?: string | null;
+  /**
+   * The tenant's own names and icons per app (auth-api metadata `service_branding`), keyed by
+   * service: ordering, pos, logistics, rider. See getServiceTitle(appName, serviceKey).
+   */
+  serviceBranding?: Record<string, ServiceBrandingEntry>;
+}
+
+/** One app's tenant branding (auth-api tenant metadata `service_branding.<service>`). */
+export interface ServiceBrandingEntry {
+  name?: string;
+  short_name?: string;
+  tagline?: string;
+  theme_color?: string;
+  icon_url?: string;
+}
+
+/** The tenant's branding for one app, or null when it uses the default. */
+export function serviceBrandingFor(brand: Pick<TenantBrand, 'serviceBranding'> | null | undefined, service: string): ServiceBrandingEntry | null {
+  const entry = brand?.serviceBranding?.[service];
+  return entry && typeof entry === 'object' ? entry : null;
 }
 
 export function parseBrandFromTenant(t: TenantResponse): TenantBrand {
@@ -79,6 +99,10 @@ export function parseBrandFromTenant(t: TenantResponse): TenantBrand {
     useCase: t.use_case ?? 'other',
     posScreensaverUrl: typeof posScreensaverUrl === 'string' ? posScreensaverUrl : null,
     contactEmail: typeof t.contact_email === 'string' && t.contact_email ? t.contact_email : null,
+    serviceBranding:
+      t.metadata?.service_branding && typeof t.metadata.service_branding === 'object'
+        ? (t.metadata.service_branding as Record<string, ServiceBrandingEntry>)
+        : undefined,
   };
 }
 

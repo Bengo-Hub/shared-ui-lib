@@ -1,6 +1,8 @@
 export {
   fetchTenantBySlug,
   parseBrandFromTenant,
+  serviceBrandingFor,
+  type ServiceBrandingEntry,
   type TenantResponse,
   type TenantBrand,
   type TenantBrandMetadata,
