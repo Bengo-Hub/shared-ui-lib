@@ -119,6 +119,10 @@ interface SettlementModalProps {
     isPending?: boolean;
     /** Extra fields rendered between the amount and method (e.g. a payout recipient phone). */
     extraFields?: React.ReactNode;
+    /** Called with the selected method on open and whenever it changes, so a caller that renders a
+     *  method-dependent field in `extraFields` (e.g. a "paid into account" picker defaulting from the
+     *  tenant's per-method default account) can follow the selection. */
+    onMethodChange?: (method: string) => void;
 }
 /**
  * The ONE settlement modal for every "receive payment / pay out / apply credit / pay supplier /
@@ -129,7 +133,7 @@ interface SettlementModalProps {
  * whichever endpoint applies (treasury AR/AP, pos-api credit settlement) — this component only
  * owns the amount/method/reference form and its validation.
  */
-declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, }: SettlementModalProps): React$1.ReactPortal | null;
+declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, onMethodChange, }: SettlementModalProps): React$1.ReactPortal | null;
 
 /**
  * The ONE currency registry + money formatter shared by every frontend (pos-ui, treasury-ui,

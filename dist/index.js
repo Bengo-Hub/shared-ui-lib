@@ -410,10 +410,16 @@ function SettlementModal({
   onSubmit,
   onClose,
   isPending = false,
-  extraFields
+  extraFields,
+  onMethodChange
 }) {
   const [amount, setAmount] = useState(String(defaultAmount ?? amountValue));
   const [method, setMethod] = useState(methods[0]?.value ?? "");
+  const onMethodChangeRef = useRef(onMethodChange);
+  onMethodChangeRef.current = onMethodChange;
+  useEffect(() => {
+    if (method) onMethodChangeRef.current?.(method);
+  }, [method]);
   const [reference, setReference] = useState("");
   const [effectiveAt, setEffectiveAt] = useState(nowDatetimeLocal());
   const [overpaymentAction, setOverpaymentAction] = useState("change");

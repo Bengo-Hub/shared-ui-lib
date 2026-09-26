@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
@@ -100,6 +100,10 @@ export interface SettlementModalProps {
   isPending?: boolean;
   /** Extra fields rendered between the amount and method (e.g. a payout recipient phone). */
   extraFields?: React.ReactNode;
+  /** Called with the selected method on open and whenever it changes, so a caller that renders a
+   *  method-dependent field in `extraFields` (e.g. a "paid into account" picker defaulting from the
+   *  tenant's per-method default account) can follow the selection. */
+  onMethodChange?: (method: string) => void;
 }
 
 /**
@@ -114,9 +118,17 @@ export interface SettlementModalProps {
 export function SettlementModal({
   open, mode, title, subjectName, amountLabel, amountValue, currency = 'KES',
   defaultAmount, maxAmount, allowOverpayment = false, methods, onSubmit, onClose, isPending = false, extraFields,
+  onMethodChange,
 }: SettlementModalProps) {
   const [amount, setAmount] = useState(String(defaultAmount ?? amountValue));
   const [method, setMethod] = useState(methods[0]?.value ?? '');
+  // Report the selection to the caller (initial value included). Kept in a ref so an inline
+  // callback passed on every render doesn't re-fire the effect.
+  const onMethodChangeRef = useRef(onMethodChange);
+  onMethodChangeRef.current = onMethodChange;
+  useEffect(() => {
+    if (method) onMethodChangeRef.current?.(method);
+  }, [method]);
   const [reference, setReference] = useState('');
   const [effectiveAt, setEffectiveAt] = useState(nowDatetimeLocal());
   const [overpaymentAction, setOverpaymentAction] = useState<'change' | 'store_credit'>('change');
