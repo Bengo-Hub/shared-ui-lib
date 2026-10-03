@@ -100,6 +100,17 @@ export function TreasuryPaymentModal({
 
   // Prevent duplicate processing of payment events
   const processedRef = useRef(false);
+  // Bumped by "Try Again" so the iframe remounts and loads the pay page afresh (its onLoad then
+  // clears the spinner). Without it the retry showed "Loading payment options..." forever.
+  const [attempt, setAttempt] = useState(0);
+
+  // Callbacks live in refs: a host that passes inline handlers re-renders with new identities,
+  // and when they were effect dependencies every host re-render reset the modal to 'loading'
+  // after the iframe had already loaded, leaving the spinner up for good.
+  const onConfirmedRef = useRef(onPaymentConfirmed);
+  const onFailedRef = useRef(onPaymentFailed);
+  onConfirmedRef.current = onPaymentConfirmed;
+  onFailedRef.current = onPaymentFailed;
 
   // Listen for postMessage from treasury-ui iframe
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -131,13 +142,13 @@ export function TreasuryPaymentModal({
         };
         setPaymentResult(result);
         setPaymentState('confirmed');
-        onPaymentConfirmed?.(result);
+        onConfirmedRef.current?.(result);
         break;
       }
       case 'treasury:payment_failed':
         setErrorMessage(data.error || 'Payment failed');
         setPaymentState('failed');
-        onPaymentFailed?.(data.error || 'Payment failed');
+        onFailedRef.current?.(data.error || 'Payment failed');
         break;
       case 'treasury:resize':
         if (iframeRef.current && data.height) {
@@ -145,7 +156,7 @@ export function TreasuryPaymentModal({
         }
         break;
     }
-  }, [treasuryUiUrl, onPaymentConfirmed, onPaymentFailed]);
+  }, [treasuryUiUrl]);
 
   useEffect(() => {
     if (open) {
@@ -160,7 +171,7 @@ export function TreasuryPaymentModal({
         timeoutRef.current = setTimeout(() => {
           if (processedRef.current) return; // Already confirmed
           setPaymentState('expired');
-          onPaymentFailed?.('Payment session expired. Please try again.');
+          onFailedRef.current?.('Payment session expired. Please try again.');
         }, timeoutMs);
       }
     }
@@ -168,7 +179,7 @@ export function TreasuryPaymentModal({
       window.removeEventListener('message', handleMessage);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [open, handleMessage, timeoutMs, onPaymentFailed]);
+  }, [open, handleMessage, timeoutMs]);
 
   const handleIframeLoad = useCallback(() => {
     if (paymentState === 'loading') {
@@ -253,7 +264,7 @@ export function TreasuryPaymentModal({
               <h3 className="text-lg font-semibold mb-2">Payment Failed</h3>
               <p className="text-sm text-gray-600">{errorMessage}</p>
               <button
-                onClick={() => { setPaymentState('loading'); setErrorMessage(''); }}
+                onClick={() => { setPaymentState('loading'); setErrorMessage(''); setAttempt((n) => n + 1); }}
                 className="mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
                 Try Again
@@ -270,6 +281,7 @@ export function TreasuryPaymentModal({
                 </div>
               )}
               <iframe
+                key={attempt}
                 ref={iframeRef}
                 src={iframeSrc}
                 className="w-full border-0 block"

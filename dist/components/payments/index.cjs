@@ -48,6 +48,11 @@ function TreasuryPaymentModal({
     return `${treasuryUiUrl}/pay?${params.toString()}`;
   }, [paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType]);
   const processedRef = react.useRef(false);
+  const [attempt, setAttempt] = react.useState(0);
+  const onConfirmedRef = react.useRef(onPaymentConfirmed);
+  const onFailedRef = react.useRef(onPaymentFailed);
+  onConfirmedRef.current = onPaymentConfirmed;
+  onFailedRef.current = onPaymentFailed;
   const handleMessage = react.useCallback((event) => {
     try {
       const expectedOrigin = new URL(treasuryUiUrl).origin;
@@ -72,13 +77,13 @@ function TreasuryPaymentModal({
         };
         setPaymentResult(result);
         setPaymentState("confirmed");
-        onPaymentConfirmed?.(result);
+        onConfirmedRef.current?.(result);
         break;
       }
       case "treasury:payment_failed":
         setErrorMessage(data.error || "Payment failed");
         setPaymentState("failed");
-        onPaymentFailed?.(data.error || "Payment failed");
+        onFailedRef.current?.(data.error || "Payment failed");
         break;
       case "treasury:resize":
         if (iframeRef.current && data.height) {
@@ -86,7 +91,7 @@ function TreasuryPaymentModal({
         }
         break;
     }
-  }, [treasuryUiUrl, onPaymentConfirmed, onPaymentFailed]);
+  }, [treasuryUiUrl]);
   react.useEffect(() => {
     if (open) {
       window.addEventListener("message", handleMessage);
@@ -98,7 +103,7 @@ function TreasuryPaymentModal({
         timeoutRef.current = setTimeout(() => {
           if (processedRef.current) return;
           setPaymentState("expired");
-          onPaymentFailed?.("Payment session expired. Please try again.");
+          onFailedRef.current?.("Payment session expired. Please try again.");
         }, timeoutMs);
       }
     }
@@ -106,7 +111,7 @@ function TreasuryPaymentModal({
       window.removeEventListener("message", handleMessage);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [open, handleMessage, timeoutMs, onPaymentFailed]);
+  }, [open, handleMessage, timeoutMs]);
   const handleIframeLoad = react.useCallback(() => {
     if (paymentState === "loading") {
       setPaymentState("checkout");
@@ -208,6 +213,7 @@ function TreasuryPaymentModal({
               onClick: () => {
                 setPaymentState("loading");
                 setErrorMessage("");
+                setAttempt((n) => n + 1);
               },
               className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
               children: "Try Again"
@@ -228,7 +234,8 @@ function TreasuryPaymentModal({
               title: `Complete payment of ${currency} ${amount.toLocaleString()}`,
               onLoad: handleIframeLoad,
               allow: "payment"
-            }
+            },
+            attempt
           )
         ] }) })
       ] })
