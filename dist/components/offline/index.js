@@ -395,7 +395,63 @@ function PwaInstallPrompt({
     }
   );
 }
+var RELOAD_FLAG_KEY = "cv-stale-chunk-reload-at";
+var RELOAD_COOLDOWN_MS = 3e4;
+var REACT_185 = /Minified React error #185/;
+function messageOf(reason) {
+  return String(reason?.message ?? reason);
+}
+function isStaleChunkError(reason) {
+  if (!reason) return false;
+  const name = reason?.name ?? "";
+  const message = messageOf(reason);
+  return name === "ChunkLoadError" || /Loading chunk [\w.-]+ failed/i.test(message) || /Failed to fetch dynamically imported module/i.test(message) || /Importing a module script failed/i.test(message) || REACT_185.test(message);
+}
+async function bundleIsStale() {
+  if (typeof document === "undefined") return false;
+  const src = Array.from(document.querySelectorAll('script[src*="/_next/static/chunks/"]')).map((s) => s.src).find(Boolean);
+  if (!src) return false;
+  try {
+    const res = await fetch(src, { method: "HEAD", cache: "no-store" });
+    return res.status === 404;
+  } catch {
+    return false;
+  }
+}
+function reloadOnce() {
+  try {
+    const last = Number(sessionStorage.getItem(RELOAD_FLAG_KEY) || 0);
+    if (Date.now() - last < RELOAD_COOLDOWN_MS) return;
+    sessionStorage.setItem(RELOAD_FLAG_KEY, String(Date.now()));
+  } catch {
+  }
+  window.location.reload();
+}
+function recoverFromError(reason) {
+  if (!isStaleChunkError(reason)) return;
+  if (!REACT_185.test(messageOf(reason))) {
+    reloadOnce();
+    return;
+  }
+  void bundleIsStale().then((stale) => {
+    if (stale) reloadOnce();
+    else console.error("Render loop (React #185) on a current bundle; not reloading", reason);
+  });
+}
+function StaleChunkRecovery() {
+  useEffect(() => {
+    const onRejection = (event) => recoverFromError(event.reason);
+    const onError = (event) => recoverFromError(event.error);
+    window.addEventListener("unhandledrejection", onRejection);
+    window.addEventListener("error", onError, true);
+    return () => {
+      window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("error", onError, true);
+    };
+  }, []);
+  return null;
+}
 
-export { OfflineBar, OfflineSyncBanner, PwaInstallPrompt, PwaUpdater, SyncedConfirmation, registerServiceWorker, useOfflineSync, useOnlineStatus };
+export { OfflineBar, OfflineSyncBanner, PwaInstallPrompt, PwaUpdater, RELOAD_FLAG_KEY, StaleChunkRecovery, SyncedConfirmation, isStaleChunkError, recoverFromError, registerServiceWorker, reloadOnce, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

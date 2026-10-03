@@ -13,3 +13,10 @@ export {
   type UseOfflineSyncOptions,
   type OfflineSyncState,
 } from './use-offline-sync';
+export {
+  StaleChunkRecovery,
+  recoverFromError,
+  reloadOnce,
+  isStaleChunkError,
+  RELOAD_FLAG_KEY,
+} from './stale-chunk-recovery';
