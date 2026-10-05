@@ -10,6 +10,11 @@
  * - MTN MoMo: MTN's yellow square and blue oval (Wikimedia Commons, File:MTN_Logo.svg).
  * - PayHero: PayHero publishes its logo only as PNG (payherokenya.com, docs.payhero.co.ke), so the
  *   "PH" circles are its official artwork embedded as a 160x90 PNG data URI (also ~1.8:1 wide).
+ * - Cash, card and Multiple Pay: our own marks (CashMark, CardMark, SplitPayMark) in PayHero's
+ *   disc style, for tender buttons.
+ *
+ * Marks that carry the name (M-Pesa, Airtel, MTN, PayHero, the Paystack wordmark) need no text
+ * label beside them; give the button an aria-label instead.
  */
 import type { CSSProperties } from 'react';
 
@@ -78,6 +83,51 @@ export function PaystackLogo({ className, style, title = 'Paystack', wordmark = 
       <title>{title}</title>
       <path d={PAYSTACK_MARK} fill="#00C3F7" />
       {wordmark && <path d={PAYSTACK_WORDMARK} fill="#011B33" />}
+    </svg>
+  );
+}
+
+// ─── Tender marks ───────────────────────────────────────────────────────────────────────────────
+// Cash, card and split payment have no brand, so they get marks in the same style as PayHero's
+// circles: a solid disc with a white glyph, so a row of tenders reads as one set.
+
+export function CashMark({ className, style, title = 'Cash' }: LogoProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} style={style} role="img" aria-label={title}>
+      <title>{title}</title>
+      <circle cx="16" cy="16" r="16" fill="#059669" />
+      <rect x="6.5" y="10.5" width="19" height="11" rx="2" fill="#fff" />
+      <circle cx="16" cy="16" r="2.9" fill="#059669" />
+      <circle cx="9.6" cy="16" r="1" fill="#059669" />
+      <circle cx="22.4" cy="16" r="1" fill="#059669" />
+    </svg>
+  );
+}
+
+export function CardMark({ className, style, title = 'Card' }: LogoProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} style={style} role="img" aria-label={title}>
+      <title>{title}</title>
+      <circle cx="16" cy="16" r="16" fill="#2563EB" />
+      <rect x="6.5" y="9.5" width="19" height="13" rx="2" fill="#fff" />
+      <rect x="6.5" y="12.2" width="19" height="2.6" fill="#1E3A8A" />
+      <rect x="9" y="17.6" width="6" height="2" rx="1" fill="#93C5FD" />
+    </svg>
+  );
+}
+
+/** Multiple Pay: one bill split into parts, each paid with its own tender. */
+export function SplitPayMark({ className, style, title = 'Multiple Pay' }: LogoProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} style={style} role="img" aria-label={title}>
+      <title>{title}</title>
+      <circle cx="16" cy="16" r="16" fill="#7C3AED" />
+      <rect x="7" y="9" width="8" height="14" rx="1.6" fill="#fff" />
+      <rect x="17" y="9" width="8" height="14" rx="1.6" fill="#fff" />
+      <rect x="9" y="12" width="4" height="1.6" rx=".8" fill="#C4B5FD" />
+      <rect x="9" y="15.2" width="4" height="1.6" rx=".8" fill="#C4B5FD" />
+      <rect x="19" y="12" width="4" height="1.6" rx=".8" fill="#C4B5FD" />
+      <rect x="19" y="15.2" width="4" height="1.6" rx=".8" fill="#C4B5FD" />
     </svg>
   );
 }

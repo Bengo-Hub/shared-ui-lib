@@ -763,6 +763,37 @@ function PaystackLogo({ className, style, title = "Paystack", wordmark = false }
     wordmark && /* @__PURE__ */ jsx("path", { d: PAYSTACK_WORDMARK, fill: "#011B33" })
   ] });
 }
+function CashMark({ className, style, title = "Cash" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 32 32", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "16", fill: "#059669" }),
+    /* @__PURE__ */ jsx("rect", { x: "6.5", y: "10.5", width: "19", height: "11", rx: "2", fill: "#fff" }),
+    /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "2.9", fill: "#059669" }),
+    /* @__PURE__ */ jsx("circle", { cx: "9.6", cy: "16", r: "1", fill: "#059669" }),
+    /* @__PURE__ */ jsx("circle", { cx: "22.4", cy: "16", r: "1", fill: "#059669" })
+  ] });
+}
+function CardMark({ className, style, title = "Card" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 32 32", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "16", fill: "#2563EB" }),
+    /* @__PURE__ */ jsx("rect", { x: "6.5", y: "9.5", width: "19", height: "13", rx: "2", fill: "#fff" }),
+    /* @__PURE__ */ jsx("rect", { x: "6.5", y: "12.2", width: "19", height: "2.6", fill: "#1E3A8A" }),
+    /* @__PURE__ */ jsx("rect", { x: "9", y: "17.6", width: "6", height: "2", rx: "1", fill: "#93C5FD" })
+  ] });
+}
+function SplitPayMark({ className, style, title = "Multiple Pay" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 32 32", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "16", fill: "#7C3AED" }),
+    /* @__PURE__ */ jsx("rect", { x: "7", y: "9", width: "8", height: "14", rx: "1.6", fill: "#fff" }),
+    /* @__PURE__ */ jsx("rect", { x: "17", y: "9", width: "8", height: "14", rx: "1.6", fill: "#fff" }),
+    /* @__PURE__ */ jsx("rect", { x: "9", y: "12", width: "4", height: "1.6", rx: ".8", fill: "#C4B5FD" }),
+    /* @__PURE__ */ jsx("rect", { x: "9", y: "15.2", width: "4", height: "1.6", rx: ".8", fill: "#C4B5FD" }),
+    /* @__PURE__ */ jsx("rect", { x: "19", y: "12", width: "4", height: "1.6", rx: ".8", fill: "#C4B5FD" }),
+    /* @__PURE__ */ jsx("rect", { x: "19", y: "15.2", width: "4", height: "1.6", rx: ".8", fill: "#C4B5FD" })
+  ] });
+}
 var PAYHERO_MARK_PNG = "data:image/png;base64,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";
 function PayHeroLogo({ className, style, title = "PayHero" }) {
   return (
@@ -3642,6 +3673,6 @@ function DataTable(props) {
   ] });
 }
 
-export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, registerServiceWorker, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

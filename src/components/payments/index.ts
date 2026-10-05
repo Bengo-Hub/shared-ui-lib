@@ -40,6 +40,9 @@ export {
 } from './payment-method-labels';
 export {
   AirtelMoneyLogo,
+  CardMark,
+  CashMark,
+  SplitPayMark,
   MpesaLogo,
   MtnMomoLogo,
   PayHeroLogo,

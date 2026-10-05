@@ -39,6 +39,9 @@ export {
 } from './components/payments/payment-method-labels';
 export {
   AirtelMoneyLogo,
+  CardMark,
+  CashMark,
+  SplitPayMark,
   MpesaLogo,
   MtnMomoLogo,
   PayHeroLogo,
