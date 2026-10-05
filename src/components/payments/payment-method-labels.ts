@@ -34,7 +34,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   payhero_momo: 'Mobile Money (PayHero)',
   payhero_card: 'Card (PayHero)',
   payhero_bank: 'Bank Deposit (PayHero)',
-  payhero_offline: 'M-Pesa Paybill (offline)',
+  payhero_offline: 'M-Pesa Paybill (PayHero)',
   store_credit: 'Store Credit',
   customer_advance: 'Customer Advance',
   on_account: 'On Account',

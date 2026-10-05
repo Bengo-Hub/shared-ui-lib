@@ -39,6 +39,13 @@ export {
   getPaymentMethodLabel,
 } from './payment-method-labels';
 export {
+  AirtelMoneyLogo,
+  MtnMomoLogo,
+  PayHeroLogo,
+  type PayHeroLogoProps,
+  type PayHeroLogoVariant,
+} from './brand-logos';
+export {
   CurrencyChangeConfirmModal,
   type CurrencyChangeConfirmModalProps,
   type CurrencyChangeExampleRow,
