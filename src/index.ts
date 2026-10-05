@@ -134,3 +134,16 @@ export {
   type SortDir,
   type SortState,
 } from './components/data-table';
+export {
+  CookieNotice,
+  LegalLinks,
+  useCookieConsent,
+  useCookieConsentState,
+  openCookieSettings,
+  legalUrls,
+  PLATFORM_LEGAL_ENTITY,
+  type CookieNoticeProps,
+  type LegalLinksProps,
+  type ConsentCategory,
+  type CookieConsentState,
+} from './components/legal';

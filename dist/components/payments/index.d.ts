@@ -19,8 +19,17 @@ interface DefaultAccountCandidate {
     is_active?: boolean;
     account_type?: string;
     default_payment_methods?: string[] | null;
+    default_invoice_types?: string[] | null;
     outlet_id?: string | null;
+    created_at?: string | null;
 }
-declare function resolveDefaultAccount<T extends DefaultAccountCandidate>(accounts: T[] | undefined | null, method?: string | null, outletId?: string | null): T | undefined;
+/**
+ * The same rule as treasury-api's ledger.pickDefaultAccount, so the account a payment dialog
+ * pre-selects is the account the books would use: among accounts defaulting to the method, one
+ * scoped to the outlet beats a tenant-wide one (another outlet's never counts), then one that
+ * also defaults to the invoice type wins, then the oldest. Two accounts defaulting to the same
+ * method used to resolve differently here and in the books (INV-260928-000030, 2026-10-05).
+ */
+declare function resolveDefaultAccount<T extends DefaultAccountCandidate>(accounts: T[] | undefined | null, method?: string | null, outletId?: string | null, invoiceType?: string | null): T | undefined;
 
 export { type DefaultAccountCandidate, resolveDefaultAccount };

@@ -8,6 +8,7 @@ export { C as ComboboxOption, S as SearchableCombobox, a as SearchableComboboxPr
 import * as react_jsx_runtime from 'react/jsx-runtime';
 export { RichText, RichTextEditor, RichTextEditorProps } from './components/rich-text-editor/index.cjs';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.cjs';
+export { ConsentCategory, CookieConsentState, CookieNotice, CookieNoticeProps, LegalLinks, LegalLinksProps, PLATFORM_LEGAL_ENTITY, legalUrls, openCookieSettings, useCookieConsent, useCookieConsentState } from './components/legal/index.cjs';
 import 'react';
 
 /** Certified-reseller co-branding attribution — see the reseller-partner-program plan §6A/§9.

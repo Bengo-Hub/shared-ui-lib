@@ -22,6 +22,7 @@ export default defineConfig({
     "src/components/careers/index.ts",
     "src/components/rich-text-editor/index.ts",
     "src/components/announcements/index.ts",
+    "src/components/legal/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

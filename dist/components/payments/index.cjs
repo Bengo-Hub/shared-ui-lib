@@ -977,15 +977,26 @@ function isAccountFormValid(value) {
 }
 
 // src/components/payments/default-account.ts
-function resolveDefaultAccount(accounts, method, outletId) {
+function resolveDefaultAccount(accounts, method, outletId, invoiceType) {
   const active = (accounts ?? []).filter((a) => a.is_active !== false);
   if (method) {
-    const matches = active.filter((a) => (a.default_payment_methods ?? []).includes(method));
-    const outletMatch = outletId ? matches.find((a) => a.outlet_id === outletId) : void 0;
-    if (outletMatch) return outletMatch;
-    const tenantWideMatch = matches.find((a) => !a.outlet_id);
-    if (tenantWideMatch) return tenantWideMatch;
-    if (matches.length) return matches[0];
+    const oldestFirst = [...active].sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "") || a.id.localeCompare(b.id));
+    let best;
+    let bestScore = -1;
+    for (const a of oldestFirst) {
+      if (!(a.default_payment_methods ?? []).includes(method)) continue;
+      let score = 0;
+      if (a.outlet_id) {
+        if (!outletId || a.outlet_id !== outletId) continue;
+        score += 2;
+      }
+      if (invoiceType && (a.default_invoice_types ?? []).includes(invoiceType)) score += 1;
+      if (score > bestScore) {
+        best = a;
+        bestScore = score;
+      }
+    }
+    if (best) return best;
   }
   return active.find((a) => a.account_type === "cash");
 }
