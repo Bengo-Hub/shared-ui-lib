@@ -192,14 +192,13 @@ interface LogoProps {
 }
 declare function AirtelMoneyLogo({ className, style, title }: LogoProps): react_jsx_runtime.JSX.Element;
 declare function MtnMomoLogo({ className, style, title }: LogoProps): react_jsx_runtime.JSX.Element;
-type PayHeroLogoVariant = 'mark' | 'color' | 'white';
-interface PayHeroLogoProps extends LogoProps {
-    /** mark: the PH circles (icons, buttons); color / white: with the wordmark for light / dark. */
-    variant?: PayHeroLogoVariant;
-    /** Where the app serves the PNGs (default /brand). */
-    basePath?: string;
+declare function MpesaLogo({ className, style, title }: LogoProps): react_jsx_runtime.JSX.Element;
+interface PaystackLogoProps extends LogoProps {
+    /** Include the "paystack" wordmark beside the mark (default: the mark alone). */
+    wordmark?: boolean;
 }
-declare function PayHeroLogo({ className, style, title, variant, basePath }: PayHeroLogoProps): react_jsx_runtime.JSX.Element;
+declare function PaystackLogo({ className, style, title, wordmark }: PaystackLogoProps): react_jsx_runtime.JSX.Element;
+declare function PayHeroLogo({ className, style, title }: LogoProps): react_jsx_runtime.JSX.Element;
 
 interface CurrencyChangeExampleRow {
     label: string;
@@ -271,4 +270,4 @@ declare function AccountForm({ value, onChange, currencies, currencyLabel, banks
  *  button on this rather than each consumer re-deriving the same per-type rule. */
 declare function isAccountFormValid(value: AccountFormValue): boolean;
 
-export { AIRTEL_MONEY as A, BANK as B, CARD as C, type PayHeroLogoVariant as D, EMPTY_ACCOUNT_FORM as E, type PaymentResult as F, STORE_CREDIT as G, SUPPORTED_CURRENCIES as H, type SettlementMethod as I, SettlementModal as J, type SettlementModalProps as K, type SettlementMode as L, MPESA_B2B as M, type SettlementSubmitInput as N, type TreasuryPaymentModalProps as O, PAYMENT_METHOD_LABELS as P, formatCompactCurrency as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, TreasuryPaymentModal as T, formatCurrency as U, getPaymentMethodLabel as V, isAccountFormValid as W, datetimeLocalToISO as X, nowDatetimeLocal as Y, AccountForm as a, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CURRENCY_META as k, CUSTOMER_ADVANCE as l, CurrencyChangeConfirmModal as m, type CurrencyChangeConfirmModalProps as n, type CurrencyChangeExampleRow as o, type CurrencyMeta as p, MPESA_B2C as q, MPESA_MANUAL as r, MPESA_STK as s, MTN_MOMO as t, MtnMomoLogo as u, PAYOUT_METHODS as v, PAYSTACK as w, PAY_SUPPLIER_METHODS as x, PayHeroLogo as y, type PayHeroLogoProps as z };
+export { AIRTEL_MONEY as A, BANK as B, CARD as C, type PaymentResult as D, EMPTY_ACCOUNT_FORM as E, PaystackLogo as F, type PaystackLogoProps as G, STORE_CREDIT as H, SUPPORTED_CURRENCIES as I, type SettlementMethod as J, SettlementModal as K, type SettlementModalProps as L, MPESA_B2B as M, type SettlementMode as N, type SettlementSubmitInput as O, PAYMENT_METHOD_LABELS as P, type TreasuryPaymentModalProps as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, TreasuryPaymentModal as T, formatCompactCurrency as U, formatCurrency as V, getPaymentMethodLabel as W, isAccountFormValid as X, datetimeLocalToISO as Y, nowDatetimeLocal as Z, AccountForm as a, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CURRENCY_META as k, CUSTOMER_ADVANCE as l, CurrencyChangeConfirmModal as m, type CurrencyChangeConfirmModalProps as n, type CurrencyChangeExampleRow as o, type CurrencyMeta as p, MPESA_B2C as q, MPESA_MANUAL as r, MPESA_STK as s, MTN_MOMO as t, MpesaLogo as u, MtnMomoLogo as v, PAYOUT_METHODS as w, PAYSTACK as x, PAY_SUPPLIER_METHODS as y, PayHeroLogo as z };

@@ -39,10 +39,11 @@ export {
 } from './components/payments/payment-method-labels';
 export {
   AirtelMoneyLogo,
+  MpesaLogo,
   MtnMomoLogo,
   PayHeroLogo,
-  type PayHeroLogoProps,
-  type PayHeroLogoVariant,
+  PaystackLogo,
+  type PaystackLogoProps,
 } from './components/payments/brand-logos';
 export {
   CurrencyChangeConfirmModal,
