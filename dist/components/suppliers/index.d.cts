@@ -16,8 +16,13 @@ interface SupplierFormValues {
     email?: string;
     phone?: string;
     address?: string;
-    tax_number?: string;
+    /** The supplier's KRA PIN (inventory-api `tax_pin`, the only tax-id column the master has). */
     tax_pin?: string;
+    /**
+     * @deprecated Same value as `tax_pin`; the form never emits it. Accepted in `initialValues` only
+     * so older callers that seeded it still prefill the PIN.
+     */
+    tax_number?: string;
     notes?: string;
     payment_method_type?: SupplierPaymentMethod;
     mpesa_phone?: string;

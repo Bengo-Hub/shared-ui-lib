@@ -135,7 +135,25 @@ interface FeatureCatalogEntry {
     minTierOrder?: number;
     serviceTag?: string;
     label?: string;
+    /** Plan family (planFamily) -> that family's cheapest unlocking plan (GET /features/catalog
+     *  byFamily). The global minimum above is often another family's plan; gates resolve the
+     *  tenant's own family first (resolveCatalogEntry). */
+    byFamily?: Record<string, {
+        planCode: string;
+        tierLabel: string;
+        tierOrder: number;
+    }>;
 }
+/**
+ * resolveCatalogEntry narrows a catalog entry to the tenant's own plan family: the cheapest plan
+ * of that family unlocking the feature, with its short tier label ("Pro"). A retail (Duka) tenant
+ * used to be told to upgrade to a pharmacy (Dawa) plan because the entry named the global
+ * cheapest plan. When the catalog lists families and the tenant's is not among them, the feature
+ * is not offered on the tenant's suite: offeredInFamily is false and no plan is named.
+ */
+declare function resolveCatalogEntry(planCode: string | null | undefined, entry: FeatureCatalogEntry | undefined): (FeatureCatalogEntry & {
+    offeredInFamily: boolean;
+}) | undefined;
 /**
  * ServiceUnlockPlan is the cheapest active plan that grants WHOLE-MODULE access to a service
  * tag (from subscriptions-api GET /features/catalog: serviceUnlockPlans[tag]). Distinct from
@@ -343,4 +361,4 @@ declare function ServiceUpgradeDialog({ serviceTag, open, onClose, title, descri
 }): react_jsx_runtime.JSX.Element | null;
 declare function ServiceLock({ serviceTag, mode, children, className, title, description }: ServiceLockProps): react_jsx_runtime.JSX.Element;
 
-export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, type ServiceLockMode, type ServiceLockProps, type ServiceTag, type ServiceUnlockPlan, ServiceUpgradeDialog, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, isServiceUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, type ServiceLockMode, type ServiceLockProps, type ServiceTag, type ServiceUnlockPlan, ServiceUpgradeDialog, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, isServiceUnlocked, resolveCatalogEntry, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };

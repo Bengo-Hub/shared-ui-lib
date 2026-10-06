@@ -13,6 +13,7 @@ export {
   useLimit,
   isFeatureUnlocked,
   isServiceUnlocked,
+  resolveCatalogEntry,
   type SubscriptionEntitlements,
   type FeatureCatalogEntry,
   type ServiceUnlockPlan,

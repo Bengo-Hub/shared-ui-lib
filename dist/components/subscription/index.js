@@ -626,6 +626,19 @@ var SERVICE_TAG_LABELS = {
   projects: "Projects & Invoicing",
   afya: "Afya (Hospital)"
 };
+function resolveCatalogEntry(planCode, entry) {
+  if (!entry) return void 0;
+  const families = entry.byFamily;
+  const family = planFamily(planCode);
+  if (!families || Object.keys(families).length === 0 || !family) {
+    return { ...entry, offeredInFamily: true };
+  }
+  const own = families[family];
+  if (!own) {
+    return { ...entry, minPlanCode: void 0, minTierLabel: void 0, minTierOrder: void 0, offeredInFamily: false };
+  }
+  return { ...entry, minPlanCode: own.planCode, minTierLabel: own.tierLabel, minTierOrder: own.tierOrder, offeredInFamily: true };
+}
 var EMPTY = {
   features: [],
   limits: {},
@@ -669,8 +682,9 @@ function isFeatureUnlocked(e, code) {
   const catalog = e.catalog;
   const hasCatalog = !!catalog && Object.keys(catalog).length > 0;
   if (!hasCatalog) return false;
-  const entry = catalog[code];
-  if (!entry) return true;
+  const raw = catalog[code];
+  if (!raw) return true;
+  const entry = resolveCatalogEntry(e.planCode, raw);
   if (e.planCode != null && entry.minPlanCode != null && typeof e.tierOrder === "number" && typeof entry.minTierOrder === "number" && entry.minTierOrder > 0 && planFamily(e.planCode) === planFamily(entry.minPlanCode) && e.tierOrder >= entry.minTierOrder) {
     return true;
   }
@@ -753,9 +767,9 @@ function FeatureLockBanner({
 }
 function useFeatureUpgrade(feature) {
   const e = useContext(SubscriptionContext);
-  const entry = e.catalog?.[feature];
+  const entry = resolveCatalogEntry(e.planCode, e.catalog?.[feature]);
   const locked = !isFeatureUnlocked(e, feature);
-  const tierLabel = entry?.minTierLabel || "a higher plan";
+  const tierLabel = entry?.minTierLabel || (entry && !entry.offeredInFamily ? "Not in your plan" : "a higher plan");
   const upgradeHref = useMemo(() => {
     const base = (e.upgradeBaseUrl || "https://pricing.codevertexafrica.com").replace(/\/$/, "");
     const params = new URLSearchParams();
@@ -1086,6 +1100,6 @@ function ServiceLock({ serviceTag, mode = "block", children, className, title, d
   ] });
 }
 
-export { FeatureGate, FeatureLock, FeatureLockBanner, LimitReachedModal, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, ServiceUpgradeDialog, SubscriptionBanner, SubscriptionContext, SubscriptionProvider, UpgradeBadge, UpgradeDialog, isFeatureUnlocked, isServiceUnlocked, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };
+export { FeatureGate, FeatureLock, FeatureLockBanner, LimitReachedModal, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, ServiceUpgradeDialog, SubscriptionBanner, SubscriptionContext, SubscriptionProvider, UpgradeBadge, UpgradeDialog, isFeatureUnlocked, isServiceUnlocked, resolveCatalogEntry, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

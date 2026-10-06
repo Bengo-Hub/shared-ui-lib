@@ -34,8 +34,7 @@ function SupplierForm({
   const [phone, setPhone] = react.useState(iv.phone ?? "");
   const [address, setAddress] = react.useState(iv.address ?? "");
   const [notes, setNotes] = react.useState(iv.notes ?? "");
-  const [taxNumber, setTaxNumber] = react.useState(iv.tax_number ?? "");
-  const [taxPin, setTaxPin] = react.useState(iv.tax_pin ?? "");
+  const [taxPin, setTaxPin] = react.useState(iv.tax_pin || iv.tax_number || "");
   const [paymentMethod, setPaymentMethod] = react.useState(
     iv.payment_method_type ?? ""
   );
@@ -74,8 +73,8 @@ function SupplierForm({
       phone: phone.trim() || void 0,
       address: address.trim() || void 0,
       notes: notes.trim() || void 0,
-      tax_number: taxNumber.trim() || void 0,
-      tax_pin: taxPin.trim() || void 0,
+      // KRA PINs are upper-case (e.g. A005049885J); normalise so lookups and eTIMS match.
+      tax_pin: taxPin.trim().toUpperCase() || void 0,
       payment_method_type: hidePaymentConfig ? void 0 : paymentMethod || void 0,
       mpesa_phone: !hidePaymentConfig && isMpesa ? mpesaPhone.trim() || void 0 : void 0,
       mpesa_business_name: !hidePaymentConfig && isMpesa ? mpesaBusinessName.trim() || void 0 : void 0,
@@ -154,31 +153,19 @@ function SupplierForm({
             )
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: labelCls, children: "Tax Number (KRA PIN)" }),
-            /* @__PURE__ */ jsxRuntime.jsx(
-              "input",
-              {
-                className: inputCls,
-                placeholder: "e.g. A000000000B",
-                value: taxNumber,
-                onChange: (e) => setTaxNumber(e.target.value)
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: labelCls, children: "Tax PIN" }),
-            /* @__PURE__ */ jsxRuntime.jsx(
-              "input",
-              {
-                className: inputCls,
-                placeholder: "Tax PIN",
-                value: taxPin,
-                onChange: (e) => setTaxPin(e.target.value)
-              }
-            )
-          ] })
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("label", { className: labelCls, children: "KRA PIN" }),
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "input",
+            {
+              className: `${inputCls} uppercase`,
+              placeholder: "e.g. A000000000B",
+              value: taxPin,
+              onChange: (e) => setTaxPin(e.target.value),
+              autoComplete: "off"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-xs text-muted-foreground", children: "Prefills on expenses and bills for this supplier so purchases can be recorded with KRA eTIMS (input VAT)." })
         ] }),
         /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsxRuntime.jsx("label", { className: labelCls, children: "Address" }),

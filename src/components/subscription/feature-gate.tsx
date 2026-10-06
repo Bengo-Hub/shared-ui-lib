@@ -24,6 +24,34 @@ export interface FeatureCatalogEntry {
   minTierOrder?: number;
   serviceTag?: string;
   label?: string;
+  /** Plan family (planFamily) -> that family's cheapest unlocking plan (GET /features/catalog
+   *  byFamily). The global minimum above is often another family's plan; gates resolve the
+   *  tenant's own family first (resolveCatalogEntry). */
+  byFamily?: Record<string, { planCode: string; tierLabel: string; tierOrder: number }>;
+}
+
+/**
+ * resolveCatalogEntry narrows a catalog entry to the tenant's own plan family: the cheapest plan
+ * of that family unlocking the feature, with its short tier label ("Pro"). A retail (Duka) tenant
+ * used to be told to upgrade to a pharmacy (Dawa) plan because the entry named the global
+ * cheapest plan. When the catalog lists families and the tenant's is not among them, the feature
+ * is not offered on the tenant's suite: offeredInFamily is false and no plan is named.
+ */
+export function resolveCatalogEntry(
+  planCode: string | null | undefined,
+  entry: FeatureCatalogEntry | undefined,
+): (FeatureCatalogEntry & { offeredInFamily: boolean }) | undefined {
+  if (!entry) return undefined;
+  const families = entry.byFamily;
+  const family = planFamily(planCode);
+  if (!families || Object.keys(families).length === 0 || !family) {
+    return { ...entry, offeredInFamily: true };
+  }
+  const own = families[family];
+  if (!own) {
+    return { ...entry, minPlanCode: undefined, minTierLabel: undefined, minTierOrder: undefined, offeredInFamily: false };
+  }
+  return { ...entry, minPlanCode: own.planCode, minTierLabel: own.tierLabel, minTierOrder: own.tierOrder, offeredInFamily: true };
 }
 
 /**
@@ -147,8 +175,9 @@ export function isFeatureUnlocked(e: SubscriptionEntitlements, code: string): bo
   const hasCatalog = !!catalog && Object.keys(catalog).length > 0;
   if (!hasCatalog) return false; // no catalog to reason about tiers → strict has-code (unchanged)
 
-  const entry = catalog[code];
-  if (!entry) return true; // catalogued app, code absent from catalog → unknown → fail-open
+  const raw = catalog[code];
+  if (!raw) return true; // catalogued app, code absent from catalog → unknown → fail-open
+  const entry = resolveCatalogEntry(e.planCode, raw)!;
 
   if (
     e.planCode != null &&
