@@ -2,10 +2,17 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-/** Reactive online/offline status from navigator.onLine + the online/offline events. */
+/**
+ * Reactive online/offline status from navigator.onLine + the online/offline events.
+ *
+ * Starts as online and reads the real status after mount. Node 21+ has a global `navigator`
+ * with no `onLine`, so reading it during server rendering gave `undefined` (offline): every app
+ * server-rendered the offline ribbon, then hit a hydration mismatch when the browser said online.
+ */
 export function useOnlineStatus(): boolean {
-  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+  const [online, setOnline] = useState(true);
   useEffect(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') setOnline(navigator.onLine);
     const up = () => setOnline(true);
     const down = () => setOnline(false);
     window.addEventListener('online', up);

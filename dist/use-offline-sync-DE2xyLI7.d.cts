@@ -87,7 +87,13 @@ interface PwaUpdaterProps {
  */
 declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 
-/** Reactive online/offline status from navigator.onLine + the online/offline events. */
+/**
+ * Reactive online/offline status from navigator.onLine + the online/offline events.
+ *
+ * Starts as online and reads the real status after mount. Node 21+ has a global `navigator`
+ * with no `onLine`, so reading it during server rendering gave `undefined` (offline): every app
+ * server-rendered the offline ribbon, then hit a hydration mismatch when the browser said online.
+ */
 declare function useOnlineStatus(): boolean;
 /**
  * Register a frontend's offline-shell service worker (served at /sw.js).

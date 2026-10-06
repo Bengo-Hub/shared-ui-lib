@@ -181,8 +181,9 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
   );
 }
 function useOnlineStatus() {
-  const [online, setOnline] = react.useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
+  const [online, setOnline] = react.useState(true);
   react.useEffect(() => {
+    if (typeof navigator !== "undefined" && typeof navigator.onLine === "boolean") setOnline(navigator.onLine);
     const up = () => setOnline(true);
     const down = () => setOnline(false);
     window.addEventListener("online", up);
