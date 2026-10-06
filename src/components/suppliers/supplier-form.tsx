@@ -24,8 +24,13 @@ export interface SupplierFormValues {
   email?: string;
   phone?: string;
   address?: string;
-  tax_number?: string;
+  /** The supplier's KRA PIN (inventory-api `tax_pin`, the only tax-id column the master has). */
   tax_pin?: string;
+  /**
+   * @deprecated Same value as `tax_pin`; the form never emits it. Accepted in `initialValues` only
+   * so older callers that seeded it still prefill the PIN.
+   */
+  tax_number?: string;
   notes?: string;
   payment_method_type?: SupplierPaymentMethod;
   mpesa_phone?: string;
@@ -117,8 +122,7 @@ export function SupplierForm({
   const [phone, setPhone] = useState(iv.phone ?? '');
   const [address, setAddress] = useState(iv.address ?? '');
   const [notes, setNotes] = useState(iv.notes ?? '');
-  const [taxNumber, setTaxNumber] = useState(iv.tax_number ?? '');
-  const [taxPin, setTaxPin] = useState(iv.tax_pin ?? '');
+  const [taxPin, setTaxPin] = useState(iv.tax_pin || iv.tax_number || '');
 
   const [paymentMethod, setPaymentMethod] = useState<SupplierPaymentMethod>(
     iv.payment_method_type ?? '',
@@ -161,8 +165,8 @@ export function SupplierForm({
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
       notes: notes.trim() || undefined,
-      tax_number: taxNumber.trim() || undefined,
-      tax_pin: taxPin.trim() || undefined,
+      // KRA PINs are upper-case (e.g. A005049885J); normalise so lookups and eTIMS match.
+      tax_pin: taxPin.trim().toUpperCase() || undefined,
       payment_method_type: hidePaymentConfig ? undefined : paymentMethod || undefined,
       mpesa_phone: !hidePaymentConfig && isMpesa ? mpesaPhone.trim() || undefined : undefined,
       mpesa_business_name:
@@ -234,25 +238,19 @@ export function SupplierForm({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className={labelCls}>Tax Number (KRA PIN)</label>
-              <input
-                className={inputCls}
-                placeholder="e.g. A000000000B"
-                value={taxNumber}
-                onChange={(e) => setTaxNumber(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={labelCls}>Tax PIN</label>
-              <input
-                className={inputCls}
-                placeholder="Tax PIN"
-                value={taxPin}
-                onChange={(e) => setTaxPin(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <label className={labelCls}>KRA PIN</label>
+            <input
+              className={`${inputCls} uppercase`}
+              placeholder="e.g. A000000000B"
+              value={taxPin}
+              onChange={(e) => setTaxPin(e.target.value)}
+              autoComplete="off"
+            />
+            <p className="text-xs text-muted-foreground">
+              Prefills on expenses and bills for this supplier so purchases can be recorded with KRA
+              eTIMS (input VAT).
+            </p>
           </div>
           <div className="space-y-2">
             <label className={labelCls}>Address</label>
