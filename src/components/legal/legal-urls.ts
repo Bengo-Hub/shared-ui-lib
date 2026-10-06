@@ -31,9 +31,18 @@ export function legalUrls(baseUrl?: string): LegalUrls {
   };
 }
 
+/** A business's registered details as shown in a footer. */
+export interface LegalEntity {
+  name: string;
+  address: string;
+  email: string;
+  /** Optional extra line, such as a registration number or KRA PIN. */
+  registration?: string;
+}
+
 /** Registered business details shown in every footer. */
-export const PLATFORM_LEGAL_ENTITY = {
+export const PLATFORM_LEGAL_ENTITY: LegalEntity = {
   name: 'Codevertex Africa Limited',
   address: 'Pioneer House, Kisumu, Kenya',
   email: 'info@codevertexafrica.com',
-} as const;
+};

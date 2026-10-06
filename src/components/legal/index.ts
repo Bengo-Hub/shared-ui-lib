@@ -18,5 +18,6 @@ export {
   PLATFORM_LEGAL_ENTITY,
   legalUrls,
   resolveLegalBaseUrl,
+  type LegalEntity,
   type LegalUrls,
 } from './legal-urls';

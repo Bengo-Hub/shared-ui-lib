@@ -159,7 +159,13 @@ function CookieNotice({ legalBaseUrl, offsetClassName = "bottom-0", className = 
     }
   );
 }
-function LegalLinks({ legalBaseUrl, layout = "row", showEntity = true, className = "" }) {
+function LegalLinks({
+  legalBaseUrl,
+  layout = "row",
+  showEntity = true,
+  entity = PLATFORM_LEGAL_ENTITY,
+  className = ""
+}) {
   const urls = legalUrls(legalBaseUrl);
   const links = [
     { label: "Privacy", href: urls.privacy },
@@ -182,12 +188,13 @@ function LegalLinks({ legalBaseUrl, layout = "row", showEntity = true, className
       }
     ),
     showEntity && /* @__PURE__ */ jsxs("p", { className: "mt-2", children: [
-      PLATFORM_LEGAL_ENTITY.name,
+      entity.name,
       ", ",
-      PLATFORM_LEGAL_ENTITY.address,
+      entity.address,
       ".",
+      entity.registration ? ` ${entity.registration}.` : "",
       " ",
-      /* @__PURE__ */ jsx("a", { href: `mailto:${PLATFORM_LEGAL_ENTITY.email}`, className: linkClass, children: PLATFORM_LEGAL_ENTITY.email })
+      /* @__PURE__ */ jsx("a", { href: `mailto:${entity.email}`, className: linkClass, children: entity.email })
     ] })
   ] });
 }

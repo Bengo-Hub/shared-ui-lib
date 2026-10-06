@@ -1,7 +1,7 @@
 'use client';
 
 import { openCookieSettings } from './consent-store';
-import { legalUrls, PLATFORM_LEGAL_ENTITY } from './legal-urls';
+import { legalUrls, PLATFORM_LEGAL_ENTITY, type LegalEntity } from './legal-urls';
 
 export interface LegalLinksProps {
   legalBaseUrl?: string;
@@ -9,6 +9,8 @@ export interface LegalLinksProps {
   layout?: 'row' | 'stack';
   /** Show the registered company name and address line. */
   showEntity?: boolean;
+  /** The business running this app. Tenant apps on their own brand pass their own details. */
+  entity?: LegalEntity;
   className?: string;
 }
 
@@ -16,7 +18,13 @@ export interface LegalLinksProps {
  * Footer block every app mounts: links to the shared legal pages, a button that reopens the
  * cookie notice, and the registered business details.
  */
-export function LegalLinks({ legalBaseUrl, layout = 'row', showEntity = true, className = '' }: LegalLinksProps) {
+export function LegalLinks({
+  legalBaseUrl,
+  layout = 'row',
+  showEntity = true,
+  entity = PLATFORM_LEGAL_ENTITY,
+  className = '',
+}: LegalLinksProps) {
   const urls = legalUrls(legalBaseUrl);
   const links: { label: string; href: string }[] = [
     { label: 'Privacy', href: urls.privacy },
@@ -45,9 +53,9 @@ export function LegalLinks({ legalBaseUrl, layout = 'row', showEntity = true, cl
       </nav>
       {showEntity && (
         <p className="mt-2">
-          {PLATFORM_LEGAL_ENTITY.name}, {PLATFORM_LEGAL_ENTITY.address}.{' '}
-          <a href={`mailto:${PLATFORM_LEGAL_ENTITY.email}`} className={linkClass}>
-            {PLATFORM_LEGAL_ENTITY.email}
+          {entity.name}, {entity.address}.{entity.registration ? ` ${entity.registration}.` : ''}{' '}
+          <a href={`mailto:${entity.email}`} className={linkClass}>
+            {entity.email}
           </a>
         </p>
       )}

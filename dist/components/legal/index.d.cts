@@ -14,19 +14,47 @@ interface CookieNoticeProps {
  */
 declare function CookieNotice({ legalBaseUrl, offsetClassName, className }: CookieNoticeProps): react_jsx_runtime.JSX.Element | null;
 
+/**
+ * The platform's legal pages all live in auth-ui (the accounts portal), so every app links to one
+ * copy instead of keeping its own. Override the base with NEXT_PUBLIC_LEGAL_BASE_URL per
+ * environment, or pass `baseUrl` to the components directly.
+ */
+declare const DEFAULT_LEGAL_BASE_URL = "https://accounts.codevertexafrica.com";
+interface LegalUrls {
+    privacy: string;
+    terms: string;
+    cookies: string;
+    refunds: string;
+    dataRequests: string;
+}
+declare function resolveLegalBaseUrl(baseUrl?: string): string;
+declare function legalUrls(baseUrl?: string): LegalUrls;
+/** A business's registered details as shown in a footer. */
+interface LegalEntity {
+    name: string;
+    address: string;
+    email: string;
+    /** Optional extra line, such as a registration number or KRA PIN. */
+    registration?: string;
+}
+/** Registered business details shown in every footer. */
+declare const PLATFORM_LEGAL_ENTITY: LegalEntity;
+
 interface LegalLinksProps {
     legalBaseUrl?: string;
     /** "row" for a page footer, "stack" for a narrow sidebar bottom. */
     layout?: 'row' | 'stack';
     /** Show the registered company name and address line. */
     showEntity?: boolean;
+    /** The business running this app. Tenant apps on their own brand pass their own details. */
+    entity?: LegalEntity;
     className?: string;
 }
 /**
  * Footer block every app mounts: links to the shared legal pages, a button that reopens the
  * cookie notice, and the registered business details.
  */
-declare function LegalLinks({ legalBaseUrl, layout, showEntity, className }: LegalLinksProps): react_jsx_runtime.JSX.Element;
+declare function LegalLinks({ legalBaseUrl, layout, showEntity, entity, className, }: LegalLinksProps): react_jsx_runtime.JSX.Element;
 
 /**
  * Cookie consent store shared by every Codevertex app.
@@ -68,26 +96,4 @@ declare function useCookieConsentState(): CookieConsentState | null;
  */
 declare function useCookieConsent(category: ConsentCategory): boolean;
 
-/**
- * The platform's legal pages all live in auth-ui (the accounts portal), so every app links to one
- * copy instead of keeping its own. Override the base with NEXT_PUBLIC_LEGAL_BASE_URL per
- * environment, or pass `baseUrl` to the components directly.
- */
-declare const DEFAULT_LEGAL_BASE_URL = "https://accounts.codevertexafrica.com";
-interface LegalUrls {
-    privacy: string;
-    terms: string;
-    cookies: string;
-    refunds: string;
-    dataRequests: string;
-}
-declare function resolveLegalBaseUrl(baseUrl?: string): string;
-declare function legalUrls(baseUrl?: string): LegalUrls;
-/** Registered business details shown in every footer. */
-declare const PLATFORM_LEGAL_ENTITY: {
-    readonly name: "Codevertex Africa Limited";
-    readonly address: "Pioneer House, Kisumu, Kenya";
-    readonly email: "info@codevertexafrica.com";
-};
-
-export { CONSENT_CHANGED_EVENT, CONSENT_COOKIE, type ConsentCategory, type CookieConsentState, CookieNotice, type CookieNoticeProps, DEFAULT_LEGAL_BASE_URL, LegalLinks, type LegalLinksProps, type LegalUrls, NO_OPTIONAL_CONSENT, OPEN_SETTINGS_EVENT, PLATFORM_LEGAL_ENTITY, consentCookieDomain, legalUrls, openCookieSettings, readCookieConsent, resolveLegalBaseUrl, useCookieConsent, useCookieConsentState, writeCookieConsent };
+export { CONSENT_CHANGED_EVENT, CONSENT_COOKIE, type ConsentCategory, type CookieConsentState, CookieNotice, type CookieNoticeProps, DEFAULT_LEGAL_BASE_URL, type LegalEntity, LegalLinks, type LegalLinksProps, type LegalUrls, NO_OPTIONAL_CONSENT, OPEN_SETTINGS_EVENT, PLATFORM_LEGAL_ENTITY, consentCookieDomain, legalUrls, openCookieSettings, readCookieConsent, resolveLegalBaseUrl, useCookieConsent, useCookieConsentState, writeCookieConsent };
