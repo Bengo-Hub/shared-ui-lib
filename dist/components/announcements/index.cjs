@@ -40,7 +40,7 @@ function writeDismissed(viewerKey, ids) {
 }
 function resolveAnnouncementLink(url, orgSlug) {
   const href = url.replace(/\{orgSlug\}/g, encodeURIComponent(orgSlug ?? ""));
-  if (href.startsWith("/")) return { href, external: false };
+  if (href.startsWith("/") || href.startsWith("mailto:")) return { href, external: false };
   try {
     const external = typeof window === "undefined" || new URL(href).origin !== window.location.origin;
     return { href, external };
@@ -48,15 +48,31 @@ function resolveAnnouncementLink(url, orgSlug) {
     return { href, external: true };
   }
 }
-function visibleAnnouncements(list, dismissed, isAdmin) {
-  return list.filter((a) => (isAdmin || a.audience !== "admins") && !(a.dismissible && dismissed.includes(a.id)));
+function resolveAnnouncement(a, flags = {}) {
+  const keys = Object.keys(a.variants ?? {}).sort();
+  if (keys.some((k) => k in flags && flags[k] === void 0)) return null;
+  const hit = keys.find((k) => flags[k] === true);
+  if (!hit) return { ...a, dismissKey: a.id };
+  const v = a.variants[hit];
+  return {
+    ...a,
+    title: v.title || a.title,
+    summary: v.summary,
+    highlights: v.highlights ?? [],
+    cta_label: v.cta_label,
+    cta_url: v.cta_url,
+    dismissKey: `${a.id}:${hit}`
+  };
+}
+function visibleAnnouncements(list, dismissed, isAdmin, flags = {}) {
+  return list.filter((a) => isAdmin || a.audience !== "admins").map((a) => resolveAnnouncement(a, flags)).filter((a) => !!a && !(a.dismissible && dismissed.includes(a.dismissKey)));
 }
 var TONES = {
   feature: { icon: lucideReact.Sparkles, badge: "New", ring: "border-primary/30", iconBox: "bg-primary/10 text-primary", badgeCls: "bg-primary text-primary-foreground" },
   info: { icon: lucideReact.Info, badge: "Update", ring: "border-sky-500/30", iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400", badgeCls: "bg-sky-600 text-white" },
   warning: { icon: lucideReact.AlertTriangle, badge: "Notice", ring: "border-amber-500/40", iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400", badgeCls: "bg-amber-500 text-white" }
 };
-function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = false, apiBaseUrl = DEFAULT_API, className = "" }) {
+function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = false, flags, apiBaseUrl = DEFAULT_API, className = "" }) {
   const [items, setItems] = react.useState([]);
   const [dismissed, setDismissed] = react.useState([]);
   const [expanded, setExpanded] = react.useState(false);
@@ -73,12 +89,16 @@ function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = fa
       clearInterval(timer);
     };
   }, [apiBaseUrl, service]);
-  const visible = react.useMemo(() => visibleAnnouncements(items, dismissed, isAdmin), [items, dismissed, isAdmin]);
+  const flagsKey = JSON.stringify(flags ?? {});
+  const visible = react.useMemo(
+    () => visibleAnnouncements(items, dismissed, isAdmin, JSON.parse(flagsKey)),
+    [items, dismissed, isAdmin, flagsKey]
+  );
   const current = visible[0];
   const dismiss = react.useCallback(() => {
     if (!current) return;
     const live = new Set(items.map((a) => a.id));
-    const next = [...dismissed.filter((id) => live.has(id)), current.id];
+    const next = [...dismissed.filter((key) => live.has(key.split(":")[0])), current.dismissKey];
     setDismissed(next);
     writeDismissed(viewerKey, next);
     setExpanded(false);
@@ -155,6 +175,7 @@ function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = fa
 }
 
 exports.AnnouncementBanner = AnnouncementBanner;
+exports.resolveAnnouncement = resolveAnnouncement;
 exports.resolveAnnouncementLink = resolveAnnouncementLink;
 exports.visibleAnnouncements = visibleAnnouncements;
 //# sourceMappingURL=index.cjs.map

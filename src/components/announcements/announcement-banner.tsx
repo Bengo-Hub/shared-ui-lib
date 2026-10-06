@@ -18,7 +18,25 @@ export interface Announcement {
   starts_at: string;
   ends_at?: string;
   updated_at: string;
+  /** Text for viewers whose app reports the flag as true, keyed by flag (e.g. payhero_active). */
+  variants?: Record<string, AnnouncementVariant>;
 }
+
+/** An announcement's text for viewers in one state, replacing the base text. */
+export interface AnnouncementVariant {
+  title?: string;
+  summary: string;
+  highlights: string[];
+  cta_label?: string;
+  cta_url?: string;
+}
+
+/**
+ * What the app knows about the viewer, by flag: true picks that variant, false keeps the base
+ * text, undefined means still loading (an announcement with that variant waits rather than
+ * flashing the wrong text). Flags the app does not pass count as false.
+ */
+export type AnnouncementFlags = Record<string, boolean | undefined>;
 
 export interface AnnouncementBannerProps {
   /** App key the platform admin targets: pos, treasury, inventory, ... */
@@ -29,6 +47,8 @@ export interface AnnouncementBannerProps {
   viewerKey?: string;
   /** Whether the viewer can change settings; announcements aimed at admins show only then. */
   isAdmin?: boolean;
+  /** The viewer's state for announcement variants (see AnnouncementFlags). */
+  flags?: AnnouncementFlags;
   /** notifications-api base URL. Falls back to NEXT_PUBLIC_NOTIFICATIONS_API_URL, then production. */
   apiBaseUrl?: string;
   className?: string;
@@ -82,7 +102,8 @@ function writeDismissed(viewerKey: string, ids: string[]) {
 /** The link a call-to-action opens, and whether it leaves this app. */
 export function resolveAnnouncementLink(url: string, orgSlug?: string): { href: string; external: boolean } {
   const href = url.replace(/\{orgSlug\}/g, encodeURIComponent(orgSlug ?? ''));
-  if (href.startsWith('/')) return { href, external: false };
+  // A mail link opens the mail app; a new tab for it would be left blank.
+  if (href.startsWith('/') || href.startsWith('mailto:')) return { href, external: false };
   try {
     const external = typeof window === 'undefined' || new URL(href).origin !== window.location.origin;
     return { href, external };
@@ -91,9 +112,35 @@ export function resolveAnnouncementLink(url: string, orgSlug?: string): { href: 
   }
 }
 
-/** Announcements a viewer should see: right audience, not dismissed, in server order. */
-export function visibleAnnouncements(list: Announcement[], dismissed: string[], isAdmin: boolean): Announcement[] {
-  return list.filter((a) => (isAdmin || a.audience !== 'admins') && !(a.dismissible && dismissed.includes(a.id)));
+/**
+ * The announcement as this viewer reads it: the first variant (in flag order) whose flag is true
+ * replaces the text, and the dismissal key carries the variant, so a viewer who dismissed "how to
+ * ask for it" still sees "how to use it" once the state changes. null while a flag the
+ * announcement depends on is still loading.
+ */
+export function resolveAnnouncement(a: Announcement, flags: AnnouncementFlags = {}): (Announcement & { dismissKey: string }) | null {
+  const keys = Object.keys(a.variants ?? {}).sort();
+  if (keys.some((k) => k in flags && flags[k] === undefined)) return null;
+  const hit = keys.find((k) => flags[k] === true);
+  if (!hit) return { ...a, dismissKey: a.id };
+  const v = a.variants![hit];
+  return {
+    ...a,
+    title: v.title || a.title,
+    summary: v.summary,
+    highlights: v.highlights ?? [],
+    cta_label: v.cta_label,
+    cta_url: v.cta_url,
+    dismissKey: `${a.id}:${hit}`,
+  };
+}
+
+/** Announcements a viewer should see: right audience, resolved for its state, not dismissed, in server order. */
+export function visibleAnnouncements(list: Announcement[], dismissed: string[], isAdmin: boolean, flags: AnnouncementFlags = {}) {
+  return list
+    .filter((a) => isAdmin || a.audience !== 'admins')
+    .map((a) => resolveAnnouncement(a, flags))
+    .filter((a): a is Announcement & { dismissKey: string } => !!a && !(a.dismissible && dismissed.includes(a.dismissKey)));
 }
 
 const TONES = {
@@ -108,7 +155,7 @@ const TONES = {
  * link and how long it runs (notifications-api, Platform > Announcements); expired ones are
  * deleted server side.
  */
-export function AnnouncementBanner({ service, orgSlug, viewerKey = 'anon', isAdmin = false, apiBaseUrl = DEFAULT_API, className = '' }: AnnouncementBannerProps) {
+export function AnnouncementBanner({ service, orgSlug, viewerKey = 'anon', isAdmin = false, flags, apiBaseUrl = DEFAULT_API, className = '' }: AnnouncementBannerProps) {
   const [items, setItems] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [expanded, setExpanded] = useState(false);
@@ -128,14 +175,19 @@ export function AnnouncementBanner({ service, orgSlug, viewerKey = 'anon', isAdm
     };
   }, [apiBaseUrl, service]);
 
-  const visible = useMemo(() => visibleAnnouncements(items, dismissed, isAdmin), [items, dismissed, isAdmin]);
+  // A stable key so a parent passing a fresh flags object each render does not re-run this.
+  const flagsKey = JSON.stringify(flags ?? {});
+  const visible = useMemo(
+    () => visibleAnnouncements(items, dismissed, isAdmin, JSON.parse(flagsKey) as AnnouncementFlags),
+    [items, dismissed, isAdmin, flagsKey],
+  );
   const current = visible[0];
 
   const dismiss = useCallback(() => {
     if (!current) return;
-    // Keep only ids still running so the stored list never grows past the live set.
+    // Keep only keys of announcements still running so the stored list never grows past the live set.
     const live = new Set(items.map((a) => a.id));
-    const next = [...dismissed.filter((id) => live.has(id)), current.id];
+    const next = [...dismissed.filter((key) => live.has(key.split(':')[0])), current.dismissKey];
     setDismissed(next);
     writeDismissed(viewerKey, next);
     setExpanded(false);
