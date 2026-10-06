@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ArrowRight, ChevronDown, ChevronUp, Info, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronDown, ChevronUp, Info, Megaphone, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /** One platform announcement, as notifications-api's public active read returns it. */
@@ -144,7 +144,8 @@ export function visibleAnnouncements(list: Announcement[], dismissed: string[], 
 }
 
 const TONES = {
-  feature: { icon: Sparkles, badge: 'New', ring: 'border-primary/30', iconBox: 'bg-primary/10 text-primary', badgeCls: 'bg-primary text-primary-foreground' },
+  // A megaphone, not sparkles: sparkle icons read as "AI generated" to users.
+  feature: { icon: Megaphone, badge: 'New', ring: 'border-primary/30', iconBox: 'bg-primary/10 text-primary', badgeCls: 'bg-primary text-primary-foreground' },
   info: { icon: Info, badge: 'Update', ring: 'border-sky-500/30', iconBox: 'bg-sky-500/10 text-sky-600 dark:text-sky-400', badgeCls: 'bg-sky-600 text-white' },
   warning: { icon: AlertTriangle, badge: 'Notice', ring: 'border-amber-500/40', iconBox: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', badgeCls: 'bg-amber-500 text-white' },
 } as const;

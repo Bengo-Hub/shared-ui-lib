@@ -329,12 +329,9 @@ function PwaInstallPrompt({
       className: `fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 sm:inset-x-auto sm:right-4 sm:justify-end transition-all duration-300 ease-out ${mounted ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"} ${className}`,
       style: { paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" },
       children: /* @__PURE__ */ jsxs("div", { className: "relative w-full max-w-sm overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-2xl shadow-black/25 ring-1 ring-black/5 backdrop-blur-xl", children: [
-        /* @__PURE__ */ jsx("div", { className: "h-1 w-full bg-gradient-to-r from-primary/70 via-primary to-primary/70" }),
+        /* @__PURE__ */ jsx("div", { className: "h-1 w-full bg-primary" }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3.5 px-4 pt-4 pb-3", children: [
-          /* @__PURE__ */ jsxs("div", { className: "relative shrink-0", children: [
-            /* @__PURE__ */ jsx("div", { className: "absolute inset-0 -z-10 rounded-2xl bg-primary/25 blur-md", "aria-hidden": true }),
-            /* @__PURE__ */ jsx("div", { className: "h-12 w-12 rounded-2xl overflow-hidden ring-1 ring-border bg-white shadow-sm flex items-center justify-center", children: logoUrl ? /* @__PURE__ */ jsx("img", { src: logoUrl, alt: appName, className: "h-full w-full object-contain p-1" }) : ios ? /* @__PURE__ */ jsx(Share, { className: "h-5 w-5 text-primary" }) : /* @__PURE__ */ jsx(Download, { className: "h-5 w-5 text-primary" }) })
-          ] }),
+          /* @__PURE__ */ jsx("div", { className: "relative shrink-0", children: /* @__PURE__ */ jsx("div", { className: "h-12 w-12 rounded-2xl overflow-hidden ring-1 ring-border bg-white shadow-sm flex items-center justify-center", children: logoUrl ? /* @__PURE__ */ jsx("img", { src: logoUrl, alt: appName, className: "h-full w-full object-contain p-1" }) : ios ? /* @__PURE__ */ jsx(Share, { className: "h-5 w-5 text-primary" }) : /* @__PURE__ */ jsx(Download, { className: "h-5 w-5 text-primary" }) }) }),
           /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0 pt-0.5", children: [
             /* @__PURE__ */ jsxs("p", { className: "font-semibold text-[0.95rem] leading-tight tracking-tight", children: [
               "Install ",
@@ -384,7 +381,7 @@ function PwaInstallPrompt({
             "button",
             {
               onClick: () => void install(),
-              className: "flex-1 h-9 rounded-lg text-sm font-medium text-primary-foreground flex items-center justify-center gap-1.5 bg-gradient-to-b from-primary to-primary/90 shadow-lg shadow-primary/25 hover:opacity-95 transition-opacity",
+              className: "flex-1 h-9 rounded-lg text-sm font-medium text-primary-foreground flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 transition-colors",
               children: [
                 /* @__PURE__ */ jsx(Download, { className: "h-4 w-4" }),
                 "Install"

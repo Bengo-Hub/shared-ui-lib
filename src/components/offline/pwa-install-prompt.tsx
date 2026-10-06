@@ -138,11 +138,10 @@ export function PwaInstallPrompt({
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)' }}
     >
       <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-2xl shadow-black/25 ring-1 ring-black/5 backdrop-blur-xl">
-        <div className="h-1 w-full bg-gradient-to-r from-primary/70 via-primary to-primary/70" />
+        <div className="h-1 w-full bg-primary" />
 
         <div className="flex items-start gap-3.5 px-4 pt-4 pb-3">
           <div className="relative shrink-0">
-            <div className="absolute inset-0 -z-10 rounded-2xl bg-primary/25 blur-md" aria-hidden />
             <div className="h-12 w-12 rounded-2xl overflow-hidden ring-1 ring-border bg-white shadow-sm flex items-center justify-center">
               {logoUrl ? (
                 <img src={logoUrl} alt={appName} className="h-full w-full object-contain p-1" />
@@ -193,7 +192,7 @@ export function PwaInstallPrompt({
             </button>
             <button
               onClick={() => void install()}
-              className="flex-1 h-9 rounded-lg text-sm font-medium text-primary-foreground flex items-center justify-center gap-1.5 bg-gradient-to-b from-primary to-primary/90 shadow-lg shadow-primary/25 hover:opacity-95 transition-opacity"
+              className="flex-1 h-9 rounded-lg text-sm font-medium text-primary-foreground flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 transition-colors"
             >
               <Download className="h-4 w-4" />
               Install

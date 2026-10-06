@@ -68,7 +68,8 @@ function visibleAnnouncements(list, dismissed, isAdmin, flags = {}) {
   return list.filter((a) => isAdmin || a.audience !== "admins").map((a) => resolveAnnouncement(a, flags)).filter((a) => !!a && !(a.dismissible && dismissed.includes(a.dismissKey)));
 }
 var TONES = {
-  feature: { icon: lucideReact.Sparkles, badge: "New", ring: "border-primary/30", iconBox: "bg-primary/10 text-primary", badgeCls: "bg-primary text-primary-foreground" },
+  // A megaphone, not sparkles: sparkle icons read as "AI generated" to users.
+  feature: { icon: lucideReact.Megaphone, badge: "New", ring: "border-primary/30", iconBox: "bg-primary/10 text-primary", badgeCls: "bg-primary text-primary-foreground" },
   info: { icon: lucideReact.Info, badge: "Update", ring: "border-sky-500/30", iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400", badgeCls: "bg-sky-600 text-white" },
   warning: { icon: lucideReact.AlertTriangle, badge: "Notice", ring: "border-amber-500/40", iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400", badgeCls: "bg-amber-500 text-white" }
 };
