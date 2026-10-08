@@ -160,6 +160,19 @@ function hexToHslTriplet(hex) {
   }
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
+function readableForegroundHsl(hex) {
+  const t = hex.replace(/^#/, "").trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(t)) return "0 0% 100%";
+  const lin = (i) => {
+    const c = parseInt(t.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const L = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+  const darkText = 0.012;
+  const vsWhite = 1.05 / (L + 0.05);
+  const vsDark = (L + 0.05) / (darkText + 0.05);
+  return vsDark > vsWhite ? "0 0% 9%" : "0 0% 100%";
+}
 var TenantBrandingContext = createContext(void 0);
 var FALLBACK_PRIMARY = "#6366f1";
 var FALLBACK_SECONDARY = "#4f46e5";
@@ -227,6 +240,7 @@ function TenantBrandingProvider({
         root.style.removeProperty("--tenant-logo-url");
       }
       root.style.setProperty("--primary", hexToHslTriplet(primary));
+      root.style.setProperty("--primary-foreground", readableForegroundHsl(primary));
       root.style.setProperty("--ring", hexToHslTriplet(primary));
       root.style.setProperty("--brand-primary", hexToRgbTriplet(primary));
       root.style.setProperty("--brand-emphasis", hexToRgbTriplet(secondary));
@@ -268,6 +282,6 @@ function useTenantBranding() {
   return context;
 }
 
-export { TenantBrandingProvider, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, serviceBrandingFor, useTenantBranding };
+export { TenantBrandingProvider, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, readableForegroundHsl, serviceBrandingFor, useTenantBranding };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

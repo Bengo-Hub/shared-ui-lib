@@ -72,9 +72,12 @@ function SearchableCombobox({
   disabled,
   clearable = true,
   className,
-  footer
+  footer,
+  onCreate,
+  createLabel = 'Add "{text}"'
 }) {
   const [open, setOpen] = react.useState(false);
+  const [creating, setCreating] = react.useState(false);
   const [query, setQuery] = react.useState("");
   const [remoteResults, setRemoteResults] = react.useState([]);
   const [remoteLoading, setRemoteLoading] = react.useState(false);
@@ -182,7 +185,20 @@ function SearchableCombobox({
     onChange(o.value, o);
     close();
   };
-  const busy = loading || remoteLoading;
+  const busy = loading || remoteLoading || creating;
+  const typed = query.trim();
+  const canCreate = !!onCreate && typed.length > 0 && !merged.some((o) => o.label.trim().toLowerCase() === typed.toLowerCase() || o.value.toLowerCase() === typed.toLowerCase());
+  const create = async () => {
+    if (!onCreate || !canCreate) return;
+    setCreating(true);
+    try {
+      const made = await onCreate(typed);
+      if (made) select(made);
+      else close();
+    } finally {
+      setCreating(false);
+    }
+  };
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { ref, className: cx("relative", className), children: [
     /* @__PURE__ */ jsxRuntime.jsxs(
       "button",
@@ -228,6 +244,12 @@ function SearchableCombobox({
                 autoFocus: true,
                 value: query,
                 onChange: (e) => setQuery(e.target.value),
+                onKeyDown: (e) => {
+                  if (e.key === "Enter" && canCreate && merged.length === 0) {
+                    e.preventDefault();
+                    void create();
+                  }
+                },
                 placeholder: searchPlaceholder,
                 className: "w-full bg-transparent text-sm text-foreground focus:outline-none"
               }
@@ -235,7 +257,20 @@ function SearchableCombobox({
             busy && /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Loader2, { className: "h-4 w-4 shrink-0 animate-spin text-muted-foreground" })
           ] }),
           /* @__PURE__ */ jsxRuntime.jsxs("ul", { className: "max-h-60 overflow-y-auto py-1", children: [
-            merged.length === 0 ? /* @__PURE__ */ jsxRuntime.jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : emptyText }) : merged.map((o) => /* @__PURE__ */ jsxRuntime.jsx("li", { children: /* @__PURE__ */ jsxRuntime.jsxs(
+            canCreate && /* @__PURE__ */ jsxRuntime.jsx("li", { children: /* @__PURE__ */ jsxRuntime.jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: () => void create(),
+                disabled: creating,
+                className: "flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-muted/60 disabled:opacity-60",
+                children: [
+                  /* @__PURE__ */ jsxRuntime.jsx(lucideReact.Plus, { className: "h-4 w-4 shrink-0" }),
+                  /* @__PURE__ */ jsxRuntime.jsx("span", { className: "truncate", children: createLabel.replace("{text}", typed) })
+                ]
+              }
+            ) }),
+            merged.length === 0 && canCreate ? null : merged.length === 0 ? /* @__PURE__ */ jsxRuntime.jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : emptyText }) : merged.map((o) => /* @__PURE__ */ jsxRuntime.jsx("li", { children: /* @__PURE__ */ jsxRuntime.jsxs(
               "button",
               {
                 type: "button",

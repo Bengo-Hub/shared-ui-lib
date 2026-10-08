@@ -65,7 +65,15 @@ interface SearchableComboboxProps {
     className?: string;
     /** Action row pinned under the list (e.g. "+ Add new") — host owns the dialog. */
     footer?: React.ReactNode;
+    /**
+     * Creatable lists (unit types, categories, tags): when set and the typed text matches no option
+     * exactly, an "Add <text>" row appears. The host saves the new entry and returns the option to
+     * select (or nothing to just close). Errors are left to the host to report.
+     */
+    onCreate?: (text: string) => Promise<ComboboxOption | void> | ComboboxOption | void;
+    /** Label of the create row; `{text}` is replaced with what was typed. Default `Add "{text}"`. */
+    createLabel?: string;
 }
-declare function SearchableCombobox({ options, value, onChange, valueLabel, onRemoteSearch, remoteThreshold, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
+declare function SearchableCombobox({ options, value, onChange, valueLabel, onRemoteSearch, remoteThreshold, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, onCreate, createLabel, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
 
 export { type ComboboxOption as C, SearchableCombobox as S, type SearchableComboboxProps as a };

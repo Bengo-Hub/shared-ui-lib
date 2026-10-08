@@ -19,7 +19,11 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
  * per-service accent tint for the grid's icon cell — additive fields, existing consumers that
  * only destructure {key,label,href,Icon} are unaffected.
  */
-type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'ordering' | 'subscriptions' | 'auth' | 'projects' | 'afya' | 'sourcing' | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload' | 'maskani';
+type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'ordering' | 'subscriptions' | 'auth' | 'projects' | 'afya'
+/** @deprecated Not listed any more; kept so host apps that still name it in `urls` type-check. */
+ | 'sourcing'
+/** @deprecated Not listed any more; kept so host apps that still name it in `urls` type-check. */
+ | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload' | 'maskani';
 type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
 type ServiceAccent = 'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'fuchsia';
 interface ServiceDefinition {

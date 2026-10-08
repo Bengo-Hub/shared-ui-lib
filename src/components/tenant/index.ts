@@ -16,6 +16,7 @@ export {
 export {
   TenantBrandingProvider,
   useTenantBranding,
+  readableForegroundHsl,
   type TenantBrandingProviderProps,
   type TenantBrandingContextType,
 } from './tenant-branding-provider';

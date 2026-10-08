@@ -1,4 +1,4 @@
-import { ShoppingCart, Package, Globe, Truck, FolderKanban, PackageSearch, Waypoints, Scale, UserSquare, Users, Landmark, Tag, BookOpen, Mail, Bell, Ticket, HeartPulse, Library, Wifi, Building2, Grid3x3 } from 'lucide-react';
+import { ShoppingCart, Package, Globe, Truck, FolderKanban, Scale, UserSquare, Users, Landmark, Tag, BookOpen, Mail, Bell, Ticket, HeartPulse, Library, Wifi, Building2, Grid3x3 } from 'lucide-react';
 import { useMemo, useState, useRef } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { createPortal } from 'react-dom';
@@ -12,12 +12,11 @@ var SERVICE_REGISTRY = [
   // Operations
   { key: "logistics", label: "Logistics", Icon: Truck, category: "Operations", color: "amber", manageOnly: true, serviceTag: "logistics", status: "live" },
   { key: "projects", label: "Projects", Icon: FolderKanban, category: "Operations", color: "cyan", manageOnly: true, serviceTag: "projects", status: "live" },
-  { key: "sourcing", label: "Sourcing", Icon: PackageSearch, category: "Operations", color: "blue", manageOnly: false, status: "coming-soon" },
-  { key: "traceability", label: "Traceability", Icon: Waypoints, category: "Operations", color: "emerald", manageOnly: false, status: "coming-soon" },
-  { key: "truload", label: "TruLoad", Icon: Scale, category: "Operations", color: "amber", manageOnly: true, status: "live" },
+  // Sourcing and Traceability are not built yet, so they are not listed (no "Soon" tiles).
+  { key: "truload", label: "TruLoad", Icon: Scale, category: "Operations", color: "amber", manageOnly: true, serviceTag: "truload", status: "live" },
   // Growth & Finance
   { key: "marketflow", label: "CRM (MarketFlow)", Icon: UserSquare, category: "Growth & Finance", color: "fuchsia", manageOnly: true, serviceTag: "marketflow", status: "live" },
-  { key: "erp", label: "ERP", Icon: Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
+  { key: "erp", label: "ERP (HR, Payroll)", Icon: Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
   { key: "treasury", label: "Treasury (Books)", Icon: Landmark, category: "Growth & Finance", color: "emerald", manageOnly: true, status: "live" },
   { key: "subscriptions", label: "Subscriptions", Icon: Tag, category: "Growth & Finance", color: "violet", manageOnly: true, status: "live" },
   // Platform
@@ -28,7 +27,7 @@ var SERVICE_REGISTRY = [
   // Specialized
   { key: "afya", label: "Afya", Icon: HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "afya", status: "live" },
   { key: "library", label: "Library", Icon: Library, category: "Specialized", color: "blue", manageOnly: false, status: "live" },
-  { key: "ispbilling", label: "ISP Billing", Icon: Wifi, category: "Specialized", color: "cyan", manageOnly: true, status: "live" },
+  { key: "ispbilling", label: "ISP Billing", Icon: Wifi, category: "Specialized", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
   { key: "maskani", label: "Maskani", Icon: Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" }
 ];
 function useVisibleServices({

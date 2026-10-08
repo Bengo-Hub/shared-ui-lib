@@ -116,6 +116,12 @@ declare function parseBrandFromTenant(t: TenantResponse): TenantBrand;
  */
 declare function fetchTenantBySlug(slug: string, authApiBase: string, cache?: TenantCacheAdapter, onFresh?: (brand: TenantBrand) => void): Promise<TenantBrand | null>;
 
+/**
+ * Text colour (HSL triplet) that reads on a filled `--primary` surface: near-black on a light brand
+ * colour (yellow, lime, sky), white otherwise. Uses WCAG relative luminance, choosing whichever
+ * gives the higher contrast ratio, so a tenant's pale brand never leaves white text unreadable.
+ */
+declare function readableForegroundHsl(hex: string): string;
 interface TenantBrandingContextType {
     slug: string;
     tenant: TenantBrand | null;
@@ -153,4 +159,4 @@ interface TenantBrandingProviderProps {
 declare function TenantBrandingProvider({ children, slug, authApiBase, cache, defaultPrimaryColor, defaultSecondaryColor, applyCssVariables, }: TenantBrandingProviderProps): react_jsx_runtime.JSX.Element;
 declare function useTenantBranding(): TenantBrandingContextType;
 
-export { type ServiceBrandingEntry, type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, serviceBrandingFor, useTenantBranding };
+export { type ServiceBrandingEntry, type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, readableForegroundHsl, serviceBrandingFor, useTenantBranding };

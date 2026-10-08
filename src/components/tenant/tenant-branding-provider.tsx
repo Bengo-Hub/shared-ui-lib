@@ -58,6 +58,25 @@ function hexToHslTriplet(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+/**
+ * Text colour (HSL triplet) that reads on a filled `--primary` surface: near-black on a light brand
+ * colour (yellow, lime, sky), white otherwise. Uses WCAG relative luminance, choosing whichever
+ * gives the higher contrast ratio, so a tenant's pale brand never leaves white text unreadable.
+ */
+export function readableForegroundHsl(hex: string): string {
+  const t = hex.replace(/^#/, '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(t)) return '0 0% 100%';
+  const lin = (i: number) => {
+    const c = parseInt(t.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const L = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+  const darkText = 0.012; // luminance of the near-black used below (hsl 0 0% 9%)
+  const vsWhite = 1.05 / (L + 0.05);
+  const vsDark = (L + 0.05) / (darkText + 0.05);
+  return vsDark > vsWhite ? '0 0% 9%' : '0 0% 100%';
+}
+
 export interface TenantBrandingContextType {
   slug: string;
   tenant: TenantBrand | null;
@@ -176,6 +195,7 @@ export function TenantBrandingProvider({
       }
       // Drive Tailwind semantic tokens from tenant brand color
       root.style.setProperty('--primary', hexToHslTriplet(primary));
+      root.style.setProperty('--primary-foreground', readableForegroundHsl(primary));
       root.style.setProperty('--ring', hexToHslTriplet(primary));
       // Drive brand RGB triplets for bg-brand-primary / bg-brand-emphasis
       root.style.setProperty('--brand-primary', hexToRgbTriplet(primary));

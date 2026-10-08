@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronsUpDown, Loader2, Search, X } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Search, X } from 'lucide-react';
 
 /**
  * SearchableCombobox — the platform's canonical rich searchable single-select.
@@ -69,6 +69,14 @@ export interface SearchableComboboxProps {
   className?: string;
   /** Action row pinned under the list (e.g. "+ Add new") — host owns the dialog. */
   footer?: React.ReactNode;
+  /**
+   * Creatable lists (unit types, categories, tags): when set and the typed text matches no option
+   * exactly, an "Add <text>" row appears. The host saves the new entry and returns the option to
+   * select (or nothing to just close). Errors are left to the host to report.
+   */
+  onCreate?: (text: string) => Promise<ComboboxOption | void> | ComboboxOption | void;
+  /** Label of the create row; `{text}` is replaced with what was typed. Default `Add "{text}"`. */
+  createLabel?: string;
 }
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -92,8 +100,11 @@ export function SearchableCombobox({
   clearable = true,
   className,
   footer,
+  onCreate,
+  createLabel = 'Add "{text}"',
 }: SearchableComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
   const [remoteResults, setRemoteResults] = useState<ComboboxOption[]>([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
@@ -247,7 +258,24 @@ export function SearchableCombobox({
     close();
   };
 
-  const busy = loading || remoteLoading;
+  const busy = loading || remoteLoading || creating;
+
+  // The create row shows only when the text is new (case-insensitive), so it never duplicates an entry.
+  const typed = query.trim();
+  const canCreate = !!onCreate && typed.length > 0 &&
+    !merged.some((o) => o.label.trim().toLowerCase() === typed.toLowerCase() || o.value.toLowerCase() === typed.toLowerCase());
+
+  const create = async () => {
+    if (!onCreate || !canCreate) return;
+    setCreating(true);
+    try {
+      const made = await onCreate(typed);
+      if (made) select(made);
+      else close();
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div ref={ref} className={cx('relative', className)}>
@@ -288,13 +316,33 @@ export function SearchableCombobox({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter adds the typed entry when it is new and nothing else matches.
+                if (e.key === 'Enter' && canCreate && merged.length === 0) {
+                  e.preventDefault();
+                  void create();
+                }
+              }}
               placeholder={searchPlaceholder}
               className="w-full bg-transparent text-sm text-foreground focus:outline-none"
             />
             {busy && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
           </div>
           <ul className="max-h-60 overflow-y-auto py-1">
-            {merged.length === 0 ? (
+            {canCreate && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => void create()}
+                  disabled={creating}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-muted/60 disabled:opacity-60"
+                >
+                  <Plus className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{createLabel.replace('{text}', typed)}</span>
+                </button>
+              </li>
+            )}
+            {merged.length === 0 && canCreate ? null : merged.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {busy ? 'Searching…' : emptyText}
               </li>

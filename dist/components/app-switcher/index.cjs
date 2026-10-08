@@ -14,12 +14,11 @@ var SERVICE_REGISTRY = [
   // Operations
   { key: "logistics", label: "Logistics", Icon: lucideReact.Truck, category: "Operations", color: "amber", manageOnly: true, serviceTag: "logistics", status: "live" },
   { key: "projects", label: "Projects", Icon: lucideReact.FolderKanban, category: "Operations", color: "cyan", manageOnly: true, serviceTag: "projects", status: "live" },
-  { key: "sourcing", label: "Sourcing", Icon: lucideReact.PackageSearch, category: "Operations", color: "blue", manageOnly: false, status: "coming-soon" },
-  { key: "traceability", label: "Traceability", Icon: lucideReact.Waypoints, category: "Operations", color: "emerald", manageOnly: false, status: "coming-soon" },
-  { key: "truload", label: "TruLoad", Icon: lucideReact.Scale, category: "Operations", color: "amber", manageOnly: true, status: "live" },
+  // Sourcing and Traceability are not built yet, so they are not listed (no "Soon" tiles).
+  { key: "truload", label: "TruLoad", Icon: lucideReact.Scale, category: "Operations", color: "amber", manageOnly: true, serviceTag: "truload", status: "live" },
   // Growth & Finance
   { key: "marketflow", label: "CRM (MarketFlow)", Icon: lucideReact.UserSquare, category: "Growth & Finance", color: "fuchsia", manageOnly: true, serviceTag: "marketflow", status: "live" },
-  { key: "erp", label: "ERP", Icon: lucideReact.Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
+  { key: "erp", label: "ERP (HR, Payroll)", Icon: lucideReact.Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
   { key: "treasury", label: "Treasury (Books)", Icon: lucideReact.Landmark, category: "Growth & Finance", color: "emerald", manageOnly: true, status: "live" },
   { key: "subscriptions", label: "Subscriptions", Icon: lucideReact.Tag, category: "Growth & Finance", color: "violet", manageOnly: true, status: "live" },
   // Platform
@@ -30,7 +29,7 @@ var SERVICE_REGISTRY = [
   // Specialized
   { key: "afya", label: "Afya", Icon: lucideReact.HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "afya", status: "live" },
   { key: "library", label: "Library", Icon: lucideReact.Library, category: "Specialized", color: "blue", manageOnly: false, status: "live" },
-  { key: "ispbilling", label: "ISP Billing", Icon: lucideReact.Wifi, category: "Specialized", color: "cyan", manageOnly: true, status: "live" },
+  { key: "ispbilling", label: "ISP Billing", Icon: lucideReact.Wifi, category: "Specialized", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
   { key: "maskani", label: "Maskani", Icon: lucideReact.Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" }
 ];
 function useVisibleServices({
