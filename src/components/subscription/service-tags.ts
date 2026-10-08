@@ -21,6 +21,7 @@ export const SERVICE_TAGS = {
   ISP_BILLING: 'isp_billing',
   PROJECTS:    'projects',
   AFYA:        'afya',
+  MASKANI:     'maskani',
 } as const;
 
 export type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
@@ -39,4 +40,5 @@ export const SERVICE_TAG_LABELS: Record<ServiceTag, string> = {
   isp_billing: 'ISP Billing',
   projects:    'Projects & Invoicing',
   afya:        'Afya (Hospital)',
+  maskani:     'Maskani (Property)',
 };

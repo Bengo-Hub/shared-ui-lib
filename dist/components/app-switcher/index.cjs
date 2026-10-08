@@ -30,7 +30,8 @@ var SERVICE_REGISTRY = [
   // Specialized
   { key: "afya", label: "Afya", Icon: lucideReact.HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "afya", status: "live" },
   { key: "library", label: "Library", Icon: lucideReact.Library, category: "Specialized", color: "blue", manageOnly: false, status: "live" },
-  { key: "ispbilling", label: "ISP Billing", Icon: lucideReact.Wifi, category: "Specialized", color: "cyan", manageOnly: true, status: "live" }
+  { key: "ispbilling", label: "ISP Billing", Icon: lucideReact.Wifi, category: "Specialized", color: "cyan", manageOnly: true, status: "live" },
+  { key: "maskani", label: "Maskani", Icon: lucideReact.Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" }
 ];
 function useVisibleServices({
   orgSlug,

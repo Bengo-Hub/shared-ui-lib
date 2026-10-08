@@ -612,7 +612,8 @@ var SERVICE_TAGS = {
   HELPDESK: "ticketing",
   ISP_BILLING: "isp_billing",
   PROJECTS: "projects",
-  AFYA: "afya"
+  AFYA: "afya",
+  MASKANI: "maskani"
 };
 var SERVICE_TAG_LABELS = {
   ordering: "Ordering",
@@ -626,7 +627,8 @@ var SERVICE_TAG_LABELS = {
   ticketing: "Help Desk",
   isp_billing: "ISP Billing",
   projects: "Projects & Invoicing",
-  afya: "Afya (Hospital)"
+  afya: "Afya (Hospital)",
+  maskani: "Maskani (Property)"
 };
 function resolveCatalogEntry(planCode, entry) {
   if (!entry) return void 0;

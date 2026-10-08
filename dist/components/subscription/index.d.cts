@@ -109,6 +109,7 @@ declare const SERVICE_TAGS: {
     readonly ISP_BILLING: "isp_billing";
     readonly PROJECTS: "projects";
     readonly AFYA: "afya";
+    readonly MASKANI: "maskani";
 };
 type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
 /** Human-readable labels for each billable service tag. Used in auth-ui billing tabs. */

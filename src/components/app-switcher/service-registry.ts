@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  Building2,
   FolderKanban,
   Globe,
   HeartPulse,
@@ -58,7 +59,8 @@ export type ServiceKey =
   | 'library'
   | 'mail'
   | 'ispbilling'
-  | 'truload';
+  | 'truload'
+  | 'maskani';
 
 export type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
 
@@ -107,4 +109,5 @@ export const SERVICE_REGISTRY: ServiceDefinition[] = [
   { key: 'afya', label: 'Afya', Icon: HeartPulse, category: 'Specialized', color: 'rose', manageOnly: false, serviceTag: 'afya', status: 'live' },
   { key: 'library', label: 'Library', Icon: Library, category: 'Specialized', color: 'blue', manageOnly: false, status: 'live' },
   { key: 'ispbilling', label: 'ISP Billing', Icon: Wifi, category: 'Specialized', color: 'cyan', manageOnly: true, status: 'live' },
+  { key: 'maskani', label: 'Maskani', Icon: Building2, category: 'Specialized', color: 'fuchsia', manageOnly: false, serviceTag: 'maskani', status: 'live' },
 ];
