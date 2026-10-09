@@ -2285,6 +2285,48 @@ function SupplierForm({
     ] })
   ] });
 }
+
+// src/components/combobox/fixed-position.ts
+var GAP = 4;
+var MARGIN = 8;
+function makesContainingBlock(el) {
+  const s = getComputedStyle(el);
+  if (s.transform !== "none" || s.perspective !== "none" || s.filter !== "none") return true;
+  const backdrop = s.backdropFilter;
+  if (backdrop && backdrop !== "none") return true;
+  if (/transform|perspective|filter/.test(s.willChange)) return true;
+  if (/paint|layout|strict|content/.test(s.contain)) return true;
+  const containerType = s.containerType;
+  return !!containerType && containerType !== "normal";
+}
+function fixedContainingBlock(el) {
+  let node = el.parentElement;
+  while (node && node !== document.body && node !== document.documentElement) {
+    if (makesContainingBlock(node)) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+function toFixedFrame(anchor, top, left) {
+  const cb = fixedContainingBlock(anchor);
+  if (!cb) return { top, left };
+  const c = cb.getBoundingClientRect();
+  return { top: top - c.top - cb.clientTop + cb.scrollTop, left: left - c.left - cb.clientLeft + cb.scrollLeft };
+}
+function fixedPanelPosition(anchor, preferredHeight, minWidth = 0) {
+  const r = anchor.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = Math.min(Math.max(r.width, minWidth), vw - MARGIN * 2);
+  const left = Math.min(Math.max(r.left, MARGIN), vw - width - MARGIN);
+  const below = vh - r.bottom - GAP - MARGIN;
+  const above = r.top - GAP - MARGIN;
+  const openAbove = below < Math.min(preferredHeight, 240) && above > below;
+  const maxHeight = Math.max(160, openAbove ? above : below);
+  const height = Math.min(preferredHeight, maxHeight);
+  const top = openAbove ? r.top - GAP - height : r.bottom + GAP;
+  return { ...toFixedFrame(anchor, top, left), width, maxHeight };
+}
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -2322,11 +2364,7 @@ function SearchableCombobox({
     if (!open) return;
     const anchor = ref.current;
     if (!anchor) return;
-    const r = anchor.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const estimatedPanelHeight = 300;
-    const top = spaceBelow < 260 && r.top > estimatedPanelHeight ? Math.max(8, r.top - 4 - estimatedPanelHeight) : r.bottom + 4;
-    setPanelPos({ top, left: r.left, width: r.width });
+    setPanelPos(fixedPanelPosition(anchor, 300, 220));
   }, [open]);
   useEffect(() => {
     if (!open) return;
@@ -2465,8 +2503,8 @@ function SearchableCombobox({
       "div",
       {
         ref: panelRef,
-        style: { position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 },
-        className: "overflow-hidden rounded-xl border border-border bg-card shadow-xl",
+        style: { position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width, maxHeight: panelPos.maxHeight, zIndex: 60 },
+        className: "flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl",
         children: [
           /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-border px-3 py-2", children: [
             /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 shrink-0 text-muted-foreground" }),
@@ -2488,7 +2526,7 @@ function SearchableCombobox({
             ),
             busy && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 shrink-0 animate-spin text-muted-foreground" })
           ] }),
-          /* @__PURE__ */ jsxs("ul", { className: "max-h-60 overflow-y-auto py-1", children: [
+          /* @__PURE__ */ jsxs("ul", { className: "max-h-60 min-h-0 flex-1 overflow-y-auto py-1", children: [
             canCreate && /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
               "button",
               {
@@ -2811,7 +2849,7 @@ function AnchoredPopover({
     left = Math.max(8, Math.min(left, vw - width - 8));
     const spaceBelow = window.innerHeight - r.bottom;
     const top = spaceBelow < 260 && r.top > 300 ? Math.max(8, r.top - 8 - 300) : r.bottom + 4;
-    setPos({ top, left });
+    setPos(toFixedFrame(anchor, top, left));
   }, [open, anchorRef, align, width]);
   useEffect(() => {
     if (!open) return;

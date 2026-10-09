@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, Plus, Search, X } from 'lucide-react';
+import { fixedPanelPosition, type PanelPosition } from './fixed-position';
 
 /**
  * SearchableCombobox — the platform's canonical rich searchable single-select.
@@ -117,18 +118,15 @@ export function SearchableCombobox({
   // comment for why this can't be a plain `absolute` child. Recomputed each time the panel opens;
   // closes (rather than repositioning) on scroll/resize like AnchoredPopover, since a stale
   // position is worse than a closed dropdown and this control is reopened with one click.
-  const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  // fixedPanelPosition also corrects for a transformed ancestor (a centred dialog), which would
+  // otherwise throw the panel far from its field.
+  const [panelPos, setPanelPos] = useState<PanelPosition | null>(null);
   useLayoutEffect(() => {
     if (!open) return;
     const anchor = ref.current;
     if (!anchor) return;
-    const r = anchor.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const estimatedPanelHeight = 300; // search bar + max-h-60 list + optional footer, roughly
-    const top = spaceBelow < 260 && r.top > estimatedPanelHeight
-      ? Math.max(8, r.top - 4 - estimatedPanelHeight)
-      : r.bottom + 4;
-    setPanelPos({ top, left: r.left, width: r.width });
+    // Search bar + max-h-60 list + optional footer, roughly.
+    setPanelPos(fixedPanelPosition(anchor, 300, 220));
   }, [open]);
 
   useEffect(() => {
@@ -307,8 +305,8 @@ export function SearchableCombobox({
       {open && panelPos && (
         <div
           ref={panelRef}
-          style={{ position: 'fixed', top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 }}
-          className="overflow-hidden rounded-xl border border-border bg-card shadow-xl"
+          style={{ position: 'fixed', top: panelPos.top, left: panelPos.left, width: panelPos.width, maxHeight: panelPos.maxHeight, zIndex: 60 }}
+          className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl"
         >
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -328,7 +326,7 @@ export function SearchableCombobox({
             />
             {busy && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
           </div>
-          <ul className="max-h-60 overflow-y-auto py-1">
+          <ul className="max-h-60 min-h-0 flex-1 overflow-y-auto py-1">
             {canCreate && (
               <li>
                 <button

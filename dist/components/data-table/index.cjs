@@ -73,6 +73,32 @@ function BulkActionBar({
     ))
   ] });
 }
+
+// src/components/combobox/fixed-position.ts
+function makesContainingBlock(el) {
+  const s = getComputedStyle(el);
+  if (s.transform !== "none" || s.perspective !== "none" || s.filter !== "none") return true;
+  const backdrop = s.backdropFilter;
+  if (backdrop && backdrop !== "none") return true;
+  if (/transform|perspective|filter/.test(s.willChange)) return true;
+  if (/paint|layout|strict|content/.test(s.contain)) return true;
+  const containerType = s.containerType;
+  return !!containerType && containerType !== "normal";
+}
+function fixedContainingBlock(el) {
+  let node = el.parentElement;
+  while (node && node !== document.body && node !== document.documentElement) {
+    if (makesContainingBlock(node)) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+function toFixedFrame(anchor, top, left) {
+  const cb = fixedContainingBlock(anchor);
+  if (!cb) return { top, left };
+  const c = cb.getBoundingClientRect();
+  return { top: top - c.top - cb.clientTop + cb.scrollTop, left: left - c.left - cb.clientLeft + cb.scrollLeft };
+}
 function AnchoredPopover({
   open,
   onClose,
@@ -93,7 +119,7 @@ function AnchoredPopover({
     left = Math.max(8, Math.min(left, vw - width - 8));
     const spaceBelow = window.innerHeight - r.bottom;
     const top = spaceBelow < 260 && r.top > 300 ? Math.max(8, r.top - 8 - 300) : r.bottom + 4;
-    setPos({ top, left });
+    setPos(toFixedFrame(anchor, top, left));
   }, [open, anchorRef, align, width]);
   react.useEffect(() => {
     if (!open) return;

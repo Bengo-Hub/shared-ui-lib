@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Search, X } from 'lucide-react';
 import type { ComboboxOption } from './searchable-combobox';
+import { fixedPanelPosition, type PanelPosition } from './fixed-position';
 
 /**
  * MultiSelectCombobox — the platform's canonical chip-based multi-select, for picking several
@@ -52,18 +53,14 @@ export function MultiSelectCombobox({
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  // Shared geometry only (fixed-position.ts): it also corrects for a transformed ancestor such as a
+  // centred dialog, which would otherwise throw the panel far from its field.
+  const [panelPos, setPanelPos] = useState<PanelPosition | null>(null);
   useLayoutEffect(() => {
     if (!open) return;
     const anchor = ref.current;
     if (!anchor) return;
-    const r = anchor.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const estimatedPanelHeight = 300; // search bar + max-h-60 list + optional footer, roughly
-    const top = spaceBelow < 260 && r.top > estimatedPanelHeight
-      ? Math.max(8, r.top - 4 - estimatedPanelHeight)
-      : r.bottom + 4;
-    setPanelPos({ top, left: r.left, width: r.width });
+    setPanelPos(fixedPanelPosition(anchor, 300, 220));
   }, [open]);
 
   useEffect(() => {
@@ -161,8 +158,8 @@ export function MultiSelectCombobox({
       {open && panelPos && (
         <div
           ref={panelRef}
-          style={{ position: 'fixed', top: panelPos.top, left: panelPos.left, width: panelPos.width, zIndex: 60 }}
-          className="overflow-hidden rounded-xl border border-border bg-card shadow-xl"
+          style={{ position: 'fixed', top: panelPos.top, left: panelPos.left, width: panelPos.width, maxHeight: panelPos.maxHeight, zIndex: 60 }}
+          className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl"
         >
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -174,7 +171,7 @@ export function MultiSelectCombobox({
               className="w-full bg-transparent text-sm text-foreground focus:outline-none"
             />
           </div>
-          <ul className="max-h-60 overflow-y-auto py-1">
+          <ul className="max-h-60 min-h-0 flex-1 overflow-y-auto py-1">
             {matches.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-muted-foreground">{emptyText}</li>
             ) : (

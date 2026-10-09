@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { toFixedFrame } from '../combobox/fixed-position';
 
 /**
  * AnchoredPopover — minimal portal-less popover for table chrome (funnel
@@ -38,7 +39,9 @@ export function AnchoredPopover({
     // Flip above when there's no room below.
     const spaceBelow = window.innerHeight - r.bottom;
     const top = spaceBelow < 260 && r.top > 300 ? Math.max(8, r.top - 8 - 300) : r.bottom + 4;
-    setPos({ top, left });
+    // Inside a transformed ancestor (a table in a centred dialog) fixed coordinates are relative to
+    // that ancestor, not the viewport.
+    setPos(toFixedFrame(anchor, top, left));
   }, [open, anchorRef, align, width]);
 
   useEffect(() => {
