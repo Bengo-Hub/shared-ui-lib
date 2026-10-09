@@ -1,6 +1,6 @@
 {
   "name": "@bengo-hub/shared-ui-lib",
-  "version": "0.1.106",
+  "version": "0.1.107",
   "description": "Shared UI components for the Codevertex/UzaPoint platform. Treasury payment modal, SSO login modal, logistics tracking modal â€” all iframe-embedded with postMessage real-time events.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -112,6 +112,11 @@
       "types": "./dist/components/legal/index.d.ts",
       "import": "./dist/components/legal/index.js",
       "require": "./dist/components/legal/index.cjs"
+    },
+    "./branding": {
+      "types": "./dist/components/branding/index.d.ts",
+      "import": "./dist/components/branding/index.js",
+      "require": "./dist/components/branding/index.cjs"
     }
   },
   "files": [

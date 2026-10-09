@@ -23,6 +23,7 @@ export default defineConfig({
     "src/components/rich-text-editor/index.ts",
     "src/components/announcements/index.ts",
     "src/components/legal/index.ts",
+    "src/components/branding/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

@@ -1,3 +1,4 @@
+export { serviceAppName, tenantBrandWord } from '../branding/index.js';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import { ReactNode } from 'react';
 

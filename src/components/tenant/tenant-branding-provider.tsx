@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchTenantBySlug, serviceBrandingFor, type TenantBrand } from './tenant-api';
 import { defaultTenantCacheAdapter, type TenantCacheAdapter } from './kv-cache';
+import { serviceAppName } from '../branding/service-name';
 
 function hexToRgbTriplet(hex: string): string {
   const t = hex.replace(/^#/, '').trim();
@@ -212,8 +213,8 @@ export function TenantBrandingProvider({
     if (custom) return custom;
     const tenantName = effectiveBrand?.orgName || effectiveBrand?.name || '';
     // Falls back to the slug (never a hardcoded platform name) while nothing has resolved yet.
-    const firstWord = tenantName.split(' ')[0] || slug || '';
-    return firstWord ? `${firstWord} ${appName}` : appName;
+    // "The Urban Loft Cafe" gives "The Urban POS", not "The POS" (see branding/service-name).
+    return serviceAppName(tenantName, appName, slug || '');
   };
 
   const value = useMemo(

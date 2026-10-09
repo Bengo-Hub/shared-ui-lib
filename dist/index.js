@@ -2657,6 +2657,90 @@ function PoweredByBadge({
     }
   );
 }
+
+// src/components/branding/service-name.ts
+var LEADING_WORDS = /* @__PURE__ */ new Set([
+  // English articles and demonstratives
+  "the",
+  "a",
+  "an",
+  "this",
+  "that",
+  "these",
+  "those",
+  // Swahili has no articles; these are its demonstratives (this/that/those) across noun classes
+  "huyu",
+  "huyo",
+  "yule",
+  "hawa",
+  "hao",
+  "wale",
+  "hii",
+  "hiyo",
+  "ile",
+  "hizi",
+  "hizo",
+  "zile",
+  "huu",
+  "huo",
+  "ule",
+  "hiki",
+  "hicho",
+  "kile",
+  "hivi",
+  "hivyo",
+  "hili",
+  "hilo",
+  "lile",
+  "hayo",
+  "yale",
+  // French, Spanish, Italian, Portuguese
+  "le",
+  "la",
+  "les",
+  "un",
+  "une",
+  "des",
+  "du",
+  "el",
+  "los",
+  "las",
+  "una",
+  "unos",
+  "unas",
+  "il",
+  "lo",
+  "gli",
+  "uno",
+  "o",
+  "os",
+  "as",
+  "um",
+  "uma",
+  // German, Dutch
+  "der",
+  "die",
+  "das",
+  "ein",
+  "eine",
+  "de",
+  "het",
+  "een",
+  // Arabic definite article as written in Latin script
+  "al"
+]);
+function tenantBrandWord(tenantName) {
+  const words = (tenantName ?? "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  if (words.length > 1 && LEADING_WORDS.has(words[0].toLowerCase())) {
+    return `${words[0]} ${words[1]}`;
+  }
+  return words[0];
+}
+function serviceAppName(tenantName, service, fallback) {
+  const word = tenantBrandWord(tenantName) || (fallback ?? "").trim();
+  return word ? `${word} ${service}` : service;
+}
 function cx3(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -3952,6 +4036,6 @@ function useCookieConsent(category) {
   return state?.[category] === true;
 }
 
-export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, legalUrls, openCookieSettings, registerServiceWorker, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, legalUrls, openCookieSettings, registerServiceWorker, serviceAppName, tenantBrandWord, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
