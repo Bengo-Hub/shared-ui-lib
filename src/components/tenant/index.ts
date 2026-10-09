@@ -8,7 +8,13 @@ export {
   type TenantBrandMetadata,
   type TenantBrandColors,
 } from './tenant-api';
-export { tenantBrandWord, serviceAppName } from '../branding/service-name';
+export {
+  tenantBrandWord,
+  serviceAppName,
+  serviceShortName,
+  serviceBrandingMap,
+  serviceBrandingEntry,
+} from '../branding/service-name';
 export {
   kvKey,
   defaultTenantCacheAdapter,

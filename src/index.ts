@@ -103,7 +103,13 @@ export {
   type SearchableComboboxProps,
 } from './components/combobox';
 export { PoweredByBadge, type PoweredByBadgeProps } from './components/branding/powered-by';
-export { tenantBrandWord, serviceAppName } from './components/branding/service-name';
+export {
+  tenantBrandWord,
+  serviceAppName,
+  serviceShortName,
+  serviceBrandingMap,
+  serviceBrandingEntry,
+} from './components/branding/service-name';
 // PhoneInputField/CountrySelect/FlagIcon are deliberately NOT re-exported here — they pull in
 // react-phone-number-input, a class-component library that breaks Turbopack's static-generation
 // bundling for ANY consumer's page (confirmed live: hospital-ui's static "/" route failed with

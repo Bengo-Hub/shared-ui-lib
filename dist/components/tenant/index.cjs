@@ -58,64 +58,8 @@ var defaultTenantCacheAdapter = {
   setKV: nativeSetKV
 };
 
-// src/components/tenant/tenant-api.ts
-function serviceBrandingFor(brand, service) {
-  const entry = brand?.serviceBranding?.[service];
-  return entry && typeof entry === "object" ? entry : null;
-}
-function parseBrandFromTenant(t) {
-  const meta = t.metadata || {};
-  const logoUrl = t.logo_url ?? meta.logo_url ?? meta.logoUrl ?? null;
-  const primaryColor = t.brand_colors?.primary ?? (meta.primary_color ?? meta.primaryColor) ?? null;
-  const secondaryColor = t.brand_colors?.secondary ?? (meta.secondary_color ?? meta.secondaryColor) ?? null;
-  const orgName = meta.org_name ?? meta.orgName ?? t.name ?? "";
-  const posScreensaverUrl = meta.pos_screensaver_url ?? null;
-  return {
-    id: t.id,
-    name: t.name ?? "",
-    slug: t.slug ?? "",
-    logoUrl: typeof logoUrl === "string" ? logoUrl : null,
-    primaryColor: typeof primaryColor === "string" ? primaryColor : null,
-    secondaryColor: typeof secondaryColor === "string" ? secondaryColor : null,
-    orgName: typeof orgName === "string" ? orgName : t.name ?? "",
-    useCase: t.use_case ?? "other",
-    posScreensaverUrl: typeof posScreensaverUrl === "string" ? posScreensaverUrl : null,
-    contactEmail: typeof t.contact_email === "string" && t.contact_email ? t.contact_email : null,
-    serviceBranding: t.metadata?.service_branding && typeof t.metadata.service_branding === "object" ? t.metadata.service_branding : void 0
-  };
-}
-async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAdapter, onFresh) {
-  if (!slug) return null;
-  const url = `${authApiBase}/api/v1/tenants/by-slug/${encodeURIComponent(slug)}`;
-  const cacheKey = kvKey("tenant-brand", slug);
-  const refresh = async () => {
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      signal: typeof AbortSignal !== "undefined" && "timeout" in AbortSignal ? AbortSignal.timeout(8e3) : void 0
-    });
-    if (!res.ok) return null;
-    const brand = parseBrandFromTenant(await res.json());
-    if (brand) await cache.setKV(cacheKey, slug, brand).catch(() => {
-    });
-    return brand;
-  };
-  try {
-    const cached = await cache.getKV(cacheKey).catch(() => void 0);
-    if (cached) {
-      void refresh().then((fresh) => {
-        if (fresh) onFresh?.(fresh);
-      }).catch(() => {
-      });
-      return cached;
-    }
-    return await refresh();
-  } catch {
-    return await cache.getKV(cacheKey).catch(() => void 0) ?? null;
-  }
-}
-
 // src/components/branding/service-name.ts
+var SHORT_NAME_MAX = 12;
 var LEADING_WORDS = /* @__PURE__ */ new Set([
   // English articles and demonstratives
   "the",
@@ -186,17 +130,92 @@ var LEADING_WORDS = /* @__PURE__ */ new Set([
   // Arabic definite article as written in Latin script
   "al"
 ]);
+var clean = (s) => typeof s === "string" ? s.trim() : "";
+function serviceBrandingMap(metadata) {
+  const all = metadata?.service_branding;
+  return all && typeof all === "object" ? all : void 0;
+}
+function serviceBrandingEntry(metadata, service) {
+  const entry = serviceBrandingMap(metadata)?.[service];
+  return entry && typeof entry === "object" ? entry : null;
+}
 function tenantBrandWord(tenantName) {
-  const words = (tenantName ?? "").trim().split(/\s+/).filter(Boolean);
+  const words = clean(tenantName).split(/\s+/).filter(Boolean);
   if (words.length === 0) return "";
   if (words.length > 1 && LEADING_WORDS.has(words[0].toLowerCase())) {
     return `${words[0]} ${words[1]}`;
   }
   return words[0];
 }
-function serviceAppName(tenantName, service, fallback) {
-  const word = tenantBrandWord(tenantName) || (fallback ?? "").trim();
+function serviceAppName(tenantName, service, fallback, custom) {
+  const own = clean(custom?.name);
+  if (own) return own;
+  const word = tenantBrandWord(tenantName) || clean(fallback);
   return word ? `${word} ${service}` : service;
+}
+function serviceShortName(tenantName, service, fallback, custom) {
+  const short = clean(custom?.short_name);
+  if (short) return short;
+  const own = clean(custom?.name);
+  if (own && own.length <= SHORT_NAME_MAX) return own;
+  return serviceAppName(tenantName, service, fallback);
+}
+
+// src/components/tenant/tenant-api.ts
+function serviceBrandingFor(brand, service) {
+  const entry = brand?.serviceBranding?.[service];
+  return entry && typeof entry === "object" ? entry : null;
+}
+function parseBrandFromTenant(t) {
+  const meta = t.metadata || {};
+  const logoUrl = t.logo_url ?? meta.logo_url ?? meta.logoUrl ?? null;
+  const primaryColor = t.brand_colors?.primary ?? (meta.primary_color ?? meta.primaryColor) ?? null;
+  const secondaryColor = t.brand_colors?.secondary ?? (meta.secondary_color ?? meta.secondaryColor) ?? null;
+  const orgName = meta.org_name ?? meta.orgName ?? t.name ?? "";
+  const posScreensaverUrl = meta.pos_screensaver_url ?? null;
+  return {
+    id: t.id,
+    name: t.name ?? "",
+    slug: t.slug ?? "",
+    logoUrl: typeof logoUrl === "string" ? logoUrl : null,
+    primaryColor: typeof primaryColor === "string" ? primaryColor : null,
+    secondaryColor: typeof secondaryColor === "string" ? secondaryColor : null,
+    orgName: typeof orgName === "string" ? orgName : t.name ?? "",
+    useCase: t.use_case ?? "other",
+    posScreensaverUrl: typeof posScreensaverUrl === "string" ? posScreensaverUrl : null,
+    contactEmail: typeof t.contact_email === "string" && t.contact_email ? t.contact_email : null,
+    serviceBranding: serviceBrandingMap(t.metadata)
+  };
+}
+async function fetchTenantBySlug(slug, authApiBase, cache = defaultTenantCacheAdapter, onFresh) {
+  if (!slug) return null;
+  const url = `${authApiBase}/api/v1/tenants/by-slug/${encodeURIComponent(slug)}`;
+  const cacheKey = kvKey("tenant-brand", slug);
+  const refresh = async () => {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: typeof AbortSignal !== "undefined" && "timeout" in AbortSignal ? AbortSignal.timeout(8e3) : void 0
+    });
+    if (!res.ok) return null;
+    const brand = parseBrandFromTenant(await res.json());
+    if (brand) await cache.setKV(cacheKey, slug, brand).catch(() => {
+    });
+    return brand;
+  };
+  try {
+    const cached = await cache.getKV(cacheKey).catch(() => void 0);
+    if (cached) {
+      void refresh().then((fresh) => {
+        if (fresh) onFresh?.(fresh);
+      }).catch(() => {
+      });
+      return cached;
+    }
+    return await refresh();
+  } catch {
+    return await cache.getKV(cacheKey).catch(() => void 0) ?? null;
+  }
 }
 function hexToRgbTriplet(hex) {
   const t = hex.replace(/^#/, "").trim();
@@ -336,10 +355,8 @@ function TenantBrandingProvider({
     }
   }, [effectiveBrand, applyCssVariables, DEFAULT_BRAND]);
   const getServiceTitle = (appName, serviceKey) => {
-    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey)?.name : void 0;
-    if (custom) return custom;
-    const tenantName = effectiveBrand?.orgName || effectiveBrand?.name || "";
-    return serviceAppName(tenantName, appName, slug || "");
+    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey) : null;
+    return serviceAppName(effectiveBrand?.orgName || effectiveBrand?.name, appName, slug || "", custom);
   };
   const value = react.useMemo(
     () => ({
@@ -374,7 +391,10 @@ exports.kvKey = kvKey;
 exports.parseBrandFromTenant = parseBrandFromTenant;
 exports.readableForegroundHsl = readableForegroundHsl;
 exports.serviceAppName = serviceAppName;
+exports.serviceBrandingEntry = serviceBrandingEntry;
 exports.serviceBrandingFor = serviceBrandingFor;
+exports.serviceBrandingMap = serviceBrandingMap;
+exports.serviceShortName = serviceShortName;
 exports.tenantBrandWord = tenantBrandWord;
 exports.useTenantBranding = useTenantBranding;
 //# sourceMappingURL=index.cjs.map

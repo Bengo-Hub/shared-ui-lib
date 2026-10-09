@@ -209,12 +209,11 @@ export function TenantBrandingProvider({
   }, [effectiveBrand, applyCssVariables, DEFAULT_BRAND]);
 
   const getServiceTitle = (appName: string, serviceKey?: string) => {
-    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey)?.name : undefined;
-    if (custom) return custom;
-    const tenantName = effectiveBrand?.orgName || effectiveBrand?.name || '';
-    // Falls back to the slug (never a hardcoded platform name) while nothing has resolved yet.
-    // "The Urban Loft Cafe" gives "The Urban POS", not "The POS" (see branding/service-name).
-    return serviceAppName(tenantName, appName, slug || '');
+    // The tenant's custom name for this app wins ("Urban Eats"); else "<brand word> <appName>",
+    // where "The Urban Loft Cafe" gives "The Urban POS" (branding/service-name). Falls back to the
+    // slug (never a hardcoded platform name) while nothing has resolved yet.
+    const custom = serviceKey ? serviceBrandingFor(effectiveBrand, serviceKey) : null;
+    return serviceAppName(effectiveBrand?.orgName || effectiveBrand?.name, appName, slug || '', custom);
   };
 
   const value = useMemo(

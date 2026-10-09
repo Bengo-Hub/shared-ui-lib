@@ -1,4 +1,5 @@
-export { serviceAppName, tenantBrandWord } from '../branding/index.cjs';
+import { ServiceBrandingEntry } from '../branding/index.cjs';
+export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceShortName, tenantBrandWord } from '../branding/index.cjs';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import { ReactNode } from 'react';
 
@@ -85,14 +86,6 @@ interface TenantBrand {
      */
     serviceBranding?: Record<string, ServiceBrandingEntry>;
 }
-/** One app's tenant branding (auth-api tenant metadata `service_branding.<service>`). */
-interface ServiceBrandingEntry {
-    name?: string;
-    short_name?: string;
-    tagline?: string;
-    theme_color?: string;
-    icon_url?: string;
-}
 /** The tenant's branding for one app, or null when it uses the default. */
 declare function serviceBrandingFor(brand: Pick<TenantBrand, 'serviceBranding'> | null | undefined, service: string): ServiceBrandingEntry | null;
 declare function parseBrandFromTenant(t: TenantResponse): TenantBrand;
@@ -160,4 +153,4 @@ interface TenantBrandingProviderProps {
 declare function TenantBrandingProvider({ children, slug, authApiBase, cache, defaultPrimaryColor, defaultSecondaryColor, applyCssVariables, }: TenantBrandingProviderProps): react_jsx_runtime.JSX.Element;
 declare function useTenantBranding(): TenantBrandingContextType;
 
-export { type ServiceBrandingEntry, type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, readableForegroundHsl, serviceBrandingFor, useTenantBranding };
+export { ServiceBrandingEntry, type TenantBrand, type TenantBrandColors, type TenantBrandMetadata, type TenantBrandingContextType, TenantBrandingProvider, type TenantBrandingProviderProps, type TenantCacheAdapter, type TenantResponse, defaultTenantCacheAdapter, fetchTenantBySlug, kvKey, parseBrandFromTenant, readableForegroundHsl, serviceBrandingFor, useTenantBranding };

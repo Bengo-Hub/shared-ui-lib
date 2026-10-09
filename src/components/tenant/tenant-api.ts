@@ -9,6 +9,9 @@
  */
 
 import { defaultTenantCacheAdapter, kvKey, type TenantCacheAdapter } from './kv-cache';
+import { serviceBrandingMap, type ServiceBrandingEntry } from '../branding/service-name';
+
+export type { ServiceBrandingEntry };
 
 export interface TenantBrandMetadata {
   logo_url?: string;
@@ -64,15 +67,6 @@ export interface TenantBrand {
   serviceBranding?: Record<string, ServiceBrandingEntry>;
 }
 
-/** One app's tenant branding (auth-api tenant metadata `service_branding.<service>`). */
-export interface ServiceBrandingEntry {
-  name?: string;
-  short_name?: string;
-  tagline?: string;
-  theme_color?: string;
-  icon_url?: string;
-}
-
 /** The tenant's branding for one app, or null when it uses the default. */
 export function serviceBrandingFor(brand: Pick<TenantBrand, 'serviceBranding'> | null | undefined, service: string): ServiceBrandingEntry | null {
   const entry = brand?.serviceBranding?.[service];
@@ -99,10 +93,7 @@ export function parseBrandFromTenant(t: TenantResponse): TenantBrand {
     useCase: t.use_case ?? 'other',
     posScreensaverUrl: typeof posScreensaverUrl === 'string' ? posScreensaverUrl : null,
     contactEmail: typeof t.contact_email === 'string' && t.contact_email ? t.contact_email : null,
-    serviceBranding:
-      t.metadata?.service_branding && typeof t.metadata.service_branding === 'object'
-        ? (t.metadata.service_branding as Record<string, ServiceBrandingEntry>)
-        : undefined,
+    serviceBranding: serviceBrandingMap(t.metadata),
   };
 }
 
