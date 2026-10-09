@@ -2757,8 +2757,14 @@ function serviceShortName(tenantName, service, fallback, custom) {
   const short = clean(custom?.short_name);
   if (short) return short;
   const own = clean(custom?.name);
-  if (own && own.length <= SHORT_NAME_MAX) return own;
+  if (own) return own.length <= SHORT_NAME_MAX ? own : own.split(/\s+/).slice(0, 2).join(" ");
   return serviceAppName(tenantName, service, fallback);
+}
+function serviceFullName(tenantName, service, fallback, custom) {
+  const own = clean(custom?.name);
+  if (own) return own;
+  const business = clean(tenantName) || clean(fallback);
+  return business ? `${business} ${service}` : service;
 }
 function cx3(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -4055,6 +4061,6 @@ function useCookieConsent(category) {
   return state?.[category] === true;
 }
 
-export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, legalUrls, openCookieSettings, registerServiceWorker, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceShortName, tenantBrandWord, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, legalUrls, openCookieSettings, registerServiceWorker, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

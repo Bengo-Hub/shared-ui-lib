@@ -40,9 +40,16 @@ declare function tenantBrandWord(tenantName: string | null | undefined): string;
  */
 declare function serviceAppName(tenantName: string | null | undefined, service: string, fallback?: string, custom?: ServiceBrandingEntry | null): string;
 /**
- * The app's home-screen label: the tenant's custom short name, else its custom name when short
- * enough to fit under an icon, else the generated "<brand word> <service>".
+ * The app's home-screen label: the tenant's custom short name, else its custom name (its first two
+ * words when too long for a launcher, "Urban Eats Delivery Club" gives "Urban Eats"), else the
+ * generated "<brand word> <service>".
  */
 declare function serviceShortName(tenantName: string | null | undefined, service: string, fallback?: string, custom?: ServiceBrandingEntry | null): string;
+/**
+ * The app's full name (installed-app name, manifest `name`): the tenant's custom name, else the
+ * whole business name with the service, "THE URBAN LOFT CAFE POS". fallback stands in for a blank
+ * business name.
+ */
+declare function serviceFullName(tenantName: string | null | undefined, service: string, fallback?: string, custom?: ServiceBrandingEntry | null): string;
 
-export { type ServiceBrandingEntry, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceShortName, tenantBrandWord };
+export { type ServiceBrandingEntry, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord };

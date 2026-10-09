@@ -99,13 +99,20 @@ function serviceShortName(tenantName, service, fallback, custom) {
   const short = clean(custom?.short_name);
   if (short) return short;
   const own = clean(custom?.name);
-  if (own && own.length <= SHORT_NAME_MAX) return own;
+  if (own) return own.length <= SHORT_NAME_MAX ? own : own.split(/\s+/).slice(0, 2).join(" ");
   return serviceAppName(tenantName, service, fallback);
+}
+function serviceFullName(tenantName, service, fallback, custom) {
+  const own = clean(custom?.name);
+  if (own) return own;
+  const business = clean(tenantName) || clean(fallback);
+  return business ? `${business} ${service}` : service;
 }
 
 exports.serviceAppName = serviceAppName;
 exports.serviceBrandingEntry = serviceBrandingEntry;
 exports.serviceBrandingMap = serviceBrandingMap;
+exports.serviceFullName = serviceFullName;
 exports.serviceShortName = serviceShortName;
 exports.tenantBrandWord = tenantBrandWord;
 //# sourceMappingURL=index.cjs.map

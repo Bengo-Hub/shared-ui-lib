@@ -6,7 +6,7 @@ export { O as OfflineBar, a as OfflineBarProps, b as OfflineSyncBanner, c as Off
 export { CreatedSupplier, SupplierBankFieldRenderArgs, SupplierForm, SupplierFormProps, SupplierFormValues, SupplierPaymentMethod } from './components/suppliers/index.cjs';
 export { C as ComboboxOption, S as SearchableCombobox, a as SearchableComboboxProps } from './searchable-combobox--z0EwAlN.cjs';
 import * as react_jsx_runtime from 'react/jsx-runtime';
-export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceShortName, tenantBrandWord } from './components/branding/index.cjs';
+export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord } from './components/branding/index.cjs';
 export { RichText, RichTextEditor, RichTextEditorProps } from './components/rich-text-editor/index.cjs';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.cjs';
 export { ConsentCategory, CookieConsentState, CookieNotice, CookieNoticeProps, LegalLinks, LegalLinksProps, PLATFORM_LEGAL_ENTITY, legalUrls, openCookieSettings, useCookieConsent, useCookieConsentState } from './components/legal/index.cjs';

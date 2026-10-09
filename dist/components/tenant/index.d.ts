@@ -1,5 +1,5 @@
 import { ServiceBrandingEntry } from '../branding/index.js';
-export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceShortName, tenantBrandWord } from '../branding/index.js';
+export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord } from '../branding/index.js';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import { ReactNode } from 'react';
 

@@ -95,8 +95,9 @@ export function serviceAppName(
 }
 
 /**
- * The app's home-screen label: the tenant's custom short name, else its custom name when short
- * enough to fit under an icon, else the generated "<brand word> <service>".
+ * The app's home-screen label: the tenant's custom short name, else its custom name (its first two
+ * words when too long for a launcher, "Urban Eats Delivery Club" gives "Urban Eats"), else the
+ * generated "<brand word> <service>".
  */
 export function serviceShortName(
   tenantName: string | null | undefined,
@@ -107,6 +108,23 @@ export function serviceShortName(
   const short = clean(custom?.short_name);
   if (short) return short;
   const own = clean(custom?.name);
-  if (own && own.length <= SHORT_NAME_MAX) return own;
+  if (own) return own.length <= SHORT_NAME_MAX ? own : own.split(/\s+/).slice(0, 2).join(' ');
   return serviceAppName(tenantName, service, fallback);
+}
+
+/**
+ * The app's full name (installed-app name, manifest `name`): the tenant's custom name, else the
+ * whole business name with the service, "THE URBAN LOFT CAFE POS". fallback stands in for a blank
+ * business name.
+ */
+export function serviceFullName(
+  tenantName: string | null | undefined,
+  service: string,
+  fallback?: string,
+  custom?: ServiceBrandingEntry | null,
+): string {
+  const own = clean(custom?.name);
+  if (own) return own;
+  const business = clean(tenantName) || clean(fallback);
+  return business ? `${business} ${service}` : service;
 }

@@ -12,6 +12,7 @@ export {
   tenantBrandWord,
   serviceAppName,
   serviceShortName,
+  serviceFullName,
   serviceBrandingMap,
   serviceBrandingEntry,
 } from '../branding/service-name';

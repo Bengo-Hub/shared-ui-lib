@@ -107,6 +107,7 @@ export {
   tenantBrandWord,
   serviceAppName,
   serviceShortName,
+  serviceFullName,
   serviceBrandingMap,
   serviceBrandingEntry,
 } from './components/branding/service-name';
