@@ -6,8 +6,8 @@
  * the popup, so clicking an option closes the dialog and the focus trap fights the search input.
  *
  * Why this helper: `position: fixed` is only relative to the viewport when no ancestor creates a
- * containing block. A centred dialog does (`transform: translate(-50%, -50%)`), and so do
- * filter, backdrop-filter, perspective, will-change, contain and container-type. Inside one, a
+ * containing block. A centred dialog does (`transform: translate(-50%, -50%)`, or the
+ * `translate` property Tailwind v4 emits for the same classes), and so do filter, backdrop-filter, perspective, will-change, contain and container-type. Inside one, a
  * panel placed at viewport coordinates lands offset by the dialog's own position: far right and
  * low, partly off screen (maskani-ui Assign staff, 2026-10-09). The fix subtracts the containing
  * block's origin, then keeps the panel inside the viewport and flips it above the trigger when
@@ -24,12 +24,19 @@ export interface PanelPosition {
 const GAP = 4;
 const MARGIN = 8;
 
+// Individual transform properties count too. Tailwind v4 writes `-translate-x-1/2` as
+// `translate: ...`, not `transform`, and the computed `transform` of such an element is still
+// `none`, so checking `transform` alone missed every Tailwind v4 centred dialog (v0.1.110).
+const INDIVIDUAL_TRANSFORMS = ['translate', 'scale', 'rotate'] as const;
+
 function makesContainingBlock(el: Element): boolean {
   const s = getComputedStyle(el);
   if (s.transform !== 'none' || s.perspective !== 'none' || s.filter !== 'none') return true;
+  const props = s as CSSStyleDeclaration & Partial<Record<(typeof INDIVIDUAL_TRANSFORMS)[number], string>>;
+  if (INDIVIDUAL_TRANSFORMS.some((p) => { const v = props[p]; return !!v && v !== 'none'; })) return true;
   const backdrop = (s as CSSStyleDeclaration & { backdropFilter?: string }).backdropFilter;
   if (backdrop && backdrop !== 'none') return true;
-  if (/transform|perspective|filter/.test(s.willChange)) return true;
+  if (/transform|translate|scale|rotate|perspective|filter/.test(s.willChange)) return true;
   if (/paint|layout|strict|content/.test(s.contain)) return true;
   const containerType = (s as CSSStyleDeclaration & { containerType?: string }).containerType;
   return !!containerType && containerType !== 'normal';

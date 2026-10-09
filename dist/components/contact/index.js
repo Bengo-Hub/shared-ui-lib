@@ -50,12 +50,18 @@ function PhoneInputField({
 // src/components/combobox/fixed-position.ts
 var GAP = 4;
 var MARGIN = 8;
+var INDIVIDUAL_TRANSFORMS = ["translate", "scale", "rotate"];
 function makesContainingBlock(el) {
   const s = getComputedStyle(el);
   if (s.transform !== "none" || s.perspective !== "none" || s.filter !== "none") return true;
+  const props = s;
+  if (INDIVIDUAL_TRANSFORMS.some((p) => {
+    const v = props[p];
+    return !!v && v !== "none";
+  })) return true;
   const backdrop = s.backdropFilter;
   if (backdrop && backdrop !== "none") return true;
-  if (/transform|perspective|filter/.test(s.willChange)) return true;
+  if (/transform|translate|scale|rotate|perspective|filter/.test(s.willChange)) return true;
   if (/paint|layout|strict|content/.test(s.contain)) return true;
   const containerType = s.containerType;
   return !!containerType && containerType !== "normal";
