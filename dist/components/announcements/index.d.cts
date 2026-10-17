@@ -1,4 +1,7 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import * as React from 'react';
+import { ReactNode } from 'react';
+import * as lucide_react from 'lucide-react';
 
 /** One platform announcement, as notifications-api's public active read returns it. */
 interface Announcement {
@@ -73,4 +76,97 @@ declare function visibleAnnouncements(list: Announcement[], dismissed: string[],
  */
 declare function AnnouncementBanner({ service, orgSlug, viewerKey, isAdmin, flags, apiBaseUrl, className }: AnnouncementBannerProps): react_jsx_runtime.JSX.Element | null;
 
-export { type Announcement, AnnouncementBanner, type AnnouncementBannerProps, type AnnouncementFlags, type AnnouncementVariant, resolveAnnouncement, resolveAnnouncementLink, visibleAnnouncements };
+type NoticeTone = 'feature' | 'info' | 'warning';
+declare const NOTICE_TONES: {
+    readonly feature: {
+        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly badge: "New";
+        readonly ring: "border-primary/30";
+        readonly iconBox: "bg-primary/10 text-primary";
+        readonly badgeCls: "bg-primary text-primary-foreground";
+    };
+    readonly info: {
+        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly badge: "Update";
+        readonly ring: "border-sky-500/30";
+        readonly iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400";
+        readonly badgeCls: "bg-sky-600 text-white";
+    };
+    readonly warning: {
+        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly badge: "Notice";
+        readonly ring: "border-amber-500/40";
+        readonly iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+        readonly badgeCls: "bg-amber-500 text-white";
+    };
+};
+interface NoticeCardProps {
+    tone?: NoticeTone;
+    /** Overrides the tone's default badge text (New, Update, Notice). */
+    badge?: string;
+    title: string;
+    summary?: string;
+    /** Extra points shown under a "What's included" toggle. */
+    highlights?: string[];
+    cta?: {
+        label: string;
+        href: string;
+        external?: boolean;
+    };
+    /** Cut a long summary to three lines (the full text stays in the link target). */
+    clampSummary?: boolean;
+    /** Small text next to the title, for example "2 of 5". */
+    counter?: string;
+    /** Small muted text under the summary, for example the date and author of a notice. */
+    meta?: string;
+    dismissible?: boolean;
+    onDismiss?: () => void;
+    /** Controls such as previous and next, shown on the right below the dismiss button. */
+    footer?: ReactNode;
+    className?: string;
+}
+/**
+ * The shared notice card: tone icon, badge, title, summary, optional highlights and link, and a
+ * dismiss button. AnnouncementBanner (platform announcements) and NoticeCarousel (any list of
+ * notices, such as KRA notices) both render it, so every notice in the apps looks the same.
+ */
+declare function NoticeCard({ tone, badge, title, summary, highlights, cta, clampSummary, counter, meta, dismissible, onDismiss, footer, className, }: NoticeCardProps): react_jsx_runtime.JSX.Element;
+
+/** One notice for NoticeCarousel. The id must stay the same for the same notice: dismissals key on it. */
+interface NoticeItem {
+    id: string;
+    title: string;
+    summary?: string;
+    tone?: NoticeTone;
+    badge?: string;
+    cta?: {
+        label: string;
+        href: string;
+        external?: boolean;
+    };
+    /** Small text under the summary, for example the date a notice was posted. */
+    meta?: string;
+}
+interface NoticeCarouselProps {
+    notices: NoticeItem[];
+    /**
+     * Where dismissals are remembered on this device, for example `kra-notices:<tenant>:<viewer>`.
+     * Include the viewer so two people on one browser do not hide each other's notices.
+     */
+    storageKey: string;
+    /** How long each notice stays up before the next one slides in. Default 15 seconds. */
+    rotateMs?: number;
+    /** Notices can be dismissed unless this is false. */
+    dismissible?: boolean;
+    className?: string;
+}
+/**
+ * A list of notices shown one at a time in the shared NoticeCard, advancing by itself (paused while
+ * the pointer is over it) with previous, next and dots when there is more than one. Each notice can
+ * be dismissed; the dismissal is remembered on this device, per storageKey, and forgotten once the
+ * notice is no longer in the list so the stored list never outgrows the live set. Renders nothing
+ * when no notice is left. The caller owns ordering and expiry.
+ */
+declare function NoticeCarousel({ notices, storageKey, rotateMs, dismissible, className }: NoticeCarouselProps): react_jsx_runtime.JSX.Element | null;
+
+export { type Announcement, AnnouncementBanner, type AnnouncementBannerProps, type AnnouncementFlags, type AnnouncementVariant, NOTICE_TONES, NoticeCard, type NoticeCardProps, NoticeCarousel, type NoticeCarouselProps, type NoticeItem, type NoticeTone, resolveAnnouncement, resolveAnnouncementLink, visibleAnnouncements };

@@ -1,8 +1,97 @@
-import { AlertTriangle, Info, Megaphone, ArrowRight, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { jsx, jsxs } from 'react/jsx-runtime';
+import { AlertTriangle, Info, Megaphone, ArrowRight, ChevronUp, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 
 // src/components/announcements/announcement-banner.tsx
+var NOTICE_TONES = {
+  // A megaphone, not sparkles: sparkle icons read as "AI generated" to users.
+  feature: { icon: Megaphone, badge: "New", ring: "border-primary/30", iconBox: "bg-primary/10 text-primary", badgeCls: "bg-primary text-primary-foreground" },
+  info: { icon: Info, badge: "Update", ring: "border-sky-500/30", iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400", badgeCls: "bg-sky-600 text-white" },
+  warning: { icon: AlertTriangle, badge: "Notice", ring: "border-amber-500/40", iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400", badgeCls: "bg-amber-500 text-white" }
+};
+function NoticeCard({
+  tone = "feature",
+  badge,
+  title,
+  summary,
+  highlights = [],
+  cta,
+  clampSummary,
+  counter,
+  meta,
+  dismissible,
+  onDismiss,
+  footer,
+  className = ""
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const t = NOTICE_TONES[tone] ?? NOTICE_TONES.feature;
+  const Icon = t.icon;
+  const hasMore = highlights.length > 0;
+  return /* @__PURE__ */ jsx(
+    "section",
+    {
+      role: "status",
+      "aria-label": title,
+      className: `relative overflow-hidden rounded-2xl border ${t.ring} bg-card text-card-foreground shadow-sm ${className}`,
+      children: /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3 p-4 sm:gap-4 sm:p-5", children: [
+        /* @__PURE__ */ jsx("div", { className: `flex size-10 shrink-0 items-center justify-center rounded-xl ${t.iconBox}`, children: /* @__PURE__ */ jsx(Icon, { className: "size-5" }) }),
+        /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-2 pr-8", children: [
+            /* @__PURE__ */ jsx("span", { className: `rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${t.badgeCls}`, children: badge ?? t.badge }),
+            /* @__PURE__ */ jsx("h3", { className: "text-sm font-semibold sm:text-base", children: title }),
+            counter && /* @__PURE__ */ jsx("span", { className: "text-xs text-muted-foreground", children: counter })
+          ] }),
+          summary && /* @__PURE__ */ jsx("p", { className: `mt-1 text-sm text-muted-foreground ${clampSummary ? "line-clamp-3" : ""}`, children: summary }),
+          meta && /* @__PURE__ */ jsx("p", { className: "mt-1 text-xs text-muted-foreground", children: meta }),
+          expanded && hasMore && /* @__PURE__ */ jsx("ul", { className: "mt-3 grid gap-1.5 text-sm sm:grid-cols-2", children: highlights.map((h) => /* @__PURE__ */ jsxs("li", { className: "flex items-start gap-2", children: [
+            /* @__PURE__ */ jsx("span", { className: "mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" }),
+            /* @__PURE__ */ jsx("span", { children: h })
+          ] }, h)) }),
+          /* @__PURE__ */ jsxs("div", { className: "mt-3 flex flex-wrap items-center gap-2", children: [
+            cta && /* @__PURE__ */ jsxs(
+              "a",
+              {
+                href: cta.href,
+                target: cta.external ? "_blank" : void 0,
+                rel: cta.external ? "noopener noreferrer" : void 0,
+                className: "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90",
+                children: [
+                  cta.label,
+                  /* @__PURE__ */ jsx(ArrowRight, { className: "size-4" })
+                ]
+              }
+            ),
+            hasMore && /* @__PURE__ */ jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: () => setExpanded((v) => !v),
+                className: "inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                "aria-expanded": expanded,
+                children: [
+                  expanded ? "Show less" : "What's included",
+                  expanded ? /* @__PURE__ */ jsx(ChevronUp, { className: "size-4" }) : /* @__PURE__ */ jsx(ChevronDown, { className: "size-4" })
+                ]
+              }
+            ),
+            footer && /* @__PURE__ */ jsx("div", { className: "ml-auto flex items-center gap-1", children: footer })
+          ] })
+        ] }),
+        dismissible && onDismiss && /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onDismiss,
+            "aria-label": "Dismiss notice",
+            className: "absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+            children: /* @__PURE__ */ jsx(X, { className: "size-4" })
+          }
+        )
+      ] })
+    }
+  );
+}
 var env = globalThis.process?.env ?? {};
 var DEFAULT_API = env.NEXT_PUBLIC_NOTIFICATIONS_API_URL || "https://notificationsapi.codevertexafrica.com";
 var REFRESH_MS = 10 * 60 * 1e3;
@@ -65,16 +154,9 @@ function resolveAnnouncement(a, flags = {}) {
 function visibleAnnouncements(list, dismissed, isAdmin, flags = {}) {
   return list.filter((a) => isAdmin || a.audience !== "admins").map((a) => resolveAnnouncement(a, flags)).filter((a) => !!a && !(a.dismissible && dismissed.includes(a.dismissKey)));
 }
-var TONES = {
-  // A megaphone, not sparkles: sparkle icons read as "AI generated" to users.
-  feature: { icon: Megaphone, badge: "New", ring: "border-primary/30", iconBox: "bg-primary/10 text-primary", badgeCls: "bg-primary text-primary-foreground" },
-  info: { icon: Info, badge: "Update", ring: "border-sky-500/30", iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400", badgeCls: "bg-sky-600 text-white" },
-  warning: { icon: AlertTriangle, badge: "Notice", ring: "border-amber-500/40", iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400", badgeCls: "bg-amber-500 text-white" }
-};
 function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = false, flags, apiBaseUrl = DEFAULT_API, className = "" }) {
   const [items, setItems] = useState([]);
   const [dismissed, setDismissed] = useState([]);
-  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     setDismissed(readDismissed(viewerKey));
   }, [viewerKey]);
@@ -100,79 +182,116 @@ function AnnouncementBanner({ service, orgSlug, viewerKey = "anon", isAdmin = fa
     const next = [...dismissed.filter((key) => live.has(key.split(":")[0])), current.dismissKey];
     setDismissed(next);
     writeDismissed(viewerKey, next);
-    setExpanded(false);
   }, [current, dismissed, items, viewerKey]);
   if (!current) return null;
-  const tone = TONES[current.tone] ?? TONES.feature;
-  const Icon = tone.icon;
   const link = current.cta_url ? resolveAnnouncementLink(current.cta_url, orgSlug) : null;
-  const hasMore = current.highlights.length > 0;
   return /* @__PURE__ */ jsx(
-    "section",
+    NoticeCard,
     {
-      role: "status",
-      "aria-label": current.title,
-      className: `relative overflow-hidden rounded-2xl border ${tone.ring} bg-card text-card-foreground shadow-sm ${className}`,
-      children: /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3 p-4 sm:gap-4 sm:p-5", children: [
-        /* @__PURE__ */ jsx("div", { className: `flex size-10 shrink-0 items-center justify-center rounded-xl ${tone.iconBox}`, children: /* @__PURE__ */ jsx(Icon, { className: "size-5" }) }),
-        /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-2 pr-8", children: [
-            /* @__PURE__ */ jsx("span", { className: `rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${tone.badgeCls}`, children: tone.badge }),
-            /* @__PURE__ */ jsx("h3", { className: "text-sm font-semibold sm:text-base", children: current.title }),
-            visible.length > 1 && /* @__PURE__ */ jsxs("span", { className: "text-xs text-muted-foreground", children: [
-              "1 of ",
-              visible.length
-            ] })
-          ] }),
-          /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: current.summary }),
-          expanded && hasMore && /* @__PURE__ */ jsx("ul", { className: "mt-3 grid gap-1.5 text-sm sm:grid-cols-2", children: current.highlights.map((h) => /* @__PURE__ */ jsxs("li", { className: "flex items-start gap-2", children: [
-            /* @__PURE__ */ jsx("span", { className: "mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" }),
-            /* @__PURE__ */ jsx("span", { children: h })
-          ] }, h)) }),
-          /* @__PURE__ */ jsxs("div", { className: "mt-3 flex flex-wrap items-center gap-2", children: [
-            link && current.cta_label && /* @__PURE__ */ jsxs(
-              "a",
-              {
-                href: link.href,
-                target: link.external ? "_blank" : void 0,
-                rel: link.external ? "noopener noreferrer" : void 0,
-                className: "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90",
-                children: [
-                  current.cta_label,
-                  /* @__PURE__ */ jsx(ArrowRight, { className: "size-4" })
-                ]
-              }
-            ),
-            hasMore && /* @__PURE__ */ jsxs(
-              "button",
-              {
-                type: "button",
-                onClick: () => setExpanded((v) => !v),
-                className: "inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                "aria-expanded": expanded,
-                children: [
-                  expanded ? "Show less" : "What's included",
-                  expanded ? /* @__PURE__ */ jsx(ChevronUp, { className: "size-4" }) : /* @__PURE__ */ jsx(ChevronDown, { className: "size-4" })
-                ]
-              }
-            )
-          ] })
-        ] }),
-        current.dismissible && /* @__PURE__ */ jsx(
+      tone: current.tone,
+      title: current.title,
+      summary: current.summary,
+      highlights: current.highlights,
+      cta: link && current.cta_label ? { label: current.cta_label, href: link.href, external: link.external } : void 0,
+      counter: visible.length > 1 ? `1 of ${visible.length}` : void 0,
+      dismissible: current.dismissible,
+      onDismiss: dismiss,
+      className
+    },
+    current.dismissKey
+  );
+}
+var DEFAULT_ROTATE_MS = 15e3;
+function readDismissed2(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string") : [];
+  } catch {
+    return [];
+  }
+}
+function writeDismissed2(key, ids) {
+  try {
+    localStorage.setItem(key, JSON.stringify(ids));
+  } catch {
+  }
+}
+function NoticeCarousel({ notices, storageKey, rotateMs = DEFAULT_ROTATE_MS, dismissible = true, className = "" }) {
+  const [dismissed, setDismissed] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    setDismissed(readDismissed2(storageKey));
+  }, [storageKey]);
+  const visible = useMemo(() => notices.filter((n) => !dismissed.includes(n.id)), [notices, dismissed]);
+  const count = visible.length;
+  useEffect(() => {
+    if (count < 2 || paused) return;
+    const t = window.setInterval(() => setIndex((i) => (i + 1) % count), rotateMs);
+    return () => window.clearInterval(t);
+  }, [count, paused, rotateMs]);
+  const current = count > 0 ? visible[index % count] : void 0;
+  const dismiss = useCallback(() => {
+    if (!current) return;
+    const live = new Set(notices.map((n) => n.id));
+    const next = [...dismissed.filter((id) => live.has(id)), current.id];
+    setDismissed(next);
+    writeDismissed2(storageKey, next);
+    setIndex(0);
+  }, [current, dismissed, notices, storageKey]);
+  if (!current) return null;
+  const position = index % count;
+  return /* @__PURE__ */ jsx("div", { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false), "aria-live": "polite", children: /* @__PURE__ */ jsx(
+    NoticeCard,
+    {
+      tone: current.tone ?? "info",
+      badge: current.badge,
+      title: current.title,
+      summary: current.summary,
+      meta: current.meta,
+      cta: current.cta,
+      clampSummary: true,
+      counter: count > 1 ? `${position + 1} of ${count}` : void 0,
+      dismissible,
+      onDismiss: dismiss,
+      className,
+      footer: count > 1 ? /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx(
           "button",
           {
             type: "button",
-            onClick: dismiss,
-            "aria-label": "Dismiss announcement",
-            className: "absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-            children: /* @__PURE__ */ jsx(X, { className: "size-4" })
+            "aria-label": "Previous notice",
+            onClick: () => setIndex((i) => (i - 1 + count) % count),
+            className: "rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground",
+            children: /* @__PURE__ */ jsx(ChevronLeft, { className: "size-4" })
+          }
+        ),
+        visible.map((n, i) => /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            "aria-label": `Show notice ${i + 1}`,
+            onClick: () => setIndex(i),
+            className: `size-1.5 rounded-full ${i === position ? "bg-primary" : "bg-primary/30"}`
+          },
+          n.id
+        )),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            "aria-label": "Next notice",
+            onClick: () => setIndex((i) => (i + 1) % count),
+            className: "rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground",
+            children: /* @__PURE__ */ jsx(ChevronRight, { className: "size-4" })
           }
         )
-      ] })
-    }
-  );
+      ] }) : void 0
+    },
+    current.id
+  ) });
 }
 
-export { AnnouncementBanner, resolveAnnouncement, resolveAnnouncementLink, visibleAnnouncements };
+export { AnnouncementBanner, NOTICE_TONES, NoticeCard, NoticeCarousel, resolveAnnouncement, resolveAnnouncementLink, visibleAnnouncements };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,7 @@
 'use client';
 
-import { AlertTriangle, ArrowRight, ChevronDown, ChevronUp, Info, Megaphone, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { NoticeCard } from './notice-card';
 
 /** One platform announcement, as notifications-api's public active read returns it. */
 export interface Announcement {
@@ -143,13 +143,6 @@ export function visibleAnnouncements(list: Announcement[], dismissed: string[], 
     .filter((a): a is Announcement & { dismissKey: string } => !!a && !(a.dismissible && dismissed.includes(a.dismissKey)));
 }
 
-const TONES = {
-  // A megaphone, not sparkles: sparkle icons read as "AI generated" to users.
-  feature: { icon: Megaphone, badge: 'New', ring: 'border-primary/30', iconBox: 'bg-primary/10 text-primary', badgeCls: 'bg-primary text-primary-foreground' },
-  info: { icon: Info, badge: 'Update', ring: 'border-sky-500/30', iconBox: 'bg-sky-500/10 text-sky-600 dark:text-sky-400', badgeCls: 'bg-sky-600 text-white' },
-  warning: { icon: AlertTriangle, badge: 'Notice', ring: 'border-amber-500/40', iconBox: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', badgeCls: 'bg-amber-500 text-white' },
-} as const;
-
 /**
  * Platform "what's new" banner. Shows the highest-priority announcement the platform admin has
  * running for this app; dismissing it reveals the next. The admin sets the message, audience,
@@ -159,7 +152,6 @@ const TONES = {
 export function AnnouncementBanner({ service, orgSlug, viewerKey = 'anon', isAdmin = false, flags, apiBaseUrl = DEFAULT_API, className = '' }: AnnouncementBannerProps) {
   const [items, setItems] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
-  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setDismissed(readDismissed(viewerKey));
@@ -191,80 +183,24 @@ export function AnnouncementBanner({ service, orgSlug, viewerKey = 'anon', isAdm
     const next = [...dismissed.filter((key) => live.has(key.split(':')[0])), current.dismissKey];
     setDismissed(next);
     writeDismissed(viewerKey, next);
-    setExpanded(false);
   }, [current, dismissed, items, viewerKey]);
 
   if (!current) return null;
-  const tone = TONES[current.tone] ?? TONES.feature;
-  const Icon = tone.icon;
   const link = current.cta_url ? resolveAnnouncementLink(current.cta_url, orgSlug) : null;
-  const hasMore = current.highlights.length > 0;
 
   return (
-    <section
-      role="status"
-      aria-label={current.title}
-      className={`relative overflow-hidden rounded-2xl border ${tone.ring} bg-card text-card-foreground shadow-sm ${className}`}
-    >
-      <div className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
-        <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tone.iconBox}`}>
-          <Icon className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 pr-8">
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${tone.badgeCls}`}>{tone.badge}</span>
-            <h3 className="text-sm font-semibold sm:text-base">{current.title}</h3>
-            {visible.length > 1 && <span className="text-xs text-muted-foreground">1 of {visible.length}</span>}
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">{current.summary}</p>
-
-          {expanded && hasMore && (
-            <ul className="mt-3 grid gap-1.5 text-sm sm:grid-cols-2">
-              {current.highlights.map((h) => (
-                <li key={h} className="flex items-start gap-2">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
-                  <span>{h}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {link && current.cta_label && (
-              <a
-                href={link.href}
-                target={link.external ? '_blank' : undefined}
-                rel={link.external ? 'noopener noreferrer' : undefined}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                {current.cta_label}
-                <ArrowRight className="size-4" />
-              </a>
-            )}
-            {hasMore && (
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                aria-expanded={expanded}
-              >
-                {expanded ? 'Show less' : "What's included"}
-                {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-              </button>
-            )}
-          </div>
-        </div>
-        {current.dismissible && (
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Dismiss announcement"
-            className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
-    </section>
+    <NoticeCard
+      // Keyed so the expanded state of one announcement does not carry over to the next.
+      key={current.dismissKey}
+      tone={current.tone}
+      title={current.title}
+      summary={current.summary}
+      highlights={current.highlights}
+      cta={link && current.cta_label ? { label: current.cta_label, href: link.href, external: link.external } : undefined}
+      counter={visible.length > 1 ? `1 of ${visible.length}` : undefined}
+      dismissible={current.dismissible}
+      onDismiss={dismiss}
+      className={className}
+    />
   );
 }
