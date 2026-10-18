@@ -51,5 +51,46 @@ declare function serviceShortName(tenantName: string | null | undefined, service
  * business name.
  */
 declare function serviceFullName(tenantName: string | null | undefined, service: string, fallback?: string, custom?: ServiceBrandingEntry | null): string;
+/** The public tenant record (auth-api GET /api/v1/tenants/by-slug/{slug}) the app identity needs. */
+interface PublicTenantBranding {
+    name?: string;
+    logo_url?: string;
+    brand_colors?: {
+        primary?: string;
+        secondary?: string;
+    };
+    metadata?: Record<string, unknown>;
+}
+/** One app's identity for a tenant: page titles, PWA manifest and the generated app icons. */
+interface AppIdentity {
+    /** Business name, e.g. "Urban Loft". */
+    businessName: string;
+    /** Full app name, e.g. "Urban Eats" or "Urban Loft Ordering". */
+    appName: string;
+    /** Home-screen label. */
+    shortName: string;
+    description: string;
+    themeColor: string;
+    /** Background colour for the splash screen (brand secondary, else defaults). */
+    backgroundColor: string;
+    /** App icon: the app's own icon, else the business logo; null draws initials. */
+    iconUrl: string | null;
+    /** True when the tenant named the app itself. */
+    custom: boolean;
+}
+/**
+ * The one rule for an app's identity from the public tenant record: the tenant's own branding for
+ * this app (service_branding.<service>) wins, then the business's brand colours and logo, then the
+ * app's defaults. slug stands in for a missing business name.
+ */
+declare function resolveAppIdentity(tenant: PublicTenantBranding | null | undefined, opts: {
+    slug: string;
+    service: string;
+    /** Name suffix, e.g. "Ordering" or "Logistics". */
+    label: string;
+    defaultThemeColor: string;
+    defaultBackgroundColor?: string;
+    defaultDescription: (businessName: string) => string;
+}): AppIdentity;
 
-export { type ServiceBrandingEntry, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord };
+export { type AppIdentity, type PublicTenantBranding, type ServiceBrandingEntry, resolveAppIdentity, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord };

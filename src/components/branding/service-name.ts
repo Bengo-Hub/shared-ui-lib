@@ -128,3 +128,64 @@ export function serviceFullName(
   const business = clean(tenantName) || clean(fallback);
   return business ? `${business} ${service}` : service;
 }
+
+/** The public tenant record (auth-api GET /api/v1/tenants/by-slug/{slug}) the app identity needs. */
+export interface PublicTenantBranding {
+  name?: string;
+  logo_url?: string;
+  brand_colors?: { primary?: string; secondary?: string };
+  metadata?: Record<string, unknown>;
+}
+
+/** One app's identity for a tenant: page titles, PWA manifest and the generated app icons. */
+export interface AppIdentity {
+  /** Business name, e.g. "Urban Loft". */
+  businessName: string;
+  /** Full app name, e.g. "Urban Eats" or "Urban Loft Ordering". */
+  appName: string;
+  /** Home-screen label. */
+  shortName: string;
+  description: string;
+  themeColor: string;
+  /** Background colour for the splash screen (brand secondary, else defaults). */
+  backgroundColor: string;
+  /** App icon: the app's own icon, else the business logo; null draws initials. */
+  iconUrl: string | null;
+  /** True when the tenant named the app itself. */
+  custom: boolean;
+}
+
+/**
+ * The one rule for an app's identity from the public tenant record: the tenant's own branding for
+ * this app (service_branding.<service>) wins, then the business's brand colours and logo, then the
+ * app's defaults. slug stands in for a missing business name.
+ */
+export function resolveAppIdentity(
+  tenant: PublicTenantBranding | null | undefined,
+  opts: {
+    slug: string;
+    service: string;
+    /** Name suffix, e.g. "Ordering" or "Logistics". */
+    label: string;
+    defaultThemeColor: string;
+    defaultBackgroundColor?: string;
+    defaultDescription: (businessName: string) => string;
+  },
+): AppIdentity {
+  const meta = tenant?.metadata;
+  const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+  const entry: ServiceBrandingEntry = serviceBrandingEntry(meta, opts.service) ?? {};
+  const businessName = text(tenant?.name) || opts.slug;
+  return {
+    businessName,
+    appName: serviceFullName(businessName, opts.label, opts.slug, entry),
+    shortName: serviceShortName(businessName, opts.label, opts.slug, entry),
+    description: text(entry.tagline) || text(meta?.tagline) || opts.defaultDescription(businessName),
+    themeColor:
+      text(entry.theme_color) || text(tenant?.brand_colors?.primary) || text(meta?.primary_color) || opts.defaultThemeColor,
+    backgroundColor:
+      text(tenant?.brand_colors?.secondary) || text(meta?.secondary_color) || opts.defaultBackgroundColor || '#ffffff',
+    iconUrl: text(entry.icon_url) || text(tenant?.logo_url) || text(meta?.logo_url) || null,
+    custom: !!text(entry.name),
+  };
+}

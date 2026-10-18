@@ -106,7 +106,23 @@ function serviceFullName(tenantName, service, fallback, custom) {
   const business = clean(tenantName) || clean(fallback);
   return business ? `${business} ${service}` : service;
 }
+function resolveAppIdentity(tenant, opts) {
+  const meta = tenant?.metadata;
+  const text = (v) => typeof v === "string" ? v.trim() : "";
+  const entry = serviceBrandingEntry(meta, opts.service) ?? {};
+  const businessName = text(tenant?.name) || opts.slug;
+  return {
+    businessName,
+    appName: serviceFullName(businessName, opts.label, opts.slug, entry),
+    shortName: serviceShortName(businessName, opts.label, opts.slug, entry),
+    description: text(entry.tagline) || text(meta?.tagline) || opts.defaultDescription(businessName),
+    themeColor: text(entry.theme_color) || text(tenant?.brand_colors?.primary) || text(meta?.primary_color) || opts.defaultThemeColor,
+    backgroundColor: text(tenant?.brand_colors?.secondary) || text(meta?.secondary_color) || opts.defaultBackgroundColor || "#ffffff",
+    iconUrl: text(entry.icon_url) || text(tenant?.logo_url) || text(meta?.logo_url) || null,
+    custom: !!text(entry.name)
+  };
+}
 
-export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord };
+export { resolveAppIdentity, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, tenantBrandWord };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
