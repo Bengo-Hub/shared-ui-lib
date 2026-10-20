@@ -41,6 +41,42 @@ const ACCENT_CLASSES: Record<ServiceAccent, string> = {
   fuchsia: 'bg-fuchsia-500/10 text-fuchsia-600 group-hover:bg-fuchsia-500/15 dark:text-fuchsia-400',
 };
 
+function LockedTile({
+  label,
+  href,
+  Icon,
+  accent,
+  onNavigate,
+}: {
+  label: string;
+  href: string | null;
+  Icon: VisibleService['Icon'];
+  accent: string;
+  onNavigate?: () => void;
+}) {
+  const body = (
+    <>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-xl opacity-60 ${accent}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <span className="w-full text-xs font-semibold leading-tight text-foreground">{label}</span>
+      <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+        Not in your plan
+      </span>
+    </>
+  );
+  const cls = 'flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center';
+  return href ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" onClick={onNavigate} title={`${label} is not in your plan. Open plans.`} className={`${cls} transition-colors hover:bg-secondary`}>
+      {body}
+    </a>
+  ) : (
+    <div className={`${cls} opacity-70`} title={`${label} is not in your plan`}>
+      {body}
+    </div>
+  );
+}
+
 function groupByCategory(services: VisibleService[]): [string, VisibleService[]][] {
   const groups = new Map<string, VisibleService[]>();
   for (const svc of services) {

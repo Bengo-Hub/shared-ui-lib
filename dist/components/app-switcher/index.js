@@ -35,6 +35,8 @@ function useVisibleServices({
   urls,
   canManageLinks,
   activeServiceTags,
+  lockUnsubscribed = true,
+  upgradeUrl,
   include
 }) {
   return useMemo(() => {
@@ -48,6 +50,7 @@ function useVisibleServices({
         continue;
       }
       if (svc.serviceTag && activeServiceTags != null && !activeServiceTags.includes(svc.serviceTag)) {
+        if (lockUnsubscribed && urls[svc.key]) out.push({ ...svc, href: upgradeUrl ?? null, locked: true });
         continue;
       }
       const base = urls[svc.key];
@@ -55,7 +58,7 @@ function useVisibleServices({
       out.push({ ...svc, href: `${base}/${orgSlug}` });
     }
     return out;
-  }, [orgSlug, urls, canManageLinks, activeServiceTags, include]);
+  }, [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include]);
 }
 var ACCENT_CLASSES = {
   violet: "bg-violet-500/10 text-violet-600 group-hover:bg-violet-500/15 dark:text-violet-400",

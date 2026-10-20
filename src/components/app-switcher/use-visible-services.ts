@@ -4,6 +4,9 @@ import { SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey } from './ser
 export interface VisibleService extends ServiceDefinition {
   /** Absolute link target, or null for a 'coming-soon' entry / a service the host app didn't configure a URL for. */
   href: string | null;
+  /** True for a service outside the tenant's plan, kept in the list only when the host sets
+   *  `lockUnsubscribed`. Its `href` is then the host's `upgradeUrl` (or null). */
+  locked?: boolean;
 }
 
 export interface UseVisibleServicesOptions {
@@ -27,6 +30,15 @@ export interface UseVisibleServicesOptions {
    */
   activeServiceTags?: string[] | null;
   /**
+   * A service the plan does not cover stays in the list as a locked entry (`locked`, shown as "Not in
+   * your plan" with an upgrade link) instead of disappearing, so the tenant discovers the rest of
+   * the suite and never lands on a 403 page in the destination app. This is the standard (pos-ui's
+   * long-standing behaviour); pass false only to hide such services. Default true.
+   */
+  lockUnsubscribed?: boolean;
+  /** Where a locked entry links to (for example the subscriptions plans page). Null = not clickable. */
+  upgradeUrl?: string | null;
+  /**
    * Restricts the registry to exactly these keys (in registry order), for a host app that
    * intentionally curates a smaller cross-link list (e.g. logistics-ui/library-ui only ever
    * linked to Account Portal + Subscriptions). Omit to use the full registry.
@@ -44,6 +56,8 @@ export function useVisibleServices({
   urls,
   canManageLinks,
   activeServiceTags,
+  lockUnsubscribed = true,
+  upgradeUrl,
   include,
 }: UseVisibleServicesOptions): VisibleService[] {
   return useMemo(() => {
@@ -63,7 +77,9 @@ export function useVisibleServices({
         activeServiceTags != null &&
         !activeServiceTags.includes(svc.serviceTag)
       ) {
-        continue; // tenant's subscription is known and does not cover this service
+        // The tenant's subscription is known and does not cover this service.
+        if (lockUnsubscribed && urls[svc.key]) out.push({ ...svc, href: upgradeUrl ?? null, locked: true });
+        continue;
       }
 
       const base = urls[svc.key];
@@ -72,5 +88,5 @@ export function useVisibleServices({
       out.push({ ...svc, href: `${base}/${orgSlug}` });
     }
     return out;
-  }, [orgSlug, urls, canManageLinks, activeServiceTags, include]);
+  }, [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include]);
 }

@@ -44,6 +44,9 @@ declare const SERVICE_REGISTRY: ServiceDefinition[];
 interface VisibleService extends ServiceDefinition {
     /** Absolute link target, or null for a 'coming-soon' entry / a service the host app didn't configure a URL for. */
     href: string | null;
+    /** True for a service outside the tenant's plan, kept in the list only when the host sets
+     *  `lockUnsubscribed`. Its `href` is then the host's `upgradeUrl` (or null). */
+    locked?: boolean;
 }
 interface UseVisibleServicesOptions {
     /** Tenant/org slug appended to each service's base URL (`${base}/${orgSlug}`). */
@@ -66,6 +69,15 @@ interface UseVisibleServicesOptions {
      */
     activeServiceTags?: string[] | null;
     /**
+     * A service the plan does not cover stays in the list as a locked entry (`locked`, shown as "Not in
+     * your plan" with an upgrade link) instead of disappearing, so the tenant discovers the rest of
+     * the suite and never lands on a 403 page in the destination app. This is the standard (pos-ui's
+     * long-standing behaviour); pass false only to hide such services. Default true.
+     */
+    lockUnsubscribed?: boolean;
+    /** Where a locked entry links to (for example the subscriptions plans page). Null = not clickable. */
+    upgradeUrl?: string | null;
+    /**
      * Restricts the registry to exactly these keys (in registry order), for a host app that
      * intentionally curates a smaller cross-link list (e.g. logistics-ui/library-ui only ever
      * linked to Account Portal + Subscriptions). Omit to use the full registry.
@@ -77,7 +89,7 @@ interface UseVisibleServicesOptions {
  * the "SERVICES" profile-menu dropdown: RBAC (manageOnly) + subscription (serviceTag) gating,
  * with 'coming-soon' entries always included (disabled, no href) so the whole roadmap is visible.
  */
-declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, include, }: UseVisibleServicesOptions): VisibleService[];
+declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, }: UseVisibleServicesOptions): VisibleService[];
 
 /**
  * Icon-grid presentation of useVisibleServices()'s output — the "SERVICES"
