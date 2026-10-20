@@ -33,3 +33,4 @@ export {
   type ServiceLockMode,
   type ServiceLockProps,
 } from './service-lock';
+export { PlanServiceLock, type PlanServiceLockProps } from './plan-service-lock';

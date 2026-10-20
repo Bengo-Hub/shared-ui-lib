@@ -1109,10 +1109,58 @@ function ServiceLock({ serviceTag, mode = "block", children, className, title, d
   ] });
 }
 
+// src/components/app-switcher/service-tags-from-token.ts
+function serviceTagsFromAccessToken(token) {
+  if (!token) return void 0;
+  const part = token.split(".")[1];
+  if (!part) return void 0;
+  try {
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    const json = typeof atob === "function" ? decodeURIComponent(
+      Array.from(atob(b64), (c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("")
+    ) : Buffer.from(b64, "base64").toString("utf8");
+    const claims = JSON.parse(json);
+    if (claims.is_platform_owner || claims.is_demo || claims.sub_exempt || claims.billing_mode === "service_charge") {
+      return void 0;
+    }
+    const tags = claims.active_service_tags;
+    return Array.isArray(tags) ? tags.filter((t) => typeof t === "string") : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function PlanServiceLock({
+  serviceTag,
+  accessToken,
+  upgradeBaseUrl,
+  title,
+  description,
+  children
+}) {
+  const tags = serviceTagsFromAccessToken(accessToken);
+  const locked = !!tags && tags.length > 0 && !tags.includes(serviceTag);
+  const value = react.useMemo(
+    () => ({
+      features: [],
+      limits: {},
+      isExempt: false,
+      status: null,
+      isLoading: false,
+      activeServiceTags: tags ?? [],
+      upgradeBaseUrl: upgradeBaseUrl ?? ""
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tags?.join(","), upgradeBaseUrl]
+  );
+  if (!locked) return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children });
+  return /* @__PURE__ */ jsxRuntime.jsx(SubscriptionContext.Provider, { value, children: /* @__PURE__ */ jsxRuntime.jsx(ServiceLock, { serviceTag, mode: "block", title: title ?? "Not in your plan", description, children: null }) });
+}
+
 exports.FeatureGate = FeatureGate;
 exports.FeatureLock = FeatureLock;
 exports.FeatureLockBanner = FeatureLockBanner;
 exports.LimitReachedModal = LimitReachedModal;
+exports.PlanServiceLock = PlanServiceLock;
 exports.SERVICE_TAGS = SERVICE_TAGS;
 exports.SERVICE_TAG_LABELS = SERVICE_TAG_LABELS;
 exports.ServiceLock = ServiceLock;

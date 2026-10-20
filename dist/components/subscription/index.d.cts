@@ -366,4 +366,27 @@ declare function ServiceUpgradeDialog({ serviceTag, open, onClose, title, descri
 }): react_jsx_runtime.JSX.Element | null;
 declare function ServiceLock({ serviceTag, mode, children, className, title, description }: ServiceLockProps): react_jsx_runtime.JSX.Element;
 
-export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, type ServiceLockMode, type ServiceLockProps, type ServiceTag, type ServiceUnlockPlan, ServiceUpgradeDialog, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, isServiceUnlocked, resolveCatalogEntry, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };
+interface PlanServiceLockProps {
+    /** The service this app is ("library", "maskani", "projects", ...). */
+    serviceTag: string;
+    /** The signed-in user's access token; the plan's service tags are read from its claims. */
+    accessToken?: string | null;
+    /** Pricing UI base URL for the upgrade link (for example NEXT_PUBLIC_SUBSCRIPTIONS_UI_URL). */
+    upgradeBaseUrl?: string;
+    title?: string;
+    description?: string;
+    children: React__default.ReactNode;
+}
+/**
+ * PlanServiceLock shows the "not in your plan" upgrade card in place of a whole app when the
+ * tenant's plan has no entitlement in `serviceTag`, so opening the app directly never lands on a
+ * bare 403. It reads the tags from the access token, so an app needs no subscription plumbing of
+ * its own. Anything unknown (no token, no tag claim, exempt token) renders the app untouched, and
+ * the services themselves still enforce the plan on every request.
+ *
+ * Unlike ServiceLock it provides no entitlement context to `children`; it only supplies one to the
+ * lock card it renders, so an app's own SubscriptionProvider is never overridden.
+ */
+declare function PlanServiceLock({ serviceTag, accessToken, upgradeBaseUrl, title, description, children, }: PlanServiceLockProps): react_jsx_runtime.JSX.Element;
+
+export { type FeatureCatalogEntry, FeatureGate, type FeatureGateProps, FeatureLock, FeatureLockBanner, type FeatureLockMode, type FeatureLockProps, type LimitReachedInfo, LimitReachedModal, type LimitReachedModalProps, PlanServiceLock, type PlanServiceLockProps, SERVICE_TAGS, SERVICE_TAG_LABELS, ServiceLock, type ServiceLockMode, type ServiceLockProps, type ServiceTag, type ServiceUnlockPlan, ServiceUpgradeDialog, SubscriptionBanner, type SubscriptionBannerProps, SubscriptionContext, type SubscriptionEntitlements, SubscriptionProvider, UpgradeBadge, UpgradeDialog, type UsageAlert, isFeatureUnlocked, isServiceUnlocked, resolveCatalogEntry, useAnyFeature, useEntitlements, useFeature, useFeatureUpgrade, useLimit, useServiceUpgrade };
