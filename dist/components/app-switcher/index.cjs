@@ -27,8 +27,8 @@ var SERVICE_REGISTRY = [
   { key: "notifications", label: "Notifications", Icon: lucideReact.Bell, category: "Platform", color: "amber", manageOnly: true, status: "live" },
   { key: "ticketing", label: "Ticketing", Icon: lucideReact.Ticket, category: "Platform", color: "rose", manageOnly: false, status: "live" },
   // Specialized
-  { key: "afya", label: "Afya", Icon: lucideReact.HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "afya", status: "live" },
-  { key: "library", label: "Library", Icon: lucideReact.Library, category: "Specialized", color: "blue", manageOnly: false, status: "live" },
+  { key: "afya", label: "Afya", Icon: lucideReact.HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "hospital", status: "live" },
+  { key: "library", label: "Library", Icon: lucideReact.Library, category: "Specialized", color: "blue", manageOnly: false, serviceTag: "library", status: "live" },
   { key: "ispbilling", label: "ISP Billing", Icon: lucideReact.Wifi, category: "Specialized", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
   { key: "maskani", label: "Maskani", Icon: lucideReact.Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" }
 ];

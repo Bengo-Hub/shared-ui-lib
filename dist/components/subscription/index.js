@@ -610,7 +610,11 @@ var SERVICE_TAGS = {
   HELPDESK: "ticketing",
   ISP_BILLING: "isp_billing",
   PROJECTS: "projects",
-  AFYA: "afya",
+  /** The tag hospital plans and features are seeded with (subscriptions service_tag "hospital"). */
+  HOSPITAL: "hospital",
+  /** Deprecated alias of HOSPITAL: the old "afya" tag never matched a seeded plan. */
+  AFYA: "hospital",
+  LIBRARY: "library",
   MASKANI: "maskani"
 };
 var SERVICE_TAG_LABELS = {
@@ -625,7 +629,8 @@ var SERVICE_TAG_LABELS = {
   ticketing: "Help Desk",
   isp_billing: "ISP Billing",
   projects: "Projects & Invoicing",
-  afya: "Afya (Hospital)",
+  hospital: "Hospital (Afya)",
+  library: "Library",
   maskani: "Maskani (Property)"
 };
 function resolveCatalogEntry(planCode, entry) {

@@ -108,7 +108,11 @@ declare const SERVICE_TAGS: {
     readonly HELPDESK: "ticketing";
     readonly ISP_BILLING: "isp_billing";
     readonly PROJECTS: "projects";
-    readonly AFYA: "afya";
+    /** The tag hospital plans and features are seeded with (subscriptions service_tag "hospital"). */
+    readonly HOSPITAL: "hospital";
+    /** Deprecated alias of HOSPITAL: the old "afya" tag never matched a seeded plan. */
+    readonly AFYA: "hospital";
+    readonly LIBRARY: "library";
     readonly MASKANI: "maskani";
 };
 type ServiceTag = typeof SERVICE_TAGS[keyof typeof SERVICE_TAGS];
