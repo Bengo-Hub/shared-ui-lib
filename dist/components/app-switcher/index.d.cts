@@ -92,6 +92,19 @@ interface UseVisibleServicesOptions {
 declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, }: UseVisibleServicesOptions): VisibleService[];
 
 /**
+ * The service tags a tenant's plan covers, read from the `active_service_tags` claim of the access
+ * token the app already holds. Display only (it decides which switcher tiles read "Not in your
+ * plan"); the services themselves enforce the plan on every request.
+ *
+ * Returns undefined, which makes the switcher show every service, when:
+ * - there is no token, it cannot be parsed, or it carries no tag claim (older tokens, PIN terminal
+ *   sessions, or a plan with no tagged features), and
+ * - the token is exempt from subscription gating (platform owner, demo, service-charge, exempt
+ *   tenant), because those cover every service.
+ */
+declare function serviceTagsFromAccessToken(token?: string | null): string[] | undefined;
+
+/**
  * Icon-grid presentation of useVisibleServices()'s output — the "SERVICES"
  * profile-menu content every *-ui currently hand-rolls as its own vertical
  * list (pos-ui/inventory-ui/treasury-ui/logistics-ui/library-ui/hospital-ui
@@ -141,4 +154,4 @@ interface AppSwitcherTriggerProps {
 }
 declare function AppSwitcherTrigger({ services, className, onNavigate }: AppSwitcherTriggerProps): react_jsx_runtime.JSX.Element | null;
 
-export { AppSwitcherGrid, type AppSwitcherGridProps, AppSwitcherTrigger, type AppSwitcherTriggerProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, useVisibleServices };
+export { AppSwitcherGrid, type AppSwitcherGridProps, AppSwitcherTrigger, type AppSwitcherTriggerProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, serviceTagsFromAccessToken, useVisibleServices };
