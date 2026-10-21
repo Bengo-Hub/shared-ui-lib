@@ -155,3 +155,16 @@ export {
   type ConsentCategory,
   type CookieConsentState,
 } from './components/legal';
+export {
+  MEDIA_IMAGE_WIDTHS,
+  snapImageWidth,
+  isTransformableImage,
+  transformImageUrl,
+  imageSrcSet,
+  mediaImageLoader,
+  mediaImageLoaderFor,
+  MediaImage,
+  type TransformOptions,
+  type ImageLoaderProps,
+  type MediaImageProps,
+} from './components/media';

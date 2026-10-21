@@ -25,6 +25,7 @@ export default defineConfig({
     "src/components/legal/index.ts",
     "src/components/branding/index.ts",
     "src/components/app-icon/index.tsx",
+    "src/components/media/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

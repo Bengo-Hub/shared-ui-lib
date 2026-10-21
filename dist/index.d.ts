@@ -10,6 +10,7 @@ export { serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullNa
 export { RichText, RichTextEditor, RichTextEditorProps } from './components/rich-text-editor/index.js';
 export { B as BulkAction, a as BulkActionBar, C as Checkbox, b as ColumnFilterState, c as ColumnVisibilityButton, D as DataTable, d as DataTableColumn, e as DataTableProps, F as FilterMap, f as FilterOption, g as FunnelFilter, S as SortButton, h as SortDir, i as SortState, T as TableFooter, j as exportRowsAsCsv } from './export--eAJr1jb.js';
 export { ConsentCategory, CookieConsentState, CookieNotice, CookieNoticeProps, LegalLinks, LegalLinksProps, PLATFORM_LEGAL_ENTITY, legalUrls, openCookieSettings, useCookieConsent, useCookieConsentState } from './components/legal/index.js';
+export { ImageLoaderProps, MEDIA_IMAGE_WIDTHS, MediaImage, MediaImageProps, TransformOptions, imageSrcSet, isTransformableImage, mediaImageLoader, mediaImageLoaderFor, snapImageWidth, transformImageUrl } from './components/media/index.js';
 import 'react';
 
 /** Certified-reseller co-branding attribution — see the reseller-partner-program plan §6A/§9.
