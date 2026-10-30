@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import PhoneInput, { type Country, parsePhoneNumber } from 'react-phone-number-input';
 import './phone-input.css';
+import { repairPhoneNumber } from './phone-number';
 
 export interface PhoneInputFieldProps {
   /** E.164 value, e.g. "+254743793901". */
@@ -75,8 +76,10 @@ export function PhoneInputField({
       defaultCountry={defaultCountry}
       value={displayValue}
       onChange={(v) => {
-        setDisplayValue(v);
-        onChange(v ?? '');
+        // "+254 254 7..." or "+254 07..." becomes the real number as soon as it is complete.
+        const fixed = v ? repairPhoneNumber(v) : v;
+        setDisplayValue(fixed);
+        onChange(fixed ?? '');
       }}
       placeholder={placeholder}
       disabled={disabled}

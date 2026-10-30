@@ -27,6 +27,19 @@ interface PhoneInputFieldProps {
  */
 declare function PhoneInputField({ value, onChange, placeholder, disabled, className, defaultCountry, id, }: PhoneInputFieldProps): react_jsx_runtime.JSX.Element;
 
+/**
+ * True when value is a complete, real phone number (libphonenumber rules for its country),
+ * e.g. "+254743793901". Use it to validate what PhoneInputField emits before a form submits.
+ */
+declare function isValidPhone(value: string | null | undefined): boolean;
+/**
+ * Repairs the two ways people mistype a number after the field's fixed "+254" prefix:
+ * typing the country code again ("+254 254 743 793 901") or keeping the national 0
+ * ("+254 0743 793 901"). Returns the corrected E.164 number (a valid number in its canonical
+ * form), or the value unchanged when it cannot be repaired into a valid number.
+ */
+declare function repairPhoneNumber(value: string): string;
+
 interface CountrySelectProps {
     /** ISO 3166-1 alpha-2 code, e.g. "KE". */
     value?: string;
@@ -69,4 +82,4 @@ interface CountryEntry {
  */
 declare function listCountries(): CountryEntry[];
 
-export { type CountryEntry, CountrySelect, type CountrySelectProps, FlagIcon, type FlagIconProps, PhoneInputField, type PhoneInputFieldProps, countryName, listCountries };
+export { type CountryEntry, CountrySelect, type CountrySelectProps, FlagIcon, type FlagIconProps, PhoneInputField, type PhoneInputFieldProps, countryName, isValidPhone, listCountries, repairPhoneNumber };

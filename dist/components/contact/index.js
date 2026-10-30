@@ -1,10 +1,36 @@
 import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
-import PhoneInput, { parsePhoneNumber, getCountries } from 'react-phone-number-input';
+import PhoneInput, { isValidPhoneNumber, parsePhoneNumber, getCountries } from 'react-phone-number-input';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { X, ChevronsUpDown, Search, Loader2, Plus, Check } from 'lucide-react';
 import flags from 'react-phone-number-input/flags';
 
 // src/components/contact/phone-input.tsx
+function isValidPhone(value) {
+  if (!value) return false;
+  try {
+    return isValidPhoneNumber(value);
+  } catch {
+    return false;
+  }
+}
+function repairPhoneNumber(value) {
+  if (!value || !value.startsWith("+")) return value;
+  try {
+    const parsed = parsePhoneNumber(value);
+    if (!parsed) return value;
+    if (parsed.isValid()) return parsed.number;
+    const code = parsed.countryCallingCode;
+    const national = parsed.nationalNumber;
+    const candidates = [];
+    if (national.startsWith(code)) candidates.push(`+${national}`);
+    if (national.startsWith("0")) candidates.push(`+${code}${national.replace(/^0+/, "")}`);
+    for (const c of candidates) {
+      if (isValidPhone(c)) return c;
+    }
+  } catch {
+  }
+  return value;
+}
 function PhoneInputField({
   value,
   onChange,
@@ -37,8 +63,9 @@ function PhoneInputField({
       defaultCountry,
       value: displayValue,
       onChange: (v) => {
-        setDisplayValue(v);
-        onChange(v ?? "");
+        const fixed = v ? repairPhoneNumber(v) : v;
+        setDisplayValue(fixed);
+        onChange(fixed ?? "");
       },
       placeholder,
       disabled,
@@ -398,6 +425,6 @@ function CountrySelect({
   );
 }
 
-export { CountrySelect, FlagIcon, PhoneInputField, countryName, listCountries };
+export { CountrySelect, FlagIcon, PhoneInputField, countryName, isValidPhone, listCountries, repairPhoneNumber };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

@@ -12,6 +12,32 @@ var PhoneInput__default = /*#__PURE__*/_interopDefault(PhoneInput);
 var flags__default = /*#__PURE__*/_interopDefault(flags);
 
 // src/components/contact/phone-input.tsx
+function isValidPhone(value) {
+  if (!value) return false;
+  try {
+    return PhoneInput.isValidPhoneNumber(value);
+  } catch {
+    return false;
+  }
+}
+function repairPhoneNumber(value) {
+  if (!value || !value.startsWith("+")) return value;
+  try {
+    const parsed = PhoneInput.parsePhoneNumber(value);
+    if (!parsed) return value;
+    if (parsed.isValid()) return parsed.number;
+    const code = parsed.countryCallingCode;
+    const national = parsed.nationalNumber;
+    const candidates = [];
+    if (national.startsWith(code)) candidates.push(`+${national}`);
+    if (national.startsWith("0")) candidates.push(`+${code}${national.replace(/^0+/, "")}`);
+    for (const c of candidates) {
+      if (isValidPhone(c)) return c;
+    }
+  } catch {
+  }
+  return value;
+}
 function PhoneInputField({
   value,
   onChange,
@@ -44,8 +70,9 @@ function PhoneInputField({
       defaultCountry,
       value: displayValue,
       onChange: (v) => {
-        setDisplayValue(v);
-        onChange(v ?? "");
+        const fixed = v ? repairPhoneNumber(v) : v;
+        setDisplayValue(fixed);
+        onChange(fixed ?? "");
       },
       placeholder,
       disabled,
@@ -409,6 +436,8 @@ exports.CountrySelect = CountrySelect;
 exports.FlagIcon = FlagIcon;
 exports.PhoneInputField = PhoneInputField;
 exports.countryName = countryName;
+exports.isValidPhone = isValidPhone;
 exports.listCountries = listCountries;
+exports.repairPhoneNumber = repairPhoneNumber;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map
