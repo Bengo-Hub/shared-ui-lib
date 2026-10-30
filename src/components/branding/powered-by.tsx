@@ -10,10 +10,11 @@
  */
 
 import { cx } from '../data-table/types';
+import { CODEVERTEX_ICON_DATA_URI } from './codevertex-icon';
 
-/** The Codevertex Africa Limited platform icon (not the full wordmark logo — this reads clearly
- *  at small sizes and is the mark used site-wide on codevertexafrica.com). */
-const CODEVERTEX_ICON_URL = 'https://codevertexafrica.com/icon.svg';
+/** The Codevertex Africa Limited platform icon (not the full wordmark logo; it reads clearly at
+ *  small sizes). Bundled, not hot-linked, so the badge never depends on another site's files. */
+const CODEVERTEX_ICON_URL = CODEVERTEX_ICON_DATA_URI;
 
 /** Codevertex Africa Limited brand orange — the accent the company name is set in on the mark. */
 const BRAND_ORANGE = '#E8631E';
