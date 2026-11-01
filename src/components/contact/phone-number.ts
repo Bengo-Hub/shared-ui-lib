@@ -1,4 +1,4 @@
-import { isValidPhoneNumber, parsePhoneNumber } from 'react-phone-number-input';
+import { type Country, isValidPhoneNumber, parsePhoneNumber } from 'react-phone-number-input';
 
 /**
  * True when value is a complete, real phone number (libphonenumber rules for its country),
@@ -14,13 +14,22 @@ export function isValidPhone(value: string | null | undefined): boolean {
 }
 
 /**
- * Repairs the two ways people mistype a number after the field's fixed "+254" prefix:
- * typing the country code again ("+254 254 743 793 901") or keeping the national 0
- * ("+254 0743 793 901"). Returns the corrected E.164 number (a valid number in its canonical
- * form), or the value unchanged when it cannot be repaired into a valid number.
+ * Repairs the three ways people mistype a number in the field with its fixed "+254" prefix:
+ * typing the country code again ("+254 254 743 793 901"), keeping the national 0
+ * ("+254 0743 793 901"), or pasting a local number over the whole field ("0743793901", which the
+ * field shows as "+0743793901"; read in defaultCountry). Returns the corrected E.164 number (a
+ * valid number in its canonical form), or the value unchanged when it cannot be repaired.
  */
-export function repairPhoneNumber(value: string): string {
+export function repairPhoneNumber(value: string, defaultCountry?: Country): string {
   if (!value || !value.startsWith('+')) return value;
+  if (defaultCountry && value.startsWith('+0')) {
+    try {
+      const local = parsePhoneNumber(value.slice(1), defaultCountry);
+      if (local?.isValid()) return local.number;
+    } catch {
+      // not a complete local number yet
+    }
+  }
   try {
     const parsed = parsePhoneNumber(value);
     if (!parsed) return value;

@@ -33,12 +33,13 @@ declare function PhoneInputField({ value, onChange, placeholder, disabled, class
  */
 declare function isValidPhone(value: string | null | undefined): boolean;
 /**
- * Repairs the two ways people mistype a number after the field's fixed "+254" prefix:
- * typing the country code again ("+254 254 743 793 901") or keeping the national 0
- * ("+254 0743 793 901"). Returns the corrected E.164 number (a valid number in its canonical
- * form), or the value unchanged when it cannot be repaired into a valid number.
+ * Repairs the three ways people mistype a number in the field with its fixed "+254" prefix:
+ * typing the country code again ("+254 254 743 793 901"), keeping the national 0
+ * ("+254 0743 793 901"), or pasting a local number over the whole field ("0743793901", which the
+ * field shows as "+0743793901"; read in defaultCountry). Returns the corrected E.164 number (a
+ * valid number in its canonical form), or the value unchanged when it cannot be repaired.
  */
-declare function repairPhoneNumber(value: string): string;
+declare function repairPhoneNumber(value: string, defaultCountry?: Country): string;
 
 interface CountrySelectProps {
     /** ISO 3166-1 alpha-2 code, e.g. "KE". */

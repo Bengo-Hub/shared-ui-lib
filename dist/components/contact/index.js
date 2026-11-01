@@ -13,8 +13,15 @@ function isValidPhone(value) {
     return false;
   }
 }
-function repairPhoneNumber(value) {
+function repairPhoneNumber(value, defaultCountry) {
   if (!value || !value.startsWith("+")) return value;
+  if (defaultCountry && value.startsWith("+0")) {
+    try {
+      const local = parsePhoneNumber(value.slice(1), defaultCountry);
+      if (local?.isValid()) return local.number;
+    } catch {
+    }
+  }
   try {
     const parsed = parsePhoneNumber(value);
     if (!parsed) return value;
@@ -63,7 +70,7 @@ function PhoneInputField({
       defaultCountry,
       value: displayValue,
       onChange: (v) => {
-        const fixed = v ? repairPhoneNumber(v) : v;
+        const fixed = v ? repairPhoneNumber(v, defaultCountry) : v;
         setDisplayValue(fixed);
         onChange(fixed ?? "");
       },

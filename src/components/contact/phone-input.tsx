@@ -76,8 +76,8 @@ export function PhoneInputField({
       defaultCountry={defaultCountry}
       value={displayValue}
       onChange={(v) => {
-        // "+254 254 7..." or "+254 07..." becomes the real number as soon as it is complete.
-        const fixed = v ? repairPhoneNumber(v) : v;
+        // "+254 254 7...", "+254 07..." or a pasted "07..." becomes the real number once complete.
+        const fixed = v ? repairPhoneNumber(v, defaultCountry) : v;
         setDisplayValue(fixed);
         onChange(fixed ?? '');
       }}
