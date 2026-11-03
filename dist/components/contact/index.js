@@ -24,8 +24,15 @@ function repairPhoneNumber(value, defaultCountry) {
   }
   try {
     const parsed = parsePhoneNumber(value);
+    if (parsed?.isValid()) return parsed.number;
+    if (defaultCountry) {
+      try {
+        const local = parsePhoneNumber(value.slice(1), defaultCountry);
+        if (local?.isValid()) return local.number;
+      } catch {
+      }
+    }
     if (!parsed) return value;
-    if (parsed.isValid()) return parsed.number;
     const code = parsed.countryCallingCode;
     const national = parsed.nationalNumber;
     const candidates = [];

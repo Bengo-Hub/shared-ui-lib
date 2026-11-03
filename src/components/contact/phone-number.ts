@@ -32,8 +32,20 @@ export function repairPhoneNumber(value: string, defaultCountry?: Country): stri
   }
   try {
     const parsed = parsePhoneNumber(value);
+    if (parsed?.isValid()) return parsed.number;
+    // The field is in international mode, so a national number typed into an empty field
+    // ("712345678") arrives as "+712345678" and reads as Russia (+7). When that reading is not a
+    // valid number but the same digits are a valid national number of the default country, take
+    // the national one. A valid foreign number (a pasted "+44...") is never touched.
+    if (defaultCountry) {
+      try {
+        const local = parsePhoneNumber(value.slice(1), defaultCountry);
+        if (local?.isValid()) return local.number;
+      } catch {
+        // not a complete local number yet
+      }
+    }
     if (!parsed) return value;
-    if (parsed.isValid()) return parsed.number;
     const code = parsed.countryCallingCode;
     const national = parsed.nationalNumber;
     const candidates: string[] = [];
