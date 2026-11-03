@@ -2820,7 +2820,10 @@ function RichTextEditor({
   placeholder,
   disabled,
   className,
-  id
+  id,
+  ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy
 }) {
   const editor = react$1.useEditor({
     immediatelyRender: false,
@@ -2846,7 +2849,14 @@ function RichTextEditor({
           "prose-editor min-h-[140px] w-full px-3 py-2 text-sm text-foreground focus:outline-none",
           disabled && "cursor-not-allowed opacity-60"
         ),
-        ...placeholder ? { "data-placeholder": placeholder } : {}
+        ...placeholder ? { "data-placeholder": placeholder } : {},
+        // The editable area is a textbox for assistive technology; name it from the props.
+        role: "textbox",
+        "aria-multiline": "true",
+        ...ariaLabel ? { "aria-label": ariaLabel } : {},
+        ...ariaLabelledBy ? { "aria-labelledby": ariaLabelledBy } : {},
+        ...ariaDescribedBy ? { "aria-describedby": ariaDescribedBy } : {},
+        ...disabled ? { "aria-disabled": "true" } : {}
       }
     },
     onUpdate: ({ editor: ed }) => {

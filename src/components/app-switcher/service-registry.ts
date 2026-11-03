@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Building2,
+  Gift,
   FolderKanban,
   Globe,
   HeartPulse,
@@ -60,7 +61,8 @@ export type ServiceKey =
   | 'mail'
   | 'ispbilling'
   | 'truload'
-  | 'maskani';
+  | 'maskani'
+  | 'hadia';
 
 export type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
 
@@ -78,7 +80,29 @@ export interface ServiceDefinition {
   serviceTag?: string;
   /** 'coming-soon' entries render disabled with a "Soon" badge and are never linkable. */
   status: 'live' | 'coming-soon';
+  /**
+   * Tenant slug of a custom service built for one client (Hadia). Only that tenant ever sees it,
+   * never as a locked tile, so other tenants never learn it exists. Its own users still see every
+   * shared service. Billing stays on the tenant's ordinary plan (custom pricing), so this keys off
+   * the tenant, not a service tag.
+   */
+  onlyForTenant?: string;
+  /**
+   * Fixed landing path for an app that does not route by tenant slug (it reads the tenant from the
+   * session). When set, the link is `${base}${path}` instead of `${base}/${orgSlug}`.
+   */
+  path?: string;
 }
+
+/**
+ * Production base URLs for services every host app should link to without configuring an env var.
+ * A host's own `urls` entry always wins (staging, local). notifications-ui was missing from almost
+ * every app's switcher because only two hosts passed its URL.
+ */
+export const DEFAULT_SERVICE_URLS: Partial<Record<ServiceKey, string>> = {
+  notifications: 'https://notifications.codevertexafrica.com',
+  hadia: 'https://hadiafrica.com',
+};
 
 export const SERVICE_REGISTRY: ServiceDefinition[] = [
   // Commerce
@@ -101,7 +125,7 @@ export const SERVICE_REGISTRY: ServiceDefinition[] = [
   // Platform
   { key: 'auth', label: 'Account Portal', Icon: BookOpen, category: 'Platform', color: 'violet', manageOnly: false, status: 'live' },
   { key: 'mail', label: 'Mail', Icon: Mail, category: 'Platform', color: 'fuchsia', manageOnly: false, status: 'live' },
-  { key: 'notifications', label: 'Notifications', Icon: Bell, category: 'Platform', color: 'amber', manageOnly: true, status: 'live' },
+  { key: 'notifications', label: 'Notifications', Icon: Bell, category: 'Platform', color: 'amber', manageOnly: true, status: 'live', path: '/dashboard' },
   { key: 'ticketing', label: 'Ticketing', Icon: Ticket, category: 'Platform', color: 'rose', manageOnly: false, status: 'live' },
 
   // Specialized
@@ -109,4 +133,6 @@ export const SERVICE_REGISTRY: ServiceDefinition[] = [
   { key: 'library', label: 'Library', Icon: Library, category: 'Specialized', color: 'blue', manageOnly: false, serviceTag: 'library', status: 'live' },
   { key: 'ispbilling', label: 'ISP Billing', Icon: Wifi, category: 'Specialized', color: 'cyan', manageOnly: true, serviceTag: 'isp_billing', status: 'live' },
   { key: 'maskani', label: 'Maskani', Icon: Building2, category: 'Specialized', color: 'fuchsia', manageOnly: false, serviceTag: 'maskani', status: 'live' },
+  // Custom service for one client: only the hadia tenant ever sees it.
+  { key: 'hadia', label: 'Hadia', Icon: Gift, category: 'Specialized', color: 'emerald', manageOnly: true, status: 'live', onlyForTenant: 'hadia', path: '/admin' },
 ];

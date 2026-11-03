@@ -1,9 +1,13 @@
-import { ShoppingCart, Package, Globe, Truck, FolderKanban, Scale, UserSquare, Users, Landmark, Tag, BookOpen, Mail, Bell, Ticket, HeartPulse, Library, Wifi, Building2, Grid3x3 } from 'lucide-react';
+import { ShoppingCart, Package, Globe, Truck, FolderKanban, Scale, UserSquare, Users, Landmark, Tag, BookOpen, Mail, Bell, Ticket, HeartPulse, Library, Wifi, Building2, Gift, Grid3x3 } from 'lucide-react';
 import { useMemo, useState, useRef } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { createPortal } from 'react-dom';
 
 // src/components/app-switcher/service-registry.ts
+var DEFAULT_SERVICE_URLS = {
+  notifications: "https://notifications.codevertexafrica.com",
+  hadia: "https://hadiafrica.com"
+};
 var SERVICE_REGISTRY = [
   // Commerce
   { key: "pos", label: "POS", Icon: ShoppingCart, category: "Commerce", color: "violet", manageOnly: false, serviceTag: "pos", status: "live" },
@@ -22,15 +26,19 @@ var SERVICE_REGISTRY = [
   // Platform
   { key: "auth", label: "Account Portal", Icon: BookOpen, category: "Platform", color: "violet", manageOnly: false, status: "live" },
   { key: "mail", label: "Mail", Icon: Mail, category: "Platform", color: "fuchsia", manageOnly: false, status: "live" },
-  { key: "notifications", label: "Notifications", Icon: Bell, category: "Platform", color: "amber", manageOnly: true, status: "live" },
+  { key: "notifications", label: "Notifications", Icon: Bell, category: "Platform", color: "amber", manageOnly: true, status: "live", path: "/dashboard" },
   { key: "ticketing", label: "Ticketing", Icon: Ticket, category: "Platform", color: "rose", manageOnly: false, status: "live" },
   // Specialized
   { key: "afya", label: "Afya", Icon: HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "hospital", status: "live" },
   { key: "library", label: "Library", Icon: Library, category: "Specialized", color: "blue", manageOnly: false, serviceTag: "library", status: "live" },
   { key: "ispbilling", label: "ISP Billing", Icon: Wifi, category: "Specialized", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
-  { key: "maskani", label: "Maskani", Icon: Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" }
+  { key: "maskani", label: "Maskani", Icon: Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" },
+  // Custom service for one client: only the hadia tenant ever sees it.
+  { key: "hadia", label: "Hadia", Icon: Gift, category: "Specialized", color: "emerald", manageOnly: true, status: "live", onlyForTenant: "hadia", path: "/admin" }
 ];
-function useVisibleServices({
+
+// src/components/app-switcher/visible-services.ts
+function computeVisibleServices({
   orgSlug,
   urls,
   canManageLinks,
@@ -38,27 +46,39 @@ function useVisibleServices({
   lockUnsubscribed = true,
   upgradeUrl,
   include
-}) {
-  return useMemo(() => {
-    const allow = include ? new Set(include) : null;
-    const out = [];
-    for (const svc of SERVICE_REGISTRY) {
-      if (allow && !allow.has(svc.key)) continue;
-      if (svc.manageOnly && !canManageLinks) continue;
-      if (svc.status === "coming-soon") {
-        out.push({ ...svc, href: null });
-        continue;
-      }
-      if (svc.serviceTag && activeServiceTags != null && !activeServiceTags.includes(svc.serviceTag)) {
-        if (lockUnsubscribed && urls[svc.key]) out.push({ ...svc, href: upgradeUrl ?? null, locked: true });
-        continue;
-      }
-      const base = urls[svc.key];
-      if (!base) continue;
-      out.push({ ...svc, href: `${base}/${orgSlug}` });
+}, registry, defaults) {
+  const allow = include ? new Set(include) : null;
+  const out = [];
+  for (const svc of registry) {
+    if (allow && !allow.has(svc.key)) continue;
+    if (svc.manageOnly && !canManageLinks) continue;
+    if (svc.onlyForTenant && svc.onlyForTenant !== orgSlug) continue;
+    const entitled = !!svc.serviceTag && activeServiceTags != null && activeServiceTags.includes(svc.serviceTag);
+    const base = urls[svc.key] ?? defaults[svc.key];
+    if (svc.status === "coming-soon") {
+      out.push({ ...svc, href: null });
+      continue;
     }
-    return out;
-  }, [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include]);
+    if (svc.serviceTag && activeServiceTags != null && !entitled) {
+      if (lockUnsubscribed && base) out.push({ ...svc, href: upgradeUrl ?? null, locked: true });
+      continue;
+    }
+    if (!base) continue;
+    out.push({ ...svc, href: svc.path ? `${base}${svc.path}` : `${base}/${orgSlug}` });
+  }
+  return out;
+}
+
+// src/components/app-switcher/use-visible-services.ts
+function computeVisibleServices2(opts) {
+  return computeVisibleServices(opts, SERVICE_REGISTRY, DEFAULT_SERVICE_URLS);
+}
+function useVisibleServices(opts) {
+  const { orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include } = opts;
+  return useMemo(
+    () => computeVisibleServices2({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include }),
+    [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include]
+  );
 }
 
 // src/components/app-switcher/service-tags-from-token.ts
@@ -187,6 +207,6 @@ function AppSwitcherTrigger({ services, className, onNavigate }) {
   ] });
 }
 
-export { AppSwitcherGrid, AppSwitcherTrigger, SERVICE_REGISTRY, serviceTagsFromAccessToken, useVisibleServices };
+export { AppSwitcherGrid, AppSwitcherTrigger, DEFAULT_SERVICE_URLS, SERVICE_REGISTRY, computeVisibleServices2 as computeVisibleServices, serviceTagsFromAccessToken, useVisibleServices };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

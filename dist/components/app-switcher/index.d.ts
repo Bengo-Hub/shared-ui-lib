@@ -23,7 +23,7 @@ type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'or
 /** @deprecated Not listed any more; kept so host apps that still name it in `urls` type-check. */
  | 'sourcing'
 /** @deprecated Not listed any more; kept so host apps that still name it in `urls` type-check. */
- | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload' | 'maskani';
+ | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload' | 'maskani' | 'hadia';
 type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
 type ServiceAccent = 'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'fuchsia';
 interface ServiceDefinition {
@@ -38,7 +38,25 @@ interface ServiceDefinition {
     serviceTag?: string;
     /** 'coming-soon' entries render disabled with a "Soon" badge and are never linkable. */
     status: 'live' | 'coming-soon';
+    /**
+     * Tenant slug of a custom service built for one client (Hadia). Only that tenant ever sees it,
+     * never as a locked tile, so other tenants never learn it exists. Its own users still see every
+     * shared service. Billing stays on the tenant's ordinary plan (custom pricing), so this keys off
+     * the tenant, not a service tag.
+     */
+    onlyForTenant?: string;
+    /**
+     * Fixed landing path for an app that does not route by tenant slug (it reads the tenant from the
+     * session). When set, the link is `${base}${path}` instead of `${base}/${orgSlug}`.
+     */
+    path?: string;
 }
+/**
+ * Production base URLs for services every host app should link to without configuring an env var.
+ * A host's own `urls` entry always wins (staging, local). notifications-ui was missing from almost
+ * every app's switcher because only two hosts passed its URL.
+ */
+declare const DEFAULT_SERVICE_URLS: Partial<Record<ServiceKey, string>>;
 declare const SERVICE_REGISTRY: ServiceDefinition[];
 
 interface VisibleService extends ServiceDefinition {
@@ -48,14 +66,15 @@ interface VisibleService extends ServiceDefinition {
      *  `lockUnsubscribed`. Its `href` is then the host's `upgradeUrl` (or null). */
     locked?: boolean;
 }
+
 interface UseVisibleServicesOptions {
     /** Tenant/org slug appended to each service's base URL (`${base}/${orgSlug}`). */
     orgSlug: string;
     /**
      * Base URL per service, already resolved by the HOST app from its own
      * `process.env.NEXT_PUBLIC_*` literals (so its own bundler can statically inline them) —
-     * see each header.tsx's own env-var block. A service the host doesn't configure a URL for is
-     * silently omitted (not every app links to every service).
+     * see each header.tsx's own env-var block. A service the host doesn't configure a URL for falls
+     * back to DEFAULT_SERVICE_URLS, and is omitted only when it has no default either.
      */
     urls: Partial<Record<ServiceKey, string>>;
     /** Whether the current user can see 'manageOnly' (admin-flavored) shortcuts. */
@@ -63,16 +82,18 @@ interface UseVisibleServicesOptions {
     /**
      * Service tags the tenant currently has an ACTIVE subscription for. `null`/`undefined` means
      * "subscription status unknown" (e.g. the fetch hasn't completed or failed) and fails OPEN —
-     * every service still shows — matching this codebase's existing "never block the UI on a
-     * subscription-fetch failure" convention (see fetchSubscriptionInfo). Pass the real (possibly
-     * empty) array once known so an un-subscribed tenant stops seeing gated services.
+     * every shared service still shows — matching this codebase's existing "never block the UI on a
+     * subscription-fetch failure" convention (see fetchSubscriptionInfo). Exclusive (single-client)
+     * services never fail open. Pass the real (possibly empty) array once known so an un-subscribed
+     * tenant stops seeing gated services.
      */
     activeServiceTags?: string[] | null;
     /**
      * A service the plan does not cover stays in the list as a locked entry (`locked`, shown as "Not in
      * your plan" with an upgrade link) instead of disappearing, so the tenant discovers the rest of
      * the suite and never lands on a 403 page in the destination app. This is the standard (pos-ui's
-     * long-standing behaviour); pass false only to hide such services. Default true.
+     * long-standing behaviour); pass false only to hide such services. Default true. Exclusive
+     * services are never shown locked.
      */
     lockUnsubscribed?: boolean;
     /** Where a locked entry links to (for example the subscriptions plans page). Null = not clickable. */
@@ -84,12 +105,13 @@ interface UseVisibleServicesOptions {
      */
     include?: ServiceKey[];
 }
+/** The filter over the real registry and default URLs, for non-React callers. */
+declare function computeVisibleServices(opts: UseVisibleServicesOptions): VisibleService[];
 /**
  * Filters the canonical SERVICE_REGISTRY down to what this user/tenant should actually see in
- * the "SERVICES" profile-menu dropdown: RBAC (manageOnly) + subscription (serviceTag) gating,
- * with 'coming-soon' entries always included (disabled, no href) so the whole roadmap is visible.
+ * the "SERVICES" profile-menu dropdown (visible-services.ts holds the rules).
  */
-declare function useVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, }: UseVisibleServicesOptions): VisibleService[];
+declare function useVisibleServices(opts: UseVisibleServicesOptions): VisibleService[];
 
 /**
  * The service tags a tenant's plan covers, read from the `active_service_tags` claim of the access
@@ -154,4 +176,4 @@ interface AppSwitcherTriggerProps {
 }
 declare function AppSwitcherTrigger({ services, className, onNavigate }: AppSwitcherTriggerProps): react_jsx_runtime.JSX.Element | null;
 
-export { AppSwitcherGrid, type AppSwitcherGridProps, AppSwitcherTrigger, type AppSwitcherTriggerProps, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, serviceTagsFromAccessToken, useVisibleServices };
+export { AppSwitcherGrid, type AppSwitcherGridProps, AppSwitcherTrigger, type AppSwitcherTriggerProps, DEFAULT_SERVICE_URLS, SERVICE_REGISTRY, type ServiceDefinition, type ServiceKey, type UseVisibleServicesOptions, type VisibleService, computeVisibleServices, serviceTagsFromAccessToken, useVisibleServices };

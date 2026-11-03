@@ -37,6 +37,12 @@ export interface RichTextEditorProps {
   disabled?: boolean;
   className?: string;
   id?: string;
+  /** Accessible name of the editable area (set it when no visible label points at it). */
+  ariaLabel?: string;
+  /** id of a visible label element that names the editable area. */
+  ariaLabelledBy?: string;
+  /** id of help or error text for the editable area. */
+  ariaDescribedBy?: string;
 }
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -119,6 +125,9 @@ export function RichTextEditor({
   disabled,
   className,
   id,
+  ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy,
 }: RichTextEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -145,6 +154,13 @@ export function RichTextEditor({
           disabled && 'cursor-not-allowed opacity-60',
         ),
         ...(placeholder ? { 'data-placeholder': placeholder } : {}),
+        // The editable area is a textbox for assistive technology; name it from the props.
+        role: 'textbox',
+        'aria-multiline': 'true',
+        ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
+        ...(ariaLabelledBy ? { 'aria-labelledby': ariaLabelledBy } : {}),
+        ...(ariaDescribedBy ? { 'aria-describedby': ariaDescribedBy } : {}),
+        ...(disabled ? { 'aria-disabled': 'true' } : {}),
       },
     },
     onUpdate: ({ editor: ed }) => {

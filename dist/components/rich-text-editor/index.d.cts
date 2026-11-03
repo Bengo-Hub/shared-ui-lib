@@ -18,12 +18,18 @@ interface RichTextEditorProps {
     disabled?: boolean;
     className?: string;
     id?: string;
+    /** Accessible name of the editable area (set it when no visible label points at it). */
+    ariaLabel?: string;
+    /** id of a visible label element that names the editable area. */
+    ariaLabelledBy?: string;
+    /** id of help or error text for the editable area. */
+    ariaDescribedBy?: string;
 }
 /**
  * TinyMCE-equivalent rich text editor built on Tiptap. Controlled by `value` (HTML).
  * Emits sanitized HTML via `onChange`. Light-theme, tenant-branding-aware (semantic tokens).
  */
-declare function RichTextEditor({ value, onChange, placeholder, disabled, className, id, }: RichTextEditorProps): react_jsx_runtime.JSX.Element;
+declare function RichTextEditor({ value, onChange, placeholder, disabled, className, id, ariaLabel, ariaLabelledBy, ariaDescribedBy, }: RichTextEditorProps): react_jsx_runtime.JSX.Element;
 /** Field-friendly alias mirroring the Input/Textarea naming used elsewhere. */
 declare const RichText: typeof RichTextEditor;
 
