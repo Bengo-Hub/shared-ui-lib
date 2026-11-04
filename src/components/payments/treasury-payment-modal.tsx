@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface PaymentResult {
@@ -74,6 +74,9 @@ export function TreasuryPaymentModal({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   // Build iframe URL
   const iframeSrc = useMemo(() => {
@@ -181,6 +184,38 @@ export function TreasuryPaymentModal({
     };
   }, [open, handleMessage, timeoutMs]);
 
+  // Move focus into the dialog on open and hand it back on close; Escape closes, and Tab stays inside.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onOpenChange(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const items = dialogRef.current.querySelectorAll<HTMLElement>('button, a[href], iframe, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dialogRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previous?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const handleIframeLoad = useCallback(() => {
     if (paymentState === 'loading') {
       setPaymentState('checkout');
@@ -203,14 +238,22 @@ export function TreasuryPaymentModal({
         onClick={() => onOpenChange(false)}
       />
       {/* Modal — constrained card that always fits and scrolls internally; centered on all sizes. */}
-      <div className="relative w-full sm:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90dvh]">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+        className="relative w-full sm:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90dvh] outline-none"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-white shrink-0">
           <div className="min-w-0 mr-3">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Complete Payment</h2>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">
+            <h2 id={titleId} className="text-base sm:text-lg font-semibold text-gray-900 truncate">Complete Payment</h2>
+            <p id={descriptionId} className="text-xs sm:text-sm text-gray-500 truncate">
               {currency} {amount.toLocaleString()}
-              {description && ` — ${description}`}
+              {description && `, ${description}`}
             </p>
           </div>
           <button
@@ -223,7 +266,7 @@ export function TreasuryPaymentModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto relative">
+        <div className="flex-1 min-h-0 overflow-y-auto relative" aria-live="polite">
           {paymentState === 'expired' ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
               <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">

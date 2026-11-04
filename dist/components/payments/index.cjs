@@ -30,6 +30,9 @@ function TreasuryPaymentModal({
   const [errorMessage, setErrorMessage] = react.useState("");
   const iframeRef = react.useRef(null);
   const timeoutRef = react.useRef(null);
+  const dialogRef = react.useRef(null);
+  const titleId = react.useId();
+  const descriptionId = react.useId();
   const iframeSrc = react.useMemo(() => {
     const params = new URLSearchParams({
       intent_id: paymentIntentId,
@@ -112,6 +115,35 @@ function TreasuryPaymentModal({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [open, handleMessage, timeoutMs]);
+  react.useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement;
+    dialogRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        onOpenChange(false);
+        return;
+      }
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      const items = dialogRef.current.querySelectorAll('button, a[href], iframe, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dialogRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previous?.focus?.();
+    };
+  }, [open]);
   const handleIframeLoad = react.useCallback(() => {
     if (paymentState === "loading") {
       setPaymentState("checkout");
@@ -128,117 +160,129 @@ function TreasuryPaymentModal({
           onClick: () => onOpenChange(false)
         }
       ),
-      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative w-full sm:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90dvh]", children: [
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-white shrink-0", children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "min-w-0 mr-3", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("h2", { className: "text-base sm:text-lg font-semibold text-gray-900 truncate", children: "Complete Payment" }),
-            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-xs sm:text-sm text-gray-500 truncate", children: [
-              currency,
-              " ",
-              amount.toLocaleString(),
-              description && ` \u2014 ${description}`
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => onOpenChange(false),
-              className: "shrink-0 p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors",
-              "aria-label": "Close",
-              children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M18 6 6 18" }),
-                /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m6 6 12 12" })
-              ] })
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex-1 min-h-0 overflow-y-auto relative", children: paymentState === "expired" ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-amber-600", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "12", cy: "12", r: "10" }),
-            /* @__PURE__ */ jsxRuntime.jsx("polyline", { points: "12 6 12 12 16 14" })
-          ] }) }),
-          /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Session Expired" }),
-          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: "Your payment session has timed out. Please close this dialog and try again." }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => onOpenChange(false),
-              className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
-              children: "Close"
-            }
-          )
-        ] }) : paymentState === "confirmed" && paymentResult ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-green-600", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M22 11.08V12a10 10 0 1 1-5.93-9.14" }),
-            /* @__PURE__ */ jsxRuntime.jsx("polyline", { points: "22 4 12 14.01 9 11.01" })
-          ] }) }),
-          /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Successful" }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-1 text-sm text-gray-600", children: [
-            /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
-              "Amount: ",
-              /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "font-medium text-gray-900", children: [
-                currency,
-                " ",
-                paymentResult.amount.toLocaleString()
-              ] })
+      /* @__PURE__ */ jsxRuntime.jsxs(
+        "div",
+        {
+          ref: dialogRef,
+          role: "dialog",
+          "aria-modal": "true",
+          "aria-labelledby": titleId,
+          "aria-describedby": descriptionId,
+          tabIndex: -1,
+          className: "relative w-full sm:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90dvh] outline-none",
+          children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-white shrink-0", children: [
+              /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "min-w-0 mr-3", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("h2", { id: titleId, className: "text-base sm:text-lg font-semibold text-gray-900 truncate", children: "Complete Payment" }),
+                /* @__PURE__ */ jsxRuntime.jsxs("p", { id: descriptionId, className: "text-xs sm:text-sm text-gray-500 truncate", children: [
+                  currency,
+                  " ",
+                  amount.toLocaleString(),
+                  description && `, ${description}`
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: () => onOpenChange(false),
+                  className: "shrink-0 p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors",
+                  "aria-label": "Close",
+                  children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                    /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M18 6 6 18" }),
+                    /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m6 6 12 12" })
+                  ] })
+                }
+              )
             ] }),
-            paymentResult.reference && /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
-              "Reference: ",
-              /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-mono text-gray-900", children: paymentResult.reference })
-            ] }),
-            paymentResult.channel && /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
-              "Via: ",
-              /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-gray-900", children: paymentResult.channel })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => onOpenChange(false),
-              className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
-              children: "Done"
-            }
-          )
-        ] }) : paymentState === "failed" ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-red-600", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "12", cy: "12", r: "10" }),
-            /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m15 9-6 6" }),
-            /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m9 9 6 6" })
-          ] }) }),
-          /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Failed" }),
-          /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: errorMessage }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => {
-                setPaymentState("loading");
-                setErrorMessage("");
-                setAttempt((n) => n + 1);
-              },
-              className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
-              children: "Try Again"
-            }
-          )
-        ] }) : /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative h-full", children: [
-          paymentState === "loading" && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute inset-0 flex items-center justify-center bg-white z-10", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center gap-3", children: [
-            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-8 h-8 border-2 border-gray-300 border-t-black rounded-full animate-spin" }),
-            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-500", children: "Loading payment options..." })
-          ] }) }),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "iframe",
-            {
-              ref: iframeRef,
-              src: iframeSrc,
-              className: "w-full border-0 block",
-              style: { height: "520px", minHeight: "420px" },
-              title: `Complete payment of ${currency} ${amount.toLocaleString()}`,
-              onLoad: handleIframeLoad,
-              allow: "payment"
-            },
-            attempt
-          )
-        ] }) })
-      ] })
+            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex-1 min-h-0 overflow-y-auto relative", "aria-live": "polite", children: paymentState === "expired" ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
+              /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-amber-600", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "12", cy: "12", r: "10" }),
+                /* @__PURE__ */ jsxRuntime.jsx("polyline", { points: "12 6 12 12 16 14" })
+              ] }) }),
+              /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Session Expired" }),
+              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: "Your payment session has timed out. Please close this dialog and try again." }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: () => onOpenChange(false),
+                  className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
+                  children: "Close"
+                }
+              )
+            ] }) : paymentState === "confirmed" && paymentResult ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
+              /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-green-600", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M22 11.08V12a10 10 0 1 1-5.93-9.14" }),
+                /* @__PURE__ */ jsxRuntime.jsx("polyline", { points: "22 4 12 14.01 9 11.01" })
+              ] }) }),
+              /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Successful" }),
+              /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-1 text-sm text-gray-600", children: [
+                /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
+                  "Amount: ",
+                  /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "font-medium text-gray-900", children: [
+                    currency,
+                    " ",
+                    paymentResult.amount.toLocaleString()
+                  ] })
+                ] }),
+                paymentResult.reference && /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
+                  "Reference: ",
+                  /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-mono text-gray-900", children: paymentResult.reference })
+                ] }),
+                paymentResult.channel && /* @__PURE__ */ jsxRuntime.jsxs("p", { children: [
+                  "Via: ",
+                  /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-gray-900", children: paymentResult.channel })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: () => onOpenChange(false),
+                  className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
+                  children: "Done"
+                }
+              )
+            ] }) : paymentState === "failed" ? /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center py-12 px-6 text-center", children: [
+              /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "text-red-600", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "12", cy: "12", r: "10" }),
+                /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m15 9-6 6" }),
+                /* @__PURE__ */ jsxRuntime.jsx("path", { d: "m9 9 6 6" })
+              ] }) }),
+              /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "text-lg font-semibold mb-2", children: "Payment Failed" }),
+              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: errorMessage }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  onClick: () => {
+                    setPaymentState("loading");
+                    setErrorMessage("");
+                    setAttempt((n) => n + 1);
+                  },
+                  className: "mt-6 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors",
+                  children: "Try Again"
+                }
+              )
+            ] }) : /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "relative h-full", children: [
+              paymentState === "loading" && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "absolute inset-0 flex items-center justify-center bg-white z-10", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col items-center gap-3", children: [
+                /* @__PURE__ */ jsxRuntime.jsx("div", { className: "w-8 h-8 border-2 border-gray-300 border-t-black rounded-full animate-spin" }),
+                /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-sm text-gray-500", children: "Loading payment options..." })
+              ] }) }),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "iframe",
+                {
+                  ref: iframeRef,
+                  src: iframeSrc,
+                  className: "w-full border-0 block",
+                  style: { height: "520px", minHeight: "420px" },
+                  title: `Complete payment of ${currency} ${amount.toLocaleString()}`,
+                  onLoad: handleIframeLoad,
+                  allow: "payment"
+                },
+                attempt
+              )
+            ] }) })
+          ]
+        }
+      )
     ] }),
     document.body
   );
