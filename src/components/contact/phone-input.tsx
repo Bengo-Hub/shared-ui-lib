@@ -5,6 +5,47 @@ import PhoneInput, { type Country, parsePhoneNumber } from 'react-phone-number-i
 import './phone-input.css';
 import { repairPhoneNumber } from './phone-number';
 
+type Flags = typeof import('react-phone-number-input/flags').default;
+
+let loadedFlags: Flags | undefined;
+let flagsLoading: Promise<Flags> | undefined;
+
+function loadFlags(): Promise<Flags> {
+  flagsLoading ??= import('react-phone-number-input/flags')
+    .then((m) => (loadedFlags = m.default))
+    .catch((err) => {
+      flagsLoading = undefined; // the next field tries again
+      throw err;
+    });
+  return flagsLoading;
+}
+
+/**
+ * The library's default flag is an <img> from a third-party site, which a strict CSP blocks (a
+ * broken image) and which tells that site every visitor's IP. These are the same flags from the
+ * package itself, in their own chunk loaded when a phone field first mounts, so a page without a
+ * phone field never pays for them. Until they arrive, or if they fail, the slot stays empty and
+ * the number field works as usual.
+ */
+function LocalFlag({ country, countryName }: { country: Country; countryName: string }) {
+  const [flags, setFlags] = useState(loadedFlags);
+  useEffect(() => {
+    if (flags) return;
+    let live = true;
+    loadFlags().then(
+      (f) => {
+        if (live) setFlags(f);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [flags]);
+  const Flag = flags?.[country];
+  return Flag ? <Flag title={countryName} /> : <span aria-hidden="true" />;
+}
+
 export interface PhoneInputFieldProps {
   /** E.164 value, e.g. "+254743793901". */
   value?: string;
@@ -74,6 +115,7 @@ export function PhoneInputField({
       id={id}
       international
       defaultCountry={defaultCountry}
+      flagComponent={LocalFlag}
       value={displayValue}
       onChange={(v) => {
         // "+254 254 7...", "+254 07..." or a pasted "07..." becomes the real number once complete.

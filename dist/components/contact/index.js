@@ -45,6 +45,34 @@ function repairPhoneNumber(value, defaultCountry) {
   }
   return value;
 }
+var loadedFlags;
+var flagsLoading;
+function loadFlags() {
+  flagsLoading ?? (flagsLoading = import('react-phone-number-input/flags').then((m) => loadedFlags = m.default).catch((err) => {
+    flagsLoading = void 0;
+    throw err;
+  }));
+  return flagsLoading;
+}
+function LocalFlag({ country, countryName: countryName2 }) {
+  const [flags2, setFlags] = useState(loadedFlags);
+  useEffect(() => {
+    if (flags2) return;
+    let live = true;
+    loadFlags().then(
+      (f) => {
+        if (live) setFlags(f);
+      },
+      () => {
+      }
+    );
+    return () => {
+      live = false;
+    };
+  }, [flags2]);
+  const Flag = flags2?.[country];
+  return Flag ? /* @__PURE__ */ jsx(Flag, { title: countryName2 }) : /* @__PURE__ */ jsx("span", { "aria-hidden": "true" });
+}
 function PhoneInputField({
   value,
   onChange,
@@ -75,6 +103,7 @@ function PhoneInputField({
       id,
       international: true,
       defaultCountry,
+      flagComponent: LocalFlag,
       value: displayValue,
       onChange: (v) => {
         const fixed = v ? repairPhoneNumber(v, defaultCountry) : v;
