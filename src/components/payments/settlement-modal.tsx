@@ -14,11 +14,13 @@ export interface SettlementMethod {
   label: string;
   /** Whether this method needs a reference (M-Pesa code, cheque no., bank ref) — non-cash. */
   requiresReference?: boolean;
+  /** Offers a reference field that may be left blank, labelled with this text (e.g. "M-Pesa code"). */
+  optionalReferenceLabel?: string;
 }
 
 export const CASH: SettlementMethod = { value: 'cash', label: 'Cash' };
 export const MPESA_STK: SettlementMethod = { value: 'mpesa', label: 'M-Pesa (STK / Paybill)' };
-export const MPESA_MANUAL: SettlementMethod = { value: 'mpesa_manual', label: 'M-Pesa code (sighted)', requiresReference: true };
+export const MPESA_MANUAL: SettlementMethod = { value: 'mpesa_manual', label: 'M-Pesa (code)', optionalReferenceLabel: 'M-Pesa code' };
 export const BANK: SettlementMethod = { value: 'bank', label: 'Bank transfer', requiresReference: true };
 export const CHEQUE: SettlementMethod = { value: 'cheque', label: 'Cheque', requiresReference: true };
 export const CARD: SettlementMethod = { value: 'card', label: 'Card' };
@@ -35,9 +37,9 @@ export const BANK_TRANSFER: SettlementMethod = { value: 'bank_transfer', label: 
 /** Every method the platform supports for RECEIVING money (customer/supplier repayment). */
 export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 /** Real cash-out channels only — paying money OUT, never a book-entry method. */
-export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_B2C, BANK, CHEQUE];
+export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MPESA_B2C, BANK, CHEQUE];
 /** Paying a supplier — offline references + online dispatch methods. */
-export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
+export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 /** Settling a completed on-account (credit) sale at the till — recording money already
  *  collected offline, never a live STK push (that's a separate checkout-time tender). */
 export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
@@ -135,6 +137,7 @@ export function SettlementModal({
   const [error, setError] = useState('');
 
   const selectedMethod = useMemo(() => methods.find((m) => m.value === method), [methods, method]);
+  const showReference = !!selectedMethod?.requiresReference || !!selectedMethod?.optionalReferenceLabel || mode === 'apply_to_debt';
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -242,8 +245,8 @@ export function SettlementModal({
               </div>
             )}
             {extraFields}
-            {(methods.length > 0 || selectedMethod?.requiresReference || mode === 'apply_to_debt') && (
-              <div className={`grid gap-3 ${methods.length > 0 && (selectedMethod?.requiresReference || mode === 'apply_to_debt') ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {(methods.length > 0 || showReference) && (
+              <div className={`grid gap-3 ${methods.length > 0 && showReference ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {methods.length > 0 && (
                   <div>
                     <label className="text-xs font-semibold text-gray-500">Method</label>
@@ -256,15 +259,15 @@ export function SettlementModal({
                     </select>
                   </div>
                 )}
-                {(selectedMethod?.requiresReference || mode === 'apply_to_debt') && (
+                {showReference && (
                   <div>
                     <label className="text-xs font-semibold text-gray-500">
-                      Reference {selectedMethod?.requiresReference ? '' : '(optional)'}
+                      {selectedMethod?.optionalReferenceLabel ?? 'Reference'} {selectedMethod?.requiresReference ? '' : '(optional)'}
                     </label>
                     <input
                       value={reference}
                       onChange={(e) => setReference(e.target.value)}
-                      placeholder="M-Pesa code, cheque no., etc."
+                      placeholder={selectedMethod?.optionalReferenceLabel ?? 'M-Pesa code, cheque no., etc.'}
                       className="w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
                     />
                   </div>

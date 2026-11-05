@@ -289,7 +289,7 @@ function TreasuryPaymentModal({
 }
 var CASH = { value: "cash", label: "Cash" };
 var MPESA_STK = { value: "mpesa", label: "M-Pesa (STK / Paybill)" };
-var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa code (sighted)", requiresReference: true };
+var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa (code)", optionalReferenceLabel: "M-Pesa code" };
 var BANK = { value: "bank", label: "Bank transfer", requiresReference: true };
 var CHEQUE = { value: "cheque", label: "Cheque", requiresReference: true };
 var CARD = { value: "card", label: "Card" };
@@ -303,8 +303,8 @@ var MTN_MOMO = { value: "mtn_momo", label: "MTN Mobile Money", requiresReference
 var AIRTEL_MONEY = { value: "airtel_money", label: "Airtel Money", requiresReference: true };
 var BANK_TRANSFER = { value: "bank_transfer", label: "Bank Transfer", requiresReference: true };
 var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
-var PAYOUT_METHODS = [CASH, MPESA_B2C, BANK, CHEQUE];
-var PAY_SUPPLIER_METHODS = [CASH, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
+var PAYOUT_METHODS = [CASH, MPESA_MANUAL, MPESA_B2C, BANK, CHEQUE];
+var PAY_SUPPLIER_METHODS = [CASH, MPESA_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 function nowDatetimeLocal() {
   const d = /* @__PURE__ */ new Date();
@@ -347,6 +347,7 @@ function SettlementModal({
   const [overpaymentAction, setOverpaymentAction] = react.useState("change");
   const [error, setError] = react.useState("");
   const selectedMethod = react.useMemo(() => methods.find((m) => m.value === method), [methods, method]);
+  const showReference = !!selectedMethod?.requiresReference || !!selectedMethod?.optionalReferenceLabel || mode === "apply_to_debt";
   if (!open || typeof document === "undefined") return null;
   const fmt = (v) => `${currency} ${v.toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const parsedAmount = parseFloat(amount) || 0;
@@ -472,7 +473,7 @@ function SettlementModal({
           ] })
         ] }),
         extraFields,
-        (methods.length > 0 || selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `grid gap-3 ${methods.length > 0 && (selectedMethod?.requiresReference || mode === "apply_to_debt") ? "grid-cols-2" : "grid-cols-1"}`, children: [
+        (methods.length > 0 || showReference) && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `grid gap-3 ${methods.length > 0 && showReference ? "grid-cols-2" : "grid-cols-1"}`, children: [
           methods.length > 0 && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Method" }),
             /* @__PURE__ */ jsxRuntime.jsx(
@@ -485,9 +486,10 @@ function SettlementModal({
               }
             )
           ] }),
-          (selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+          showReference && /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntime.jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
-              "Reference ",
+              selectedMethod?.optionalReferenceLabel ?? "Reference",
+              " ",
               selectedMethod?.requiresReference ? "" : "(optional)"
             ] }),
             /* @__PURE__ */ jsxRuntime.jsx(
@@ -495,7 +497,7 @@ function SettlementModal({
               {
                 value: reference,
                 onChange: (e) => setReference(e.target.value),
-                placeholder: "M-Pesa code, cheque no., etc.",
+                placeholder: selectedMethod?.optionalReferenceLabel ?? "M-Pesa code, cheque no., etc.",
                 className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
               }
             )
@@ -528,6 +530,23 @@ function SettlementModal({
       ] })
     ] }) }) }),
     document.body
+  );
+}
+
+// src/components/payments/usable-settlement-methods.ts
+var GATEWAY_BACKED_METHODS = /* @__PURE__ */ new Set([
+  "mpesa",
+  "paystack",
+  "mtn_momo",
+  "airtel_money",
+  "mpesa_b2b",
+  "mpesa_b2c",
+  "paystack_bank",
+  "paystack_mobile"
+]);
+function usableSettlementMethods(methods, usable) {
+  return methods.filter(
+    (m) => !GATEWAY_BACKED_METHODS.has(m.value) || !!usable?.collect?.includes(m.value) || !!usable?.payout?.includes(m.value)
   );
 }
 
@@ -1087,5 +1106,6 @@ exports.getPaymentMethodLabel = getPaymentMethodLabel;
 exports.isAccountFormValid = isAccountFormValid;
 exports.nowDatetimeLocal = nowDatetimeLocal;
 exports.resolveDefaultAccount = resolveDefaultAccount;
+exports.usableSettlementMethods = usableSettlementMethods;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

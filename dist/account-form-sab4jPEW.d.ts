@@ -50,6 +50,8 @@ interface SettlementMethod {
     label: string;
     /** Whether this method needs a reference (M-Pesa code, cheque no., bank ref) — non-cash. */
     requiresReference?: boolean;
+    /** Offers a reference field that may be left blank, labelled with this text (e.g. "M-Pesa code"). */
+    optionalReferenceLabel?: string;
 }
 declare const CASH: SettlementMethod;
 declare const MPESA_STK: SettlementMethod;
@@ -135,6 +137,23 @@ interface SettlementModalProps {
  * owns the amount/method/reference form and its validation.
  */
 declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, onMethodChange, }: SettlementModalProps): React$1.ReactPortal | null;
+
+/**
+ * Which methods a payment form may offer a tenant. A method backed by a gateway works only when the
+ * tenant has that gateway configured and switched on, so it is shown only when treasury lists it
+ * (GET /{tenant}/gateways/settlement-methods). Offline methods need no gateway and always show,
+ * including M-Pesa paid by hand with its optional code (mpesa_manual).
+ */
+interface UsableSettlementMethods {
+    /** Online methods money can come in on. */
+    collect?: string[];
+    /** Online methods money can go out on. */
+    payout?: string[];
+}
+/** Drops the gateway methods the tenant cannot use. No answer yet, or a failed one, leaves offline methods only. */
+declare function usableSettlementMethods<T extends {
+    value: string;
+}>(methods: readonly T[], usable?: UsableSettlementMethods | null): T[];
 
 /**
  * The ONE currency registry + money formatter shared by every frontend (pos-ui, treasury-ui,
@@ -274,4 +293,4 @@ declare function AccountForm({ value, onChange, currencies, currencyLabel, banks
  *  button on this rather than each consumer re-deriving the same per-type rule. */
 declare function isAccountFormValid(value: AccountFormValue): boolean;
 
-export { datetimeLocalToISO as $, AIRTEL_MONEY as A, BANK as B, CARD as C, PAY_SUPPLIER_METHODS as D, EMPTY_ACCOUNT_FORM as E, PayHeroLogo as F, type PaymentResult as G, PaystackLogo as H, type PaystackLogoProps as I, STORE_CREDIT as J, SUPPORTED_CURRENCIES as K, type SettlementMethod as L, MPESA_B2B as M, SettlementModal as N, type SettlementModalProps as O, PAYMENT_METHOD_LABELS as P, type SettlementMode as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, type SettlementSubmitInput as T, SplitPayMark as U, TreasuryPaymentModal as V, type TreasuryPaymentModalProps as W, formatCompactCurrency as X, formatCurrency as Y, getPaymentMethodLabel as Z, isAccountFormValid as _, AccountForm as a, nowDatetimeLocal as a0, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CURRENCY_META as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, type CurrencyMeta as r, MPESA_B2C as s, MPESA_MANUAL as t, MPESA_STK as u, MTN_MOMO as v, MpesaLogo as w, MtnMomoLogo as x, PAYOUT_METHODS as y, PAYSTACK as z };
+export { isAccountFormValid as $, AIRTEL_MONEY as A, BANK as B, CARD as C, PAY_SUPPLIER_METHODS as D, EMPTY_ACCOUNT_FORM as E, PayHeroLogo as F, type PaymentResult as G, PaystackLogo as H, type PaystackLogoProps as I, STORE_CREDIT as J, SUPPORTED_CURRENCIES as K, type SettlementMethod as L, MPESA_B2B as M, SettlementModal as N, type SettlementModalProps as O, PAYMENT_METHOD_LABELS as P, type SettlementMode as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, type SettlementSubmitInput as T, SplitPayMark as U, TreasuryPaymentModal as V, type TreasuryPaymentModalProps as W, type UsableSettlementMethods as X, formatCompactCurrency as Y, formatCurrency as Z, getPaymentMethodLabel as _, AccountForm as a, usableSettlementMethods as a0, datetimeLocalToISO as a1, nowDatetimeLocal as a2, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CURRENCY_META as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, type CurrencyMeta as r, MPESA_B2C as s, MPESA_MANUAL as t, MPESA_STK as u, MTN_MOMO as v, MpesaLogo as w, MtnMomoLogo as x, PAYOUT_METHODS as y, PAYSTACK as z };

@@ -27,6 +27,7 @@ export {
   AIRTEL_MONEY,
   BANK_TRANSFER,
 } from './settlement-modal';
+export { usableSettlementMethods, type UsableSettlementMethods } from './usable-settlement-methods';
 export {
   CURRENCY_META,
   SUPPORTED_CURRENCIES,

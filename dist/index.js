@@ -418,7 +418,7 @@ function TreasuryPaymentModal({
 }
 var CASH = { value: "cash", label: "Cash" };
 var MPESA_STK = { value: "mpesa", label: "M-Pesa (STK / Paybill)" };
-var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa code (sighted)", requiresReference: true };
+var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa (code)", optionalReferenceLabel: "M-Pesa code" };
 var BANK = { value: "bank", label: "Bank transfer", requiresReference: true };
 var CHEQUE = { value: "cheque", label: "Cheque", requiresReference: true };
 var CARD = { value: "card", label: "Card" };
@@ -432,8 +432,8 @@ var MTN_MOMO = { value: "mtn_momo", label: "MTN Mobile Money", requiresReference
 var AIRTEL_MONEY = { value: "airtel_money", label: "Airtel Money", requiresReference: true };
 var BANK_TRANSFER = { value: "bank_transfer", label: "Bank Transfer", requiresReference: true };
 var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
-var PAYOUT_METHODS = [CASH, MPESA_B2C, BANK, CHEQUE];
-var PAY_SUPPLIER_METHODS = [CASH, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
+var PAYOUT_METHODS = [CASH, MPESA_MANUAL, MPESA_B2C, BANK, CHEQUE];
+var PAY_SUPPLIER_METHODS = [CASH, MPESA_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 function nowDatetimeLocal() {
   const d = /* @__PURE__ */ new Date();
@@ -476,6 +476,7 @@ function SettlementModal({
   const [overpaymentAction, setOverpaymentAction] = useState("change");
   const [error, setError] = useState("");
   const selectedMethod = useMemo(() => methods.find((m) => m.value === method), [methods, method]);
+  const showReference = !!selectedMethod?.requiresReference || !!selectedMethod?.optionalReferenceLabel || mode === "apply_to_debt";
   if (!open || typeof document === "undefined") return null;
   const fmt = (v) => `${currency} ${v.toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const parsedAmount = parseFloat(amount) || 0;
@@ -601,7 +602,7 @@ function SettlementModal({
           ] })
         ] }),
         extraFields,
-        (methods.length > 0 || selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxs("div", { className: `grid gap-3 ${methods.length > 0 && (selectedMethod?.requiresReference || mode === "apply_to_debt") ? "grid-cols-2" : "grid-cols-1"}`, children: [
+        (methods.length > 0 || showReference) && /* @__PURE__ */ jsxs("div", { className: `grid gap-3 ${methods.length > 0 && showReference ? "grid-cols-2" : "grid-cols-1"}`, children: [
           methods.length > 0 && /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsx("label", { className: "text-xs font-semibold text-gray-500", children: "Method" }),
             /* @__PURE__ */ jsx(
@@ -614,9 +615,10 @@ function SettlementModal({
               }
             )
           ] }),
-          (selectedMethod?.requiresReference || mode === "apply_to_debt") && /* @__PURE__ */ jsxs("div", { children: [
+          showReference && /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsxs("label", { className: "text-xs font-semibold text-gray-500", children: [
-              "Reference ",
+              selectedMethod?.optionalReferenceLabel ?? "Reference",
+              " ",
               selectedMethod?.requiresReference ? "" : "(optional)"
             ] }),
             /* @__PURE__ */ jsx(
@@ -624,7 +626,7 @@ function SettlementModal({
               {
                 value: reference,
                 onChange: (e) => setReference(e.target.value),
-                placeholder: "M-Pesa code, cheque no., etc.",
+                placeholder: selectedMethod?.optionalReferenceLabel ?? "M-Pesa code, cheque no., etc.",
                 className: "w-full mt-1 bg-gray-50 border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-black"
               }
             )
@@ -657,6 +659,23 @@ function SettlementModal({
       ] })
     ] }) }) }),
     document.body
+  );
+}
+
+// src/components/payments/usable-settlement-methods.ts
+var GATEWAY_BACKED_METHODS = /* @__PURE__ */ new Set([
+  "mpesa",
+  "paystack",
+  "mtn_momo",
+  "airtel_money",
+  "mpesa_b2b",
+  "mpesa_b2c",
+  "paystack_bank",
+  "paystack_mobile"
+]);
+function usableSettlementMethods(methods, usable) {
+  return methods.filter(
+    (m) => !GATEWAY_BACKED_METHODS.has(m.value) || !!usable?.collect?.includes(m.value) || !!usable?.payout?.includes(m.value)
   );
 }
 
@@ -4209,6 +4228,6 @@ function MediaImage({
   );
 }
 
-export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MEDIA_IMAGE_WIDTHS, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MediaImage, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, imageSrcSet, isAccountFormValid, isTransformableImage, legalUrls, mediaImageLoader, mediaImageLoaderFor, openCookieSettings, registerServiceWorker, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, snapImageWidth, tenantBrandWord, transformImageUrl, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
+export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MEDIA_IMAGE_WIDTHS, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MediaImage, MpesaLogo, MtnMomoLogo, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, exportRowsAsCsv, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, imageSrcSet, isAccountFormValid, isTransformableImage, legalUrls, mediaImageLoader, mediaImageLoaderFor, openCookieSettings, registerServiceWorker, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, snapImageWidth, tenantBrandWord, transformImageUrl, usableSettlementMethods, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

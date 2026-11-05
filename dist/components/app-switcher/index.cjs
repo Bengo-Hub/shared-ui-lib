@@ -24,9 +24,9 @@ var SERVICE_REGISTRY = [
   { key: "marketflow", label: "CRM (MarketFlow)", Icon: lucideReact.UserSquare, category: "Growth & Finance", color: "fuchsia", manageOnly: true, serviceTag: "marketflow", status: "live" },
   { key: "erp", label: "ERP (HR, Payroll)", Icon: lucideReact.Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
   { key: "treasury", label: "Treasury (Books)", Icon: lucideReact.Landmark, category: "Growth & Finance", color: "emerald", manageOnly: true, status: "live" },
-  { key: "subscriptions", label: "Subscriptions", Icon: lucideReact.Tag, category: "Growth & Finance", color: "violet", manageOnly: true, status: "live" },
+  { key: "subscriptions", label: "Subscriptions", Icon: lucideReact.Tag, category: "Growth & Finance", color: "violet", manageOnly: true, status: "live", path: "/billing" },
   // Platform
-  { key: "auth", label: "Account Portal", Icon: lucideReact.BookOpen, category: "Platform", color: "violet", manageOnly: false, status: "live" },
+  { key: "auth", label: "Account Portal", Icon: lucideReact.BookOpen, category: "Platform", color: "violet", manageOnly: false, status: "live", path: "/dashboard/my-tenant" },
   { key: "mail", label: "Mail", Icon: lucideReact.Mail, category: "Platform", color: "fuchsia", manageOnly: false, status: "live" },
   { key: "notifications", label: "Notifications", Icon: lucideReact.Bell, category: "Platform", color: "amber", manageOnly: true, status: "live", path: "/dashboard" },
   { key: "ticketing", label: "Ticketing", Icon: lucideReact.Ticket, category: "Platform", color: "rose", manageOnly: false, status: "live" },
