@@ -1,6 +1,7 @@
 // node --test src/components/app-switcher/visible-services.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { computeVisibleServices } from './visible-services.ts';
 import type { ServiceDefinition } from './service-registry';
 
@@ -45,6 +46,17 @@ test('notifications appears without the host configuring a URL, on its fixed pat
 test("a host's own URL wins over the default", () => {
   const n = run({ urls: { notifications: 'https://notifications.staging.example' }, activeServiceTags: [] }).find((s) => s.key === 'notifications');
   assert.equal(n?.href, 'https://notifications.staging.example/dashboard');
+});
+
+test('apps that do not route by tenant slug open on their fixed page, never /orgSlug', () => {
+  // The real registry imports icons, so its source is read rather than loaded under node --test.
+  const source = readFileSync(new URL('./service-registry.ts', import.meta.url), 'utf8');
+  for (const [key, path] of [['subscriptions', '/billing'], ['auth', '/dashboard/my-tenant'], ['notifications', '/dashboard']]) {
+    assert.match(source, new RegExp(`key: '${key}'.*path: '${path}'`), `${key} opens on ${path}`);
+  }
+  const svc: ServiceDefinition = { key: 'subscriptions', label: 'Subscriptions', Icon, category: 'Growth & Finance', color: 'violet', manageOnly: true, status: 'live', path: '/billing' };
+  const [link] = computeVisibleServices({ ...base, urls: { subscriptions: 'https://pricing.example' }, activeServiceTags: [] }, [svc], {});
+  assert.equal(link.href, 'https://pricing.example/billing');
 });
 
 test('slug-routed services keep the /orgSlug link', () => {
