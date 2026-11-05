@@ -30,6 +30,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Before the build, so this checks the dist that was committed: it is what apps import.
+      - name: Check committed dist
+        run: pnpm check:dist
+
       - name: Build
         run: pnpm build
 
