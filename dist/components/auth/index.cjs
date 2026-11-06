@@ -187,12 +187,10 @@ function SSOCallbackError({
         .sce-btn:hover{opacity:.9}
         .sce-btn-primary{background:#111827;color:#ffffff}
         .sce-btn-secondary{background:transparent;color:#111827;border-color:#d1d5db}
-        @media (prefers-color-scheme: dark){
-          .sce-title{color:#f87171}
-          .sce-msg{color:#9ca3af}
-          .sce-btn-primary{background:#f9fafb;color:#111827}
-          .sce-btn-secondary{color:#f9fafb;border-color:#4b5563}
-        }
+        .dark .sce-title{color:#f87171}
+        .dark .sce-msg{color:#9ca3af}
+        .dark .sce-btn-primary{background:#f9fafb;color:#111827}
+        .dark .sce-btn-secondary{color:#f9fafb;border-color:#4b5563}
       ` }),
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "sce-card", role: "alert", children: [
       /* @__PURE__ */ jsxRuntime.jsx("div", { className: "sce-icon", children: /* @__PURE__ */ jsxRuntime.jsx(lucideReact.AlertTriangle, { size: 22, color: "#d97706" }) }),
@@ -365,19 +363,17 @@ var DIALOG_CSS = `
 .veb-wait{margin-top:14px;text-align:center;font-size:12.5px;color:#94a3b8;}
 .veb-spin{animation:veb-spin 1s linear infinite;}
 @keyframes veb-spin{to{transform:rotate(360deg);}}
-@media (prefers-color-scheme: dark){
-  .veb-card{background:#0f172a;color:#e2e8f0;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);}
-  .veb-title{color:#f1f5f9;}
-  .veb-sub{color:#94a3b8;}
-  .veb-sub b{color:#cbd5e1;}
-  .veb-label{color:#94a3b8;}
-  .veb-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
-  .veb-input:disabled{background:#1e293b;color:#64748b;}
-  .veb-otp-box{background:#1e293b;border-color:#334155;color:#f1f5f9;}
-  .veb-alert-warn{background:rgba(127,29,29,.35);border-color:rgba(153,27,27,.6);color:#fca5a5;}
-  .veb-err{background:rgba(127,29,29,.3);border-color:rgba(153,27,27,.5);color:#fca5a5;}
-  .veb-foot{color:#94a3b8;}
-}
+.dark .veb-card{background:#0f172a;color:#e2e8f0;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);}
+.dark .veb-title{color:#f1f5f9;}
+.dark .veb-sub{color:#94a3b8;}
+.dark .veb-sub b{color:#cbd5e1;}
+.dark .veb-label{color:#94a3b8;}
+.dark .veb-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+.dark .veb-input:disabled{background:#1e293b;color:#64748b;}
+.dark .veb-otp-box{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+.dark .veb-alert-warn{background:rgba(127,29,29,.35);border-color:rgba(153,27,27,.6);color:#fca5a5;}
+.dark .veb-err{background:rgba(127,29,29,.3);border-color:rgba(153,27,27,.5);color:#fca5a5;}
+.dark .veb-foot{color:#94a3b8;}
 `;
 var cssInjected = false;
 function useDialogCss() {

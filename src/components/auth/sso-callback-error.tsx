@@ -86,12 +86,10 @@ export function SSOCallbackError({
         .sce-btn:hover{opacity:.9}
         .sce-btn-primary{background:#111827;color:#ffffff}
         .sce-btn-secondary{background:transparent;color:#111827;border-color:#d1d5db}
-        @media (prefers-color-scheme: dark){
-          .sce-title{color:#f87171}
-          .sce-msg{color:#9ca3af}
-          .sce-btn-primary{background:#f9fafb;color:#111827}
-          .sce-btn-secondary{color:#f9fafb;border-color:#4b5563}
-        }
+        .dark .sce-title{color:#f87171}
+        .dark .sce-msg{color:#9ca3af}
+        .dark .sce-btn-primary{background:#f9fafb;color:#111827}
+        .dark .sce-btn-secondary{color:#f9fafb;border-color:#4b5563}
       `}</style>
       <div className="sce-card" role="alert">
         <div className="sce-icon">

@@ -191,8 +191,8 @@ export interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'on
 
 /* ------------------------------------------------------------------ *
  * Self-contained styling. Injected once; scoped by the `veb-` prefix.
- * Uses the prefers-color-scheme media query for dark mode so it needs
- * nothing from the host app.
+ * Dark styles follow the host app's theme class (`.dark` on an ancestor, as next-themes sets),
+ * never the device setting, so an app that is light by default stays light on a phone in dark mode.
  * ------------------------------------------------------------------ */
 const DIALOG_CSS = `
 .veb-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);}
@@ -226,19 +226,17 @@ const DIALOG_CSS = `
 .veb-wait{margin-top:14px;text-align:center;font-size:12.5px;color:#94a3b8;}
 .veb-spin{animation:veb-spin 1s linear infinite;}
 @keyframes veb-spin{to{transform:rotate(360deg);}}
-@media (prefers-color-scheme: dark){
-  .veb-card{background:#0f172a;color:#e2e8f0;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);}
-  .veb-title{color:#f1f5f9;}
-  .veb-sub{color:#94a3b8;}
-  .veb-sub b{color:#cbd5e1;}
-  .veb-label{color:#94a3b8;}
-  .veb-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
-  .veb-input:disabled{background:#1e293b;color:#64748b;}
-  .veb-otp-box{background:#1e293b;border-color:#334155;color:#f1f5f9;}
-  .veb-alert-warn{background:rgba(127,29,29,.35);border-color:rgba(153,27,27,.6);color:#fca5a5;}
-  .veb-err{background:rgba(127,29,29,.3);border-color:rgba(153,27,27,.5);color:#fca5a5;}
-  .veb-foot{color:#94a3b8;}
-}
+.dark .veb-card{background:#0f172a;color:#e2e8f0;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);}
+.dark .veb-title{color:#f1f5f9;}
+.dark .veb-sub{color:#94a3b8;}
+.dark .veb-sub b{color:#cbd5e1;}
+.dark .veb-label{color:#94a3b8;}
+.dark .veb-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+.dark .veb-input:disabled{background:#1e293b;color:#64748b;}
+.dark .veb-otp-box{background:#1e293b;border-color:#334155;color:#f1f5f9;}
+.dark .veb-alert-warn{background:rgba(127,29,29,.35);border-color:rgba(153,27,27,.6);color:#fca5a5;}
+.dark .veb-err{background:rgba(127,29,29,.3);border-color:rgba(153,27,27,.5);color:#fca5a5;}
+.dark .veb-foot{color:#94a3b8;}
 `;
 
 let cssInjected = false;
