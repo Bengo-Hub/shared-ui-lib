@@ -62,6 +62,15 @@ interface PwaUpdaterProps {
     /** How often to poll the server for a newer deployed build, ms (default 60s). */
     checkIntervalMs?: number;
     className?: string;
+    /** Banner text, for apps with their own copy or language (default "A new version is available."). */
+    message?: string;
+    /** Button text (default "Update now"). */
+    actionLabel?: string;
+    /**
+     * `dark` (default) is the fleet's slate banner. `theme` uses the host app's own tokens
+     * (bg-primary, text-primary-foreground, bg-background), so the banner matches the app's brand.
+     */
+    tone?: 'dark' | 'theme';
 }
 /**
  * PWA update banner — uniform across every Codevertex frontend.
@@ -85,7 +94,7 @@ interface PwaUpdaterProps {
  * of `/_next/static/` chunk paths, so the fingerprint "changed" purely from navigating, not from a
  * new deploy. Pinning both the URL and the fetch-based method eliminates both false positives.
  */
-declare function PwaUpdater({ checkIntervalMs, className }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
+declare function PwaUpdater({ checkIntervalMs, className, message, actionLabel, tone, }: PwaUpdaterProps): react_jsx_runtime.JSX.Element | null;
 
 /**
  * Reactive online/offline status from navigator.onLine + the online/offline events.

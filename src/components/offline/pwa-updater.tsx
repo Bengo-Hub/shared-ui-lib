@@ -7,6 +7,15 @@ export interface PwaUpdaterProps {
   /** How often to poll the server for a newer deployed build, ms (default 60s). */
   checkIntervalMs?: number;
   className?: string;
+  /** Banner text, for apps with their own copy or language (default "A new version is available."). */
+  message?: string;
+  /** Button text (default "Update now"). */
+  actionLabel?: string;
+  /**
+   * `dark` (default) is the fleet's slate banner. `theme` uses the host app's own tokens
+   * (bg-primary, text-primary-foreground, bg-background), so the banner matches the app's brand.
+   */
+  tone?: 'dark' | 'theme';
 }
 
 /** Extract the Next.js build id from a page's _buildManifest/_ssgManifest asset path. Only
@@ -54,7 +63,13 @@ function fingerprintFrom(html: string): string | null {
  * of `/_next/static/` chunk paths, so the fingerprint "changed" purely from navigating, not from a
  * new deploy. Pinning both the URL and the fetch-based method eliminates both false positives.
  */
-export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpdaterProps) {
+export function PwaUpdater({
+  checkIntervalMs = 60_000,
+  className = '',
+  message = 'A new version is available.',
+  actionLabel = 'Update now',
+  tone = 'dark',
+}: PwaUpdaterProps) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
@@ -111,19 +126,25 @@ export function PwaUpdater({ checkIntervalMs = 60_000, className = '' }: PwaUpda
 
   if (!updateAvailable) return null;
 
+  const themed = tone === 'theme';
+  const bar = themed ? 'bg-primary text-primary-foreground' : 'bg-slate-900 text-white';
+  const button = themed
+    ? 'bg-background text-foreground hover:bg-background/90'
+    : 'bg-white text-slate-900 hover:bg-slate-100';
+
   return (
     <div
       role="status"
-      className={`flex w-full items-center justify-center gap-3 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white ${className}`}
+      className={`flex w-full items-center justify-center gap-3 px-4 py-2 text-center text-sm font-semibold ${bar} ${className}`}
     >
-      <RefreshCw className="h-4 w-4 shrink-0" />
-      <span>A new version is available.</span>
+      <RefreshCw className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{message}</span>
       <button
         type="button"
         onClick={() => void applyUpdate()}
-        className="rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100"
+        className={`min-h-6 rounded-full px-3 py-0.5 text-xs font-bold ${button}`}
       >
-        Update now
+        {actionLabel}
       </button>
     </div>
   );

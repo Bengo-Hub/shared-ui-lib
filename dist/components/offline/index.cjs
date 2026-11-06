@@ -85,7 +85,13 @@ function scriptFingerprintFrom(html) {
 function fingerprintFrom(html) {
   return buildIdFrom(html) ?? scriptFingerprintFrom(html);
 }
-function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
+function PwaUpdater({
+  checkIntervalMs = 6e4,
+  className = "",
+  message = "A new version is available.",
+  actionLabel = "Update now",
+  tone = "dark"
+}) {
   const [updateAvailable, setUpdateAvailable] = react.useState(false);
   react.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -134,21 +140,24 @@ function PwaUpdater({ checkIntervalMs = 6e4, className = "" }) {
     window.location.reload();
   };
   if (!updateAvailable) return null;
+  const themed = tone === "theme";
+  const bar = themed ? "bg-primary text-primary-foreground" : "bg-slate-900 text-white";
+  const button = themed ? "bg-background text-foreground hover:bg-background/90" : "bg-white text-slate-900 hover:bg-slate-100";
   return /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
     {
       role: "status",
-      className: `flex w-full items-center justify-center gap-3 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white ${className}`,
+      className: `flex w-full items-center justify-center gap-3 px-4 py-2 text-center text-sm font-semibold ${bar} ${className}`,
       children: [
-        /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "h-4 w-4 shrink-0" }),
-        /* @__PURE__ */ jsxRuntime.jsx("span", { children: "A new version is available." }),
+        /* @__PURE__ */ jsxRuntime.jsx(lucideReact.RefreshCw, { className: "h-4 w-4 shrink-0", "aria-hidden": "true" }),
+        /* @__PURE__ */ jsxRuntime.jsx("span", { children: message }),
         /* @__PURE__ */ jsxRuntime.jsx(
           "button",
           {
             type: "button",
             onClick: () => void applyUpdate(),
-            className: "rounded-full bg-white px-3 py-0.5 text-xs font-bold text-slate-900 hover:bg-slate-100",
-            children: "Update now"
+            className: `min-h-6 rounded-full px-3 py-0.5 text-xs font-bold ${button}`,
+            children: actionLabel
           }
         )
       ]
