@@ -44,11 +44,14 @@ export {
   CardMark,
   CashMark,
   SplitPayMark,
+  MastercardLogo,
   MpesaLogo,
   MtnMomoLogo,
   PayHeroLogo,
   PaystackLogo,
   type PaystackLogoProps,
+  VisaLogo,
+  WhatsAppLogo,
 } from './brand-logos';
 export {
   CurrencyChangeConfirmModal,

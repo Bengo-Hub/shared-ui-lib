@@ -650,6 +650,49 @@ function getPaymentMethodLabel(method, providerName) {
   const base = method === "multiple" ? "Multiple" : PAYMENT_METHOD_LABELS[method] ?? method.replace(/_/g, " ");
   return providerName ? `${base} (${providerName})` : base;
 }
+function VisaLogo({ className, style, title = "Visa" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 1000 324.68", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx(
+      "path",
+      {
+        fill: "#1434cb",
+        d: "m651.19.5c-70.93,0-134.32,36.77-134.32,104.69,0,77.9,112.42,83.28,112.42,122.42,0,16.48-18.88,31.23-51.14,31.23-45.77,0-79.98-20.61-79.98-20.61l-14.64,68.55s39.41,17.41,91.73,17.41c77.55,0,138.58-38.57,138.58-107.66,0-82.32-112.89-87.54-112.89-123.86,0-12.91,15.5-27.05,47.66-27.05,36.29,0,65.89,14.99,65.89,14.99l14.33-66.2S696.61.5,651.18.5h0ZM2.22,5.5L.5,15.49s29.84,5.46,56.72,16.36c34.61,12.49,37.07,19.77,42.9,42.35l63.51,244.83h85.14L379.93,5.5h-84.94l-84.28,213.17-34.39-180.7c-3.15-20.68-19.13-32.48-38.68-32.48,0,0-135.41,0-135.41,0Zm411.87,0l-66.63,313.53h81L494.85,5.5h-80.76Zm451.76,0c-19.53,0-29.88,10.46-37.47,28.73l-118.67,284.8h84.94l16.43-47.47h103.48l9.99,47.47h74.95L934.12,5.5h-68.27Zm11.05,84.71l25.18,117.65h-67.45l42.28-117.65h0Z"
+      }
+    )
+  ] });
+}
+function MastercardLogo({ className, style, title = "Mastercard" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 1000 618", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx("path", { fill: "#EB001B", d: "m308,0a309,309 0 1,0 2,0z" }),
+    /* @__PURE__ */ jsx("path", { fill: "#F79E1B", d: "m690,0a309,309 0 1,0 2,0z" }),
+    /* @__PURE__ */ jsx("path", { fill: "#FF5F00", d: "m500,66a309,309 0 0,0 0,486 309,309 0 0,0 0-486" })
+  ] });
+}
+function WhatsAppLogo({ className, style, title = "WhatsApp" }) {
+  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 175.216 175.552", className, style, role: "img", "aria-label": title, children: [
+    /* @__PURE__ */ jsx("title", { children: title }),
+    /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsxs("linearGradient", { id: "whatsapp-logo-fill", x1: "85.915", x2: "86.535", y1: "32.567", y2: "137.092", gradientUnits: "userSpaceOnUse", children: [
+      /* @__PURE__ */ jsx("stop", { offset: "0", stopColor: "#57d163" }),
+      /* @__PURE__ */ jsx("stop", { offset: "1", stopColor: "#23b33a" })
+    ] }) }),
+    /* @__PURE__ */ jsx(
+      "path",
+      {
+        fill: "#fff",
+        d: "m12.966 161.238 10.439-38.114a73.42 73.42 0 0 1-9.821-36.772c.017-40.556 33.021-73.55 73.578-73.55 19.681.01 38.154 7.669 52.047 21.572s21.537 32.383 21.53 52.037c-.018 40.553-33.027 73.553-73.578 73.553h-.032c-12.313-.005-24.412-3.094-35.159-8.954z"
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      "path",
+      {
+        fill: "url(#whatsapp-logo-fill)",
+        d: "M87.184 25.227c-33.733 0-61.166 27.423-61.178 61.13a60.98 60.98 0 0 0 9.349 32.535l1.455 2.313-6.179 22.558 23.146-6.069 2.235 1.324c9.387 5.571 20.15 8.517 31.126 8.523h.023c33.707 0 61.14-27.426 61.153-61.135a60.75 60.75 0 0 0-17.895-43.251 60.75 60.75 0 0 0-43.235-17.928z"
+      }
+    )
+  ] });
+}
 function AirtelMoneyLogo({ className, style, title = "Airtel Money" }) {
   return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 724.26 729.61", className, style, role: "img", "aria-label": title, children: [
     /* @__PURE__ */ jsx("title", { children: title }),
@@ -1062,6 +1105,6 @@ function resolveDefaultAccount(accounts, method, outletId, invoiceType) {
   return active.find((a) => a.account_type === "cash");
 }
 
-export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, CurrencyChangeConfirmModal, EMPTY_ACCOUNT_FORM, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MpesaLogo, MtnMomoLogo, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PayHeroLogo, PaystackLogo, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, SettlementModal, SplitPayMark, TreasuryPaymentModal, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, nowDatetimeLocal, resolveDefaultAccount, usableSettlementMethods };
+export { AIRTEL_MONEY, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, CurrencyChangeConfirmModal, EMPTY_ACCOUNT_FORM, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MastercardLogo, MpesaLogo, MtnMomoLogo, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PayHeroLogo, PaystackLogo, RECEIVE_METHODS, SETTLE_CREDIT_SALE_METHODS, STORE_CREDIT, SUPPORTED_CURRENCIES, SettlementModal, SplitPayMark, TreasuryPaymentModal, VisaLogo, WhatsAppLogo, datetimeLocalToISO, formatCompactCurrency, formatCurrency, getPaymentMethodLabel, isAccountFormValid, nowDatetimeLocal, resolveDefaultAccount, usableSettlementMethods };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
