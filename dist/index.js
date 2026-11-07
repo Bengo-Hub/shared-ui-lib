@@ -2808,7 +2808,8 @@ function serviceAppName(tenantName, service, fallback, custom) {
   const own = clean(custom?.name);
   if (own) return own;
   const word = tenantBrandWord(tenantName) || clean(fallback);
-  return word ? `${word} ${service}` : service;
+  if (!word || word.toLowerCase() === service.trim().toLowerCase()) return service;
+  return `${word} ${service}`;
 }
 function serviceShortName(tenantName, service, fallback, custom) {
   const short = clean(custom?.short_name);

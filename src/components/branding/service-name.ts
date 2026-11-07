@@ -91,7 +91,9 @@ export function serviceAppName(
   const own = clean(custom?.name);
   if (own) return own;
   const word = tenantBrandWord(tenantName) || clean(fallback);
-  return word ? `${word} ${service}` : service;
+  // A tenant named after its app (Hadia's Hadia) reads once, never "Hadia Hadia".
+  if (!word || word.toLowerCase() === service.trim().toLowerCase()) return service;
+  return `${word} ${service}`;
 }
 
 /**
