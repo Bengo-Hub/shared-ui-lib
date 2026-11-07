@@ -2689,7 +2689,9 @@ function PoweredByBadge({
       target: "_blank",
       rel: "noopener noreferrer",
       className: cx2(
-        "inline-flex items-center gap-2.5 transition-shadow",
+        // max-w-full: on a 320 px phone the one-line row is wider than the screen, so it wraps
+        // between "Powered by" and the name instead of pushing the page sideways.
+        "inline-flex max-w-full items-center gap-2.5 transition-shadow",
         variant === "card" && (stacked ? "rounded-3xl bg-card pl-2 pr-5 py-2 shadow-md ring-1 ring-black/5 hover:shadow-lg" : "rounded-full bg-card pl-1.5 pr-4 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg"),
         className
       ),
@@ -2703,10 +2705,10 @@ function PoweredByBadge({
             "Sold & supported by ",
             partner.name
           ] })
-        ] }) : /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-extrabold uppercase tracking-wide whitespace-nowrap", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-foreground", children: "Powered by" }),
+        ] }) : /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "min-w-0 text-xs font-extrabold uppercase tracking-wide", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: "whitespace-nowrap text-foreground", children: "Powered by" }),
           " ",
-          /* @__PURE__ */ jsxRuntime.jsx("span", { className: NAME_CLASS, children: "Codevertex Africa Limited" }),
+          /* @__PURE__ */ jsxRuntime.jsx("span", { className: cx2(NAME_CLASS, "whitespace-nowrap"), children: "Codevertex Africa Limited" }),
           partner && /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
             /* @__PURE__ */ jsxRuntime.jsx("span", { className: "text-foreground/40 mx-1.5", children: "|" }),
             partner.logoUrl && /* @__PURE__ */ jsxRuntime.jsx(

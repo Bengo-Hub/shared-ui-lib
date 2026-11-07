@@ -65,7 +65,9 @@ export function PoweredByBadge({
       target="_blank"
       rel="noopener noreferrer"
       className={cx(
-        'inline-flex items-center gap-2.5 transition-shadow',
+        // max-w-full: on a 320 px phone the one-line row is wider than the screen, so it wraps
+        // between "Powered by" and the name instead of pushing the page sideways.
+        'inline-flex max-w-full items-center gap-2.5 transition-shadow',
         variant === 'card' && (stacked
           ? 'rounded-3xl bg-card pl-2 pr-5 py-2 shadow-md ring-1 ring-black/5 hover:shadow-lg'
           : 'rounded-full bg-card pl-1.5 pr-4 py-1.5 shadow-md ring-1 ring-black/5 hover:shadow-lg'),
@@ -90,9 +92,9 @@ export function PoweredByBadge({
           )}
         </span>
       ) : (
-        <span className="text-xs font-extrabold uppercase tracking-wide whitespace-nowrap">
-          <span className="text-foreground">Powered by</span>{' '}
-          <span className={NAME_CLASS}>Codevertex Africa Limited</span>
+        <span className="min-w-0 text-xs font-extrabold uppercase tracking-wide">
+          <span className="whitespace-nowrap text-foreground">Powered by</span>{' '}
+          <span className={cx(NAME_CLASS, 'whitespace-nowrap')}>Codevertex Africa Limited</span>
           {partner && (
             <>
               <span className="text-foreground/40 mx-1.5">|</span>
