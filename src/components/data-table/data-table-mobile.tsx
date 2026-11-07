@@ -136,7 +136,9 @@ export function DataTableMobile<T>(props: DataTableMobileProps<T>) {
                       : undefined
                 }
               >
-                <div className="flex items-start gap-3">
+                {/* Wraps so the actions drop under the title on a very narrow phone (280 px folding
+                    screens) instead of widening the page; the title keeps at least 8rem. */}
+                <div className="flex flex-wrap items-start gap-3">
                   {selectable && canSelect && (
                     <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
                       <Checkbox
@@ -150,7 +152,7 @@ export function DataTableMobile<T>(props: DataTableMobileProps<T>) {
                       />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-32">
                     {primaryCol && (
                       <div className="font-semibold text-foreground break-words">
                         {primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || '—'}
@@ -158,7 +160,7 @@ export function DataTableMobile<T>(props: DataTableMobileProps<T>) {
                     )}
                   </div>
                   {(actionCols.length > 0 || renderExpanded) && (
-                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                       {actionCols.map((c) => (
                         <div key={c.key}>{c.render ? c.render(row, i) : cellText(accessorOf(c)(row))}</div>
                       ))}

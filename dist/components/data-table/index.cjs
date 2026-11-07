@@ -688,7 +688,7 @@ function DataTableMobile(props) {
             setExpanded(next);
           } : void 0,
           children: [
-            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-start gap-3", children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-wrap items-start gap-3", children: [
               selectable && canSelect && /* @__PURE__ */ jsxRuntime.jsx("div", { onClick: (e) => e.stopPropagation(), className: "pt-0.5 shrink-0", children: /* @__PURE__ */ jsxRuntime.jsx(
                 Checkbox,
                 {
@@ -701,8 +701,8 @@ function DataTableMobile(props) {
                   }
                 }
               ) }),
-              /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-w-0 flex-1", children: primaryCol && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "font-semibold text-foreground break-words", children: primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || "\u2014" }) }),
-              (actionCols.length > 0 || renderExpanded) && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center gap-1 shrink-0", onClick: (e) => e.stopPropagation(), children: [
+              /* @__PURE__ */ jsxRuntime.jsx("div", { className: "min-w-0 flex-1 basis-32", children: primaryCol && /* @__PURE__ */ jsxRuntime.jsx("div", { className: "font-semibold text-foreground break-words", children: primaryCol.render ? primaryCol.render(row, i) : cellText(accessorOf(primaryCol)(row)) || "\u2014" }) }),
+              (actionCols.length > 0 || renderExpanded) && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "ml-auto flex max-w-full flex-wrap items-center justify-end gap-1", onClick: (e) => e.stopPropagation(), children: [
                 actionCols.map((c) => /* @__PURE__ */ jsxRuntime.jsx("div", { children: c.render ? c.render(row, i) : cellText(accessorOf(c)(row)) }, c.key)),
                 renderExpanded && /* @__PURE__ */ jsxRuntime.jsx(
                   "button",
