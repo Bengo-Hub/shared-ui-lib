@@ -47,19 +47,20 @@ export function OfflineSyncBanner({
     return (
       <div
         role="status"
-        className={`flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-white ${className}`}
+        // amber-800 under white text is about 7:1; amber-500 was about 2:1 and failed WCAG AA.
+        className={`flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-800 px-4 py-2 text-center text-sm font-semibold text-white ${className}`}
       >
         <span className="inline-flex items-center gap-2">
           <WifiOff className="h-4 w-4 shrink-0" />
           Offline mode — your work is saved and will sync when you’re back online.
         </span>
         {availableOffline?.length ? (
-          <span className="text-xs font-medium text-amber-50/90">
+          <span className="text-xs font-medium text-amber-50">
             Available: {availableOffline.join(', ')}
           </span>
         ) : null}
         {disabledOffline?.length ? (
-          <span className="text-xs font-medium text-amber-50/90">
+          <span className="text-xs font-medium text-amber-50">
             Unavailable: {disabledOffline.join(', ')}
           </span>
         ) : null}

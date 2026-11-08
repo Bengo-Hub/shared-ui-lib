@@ -21,17 +21,17 @@ function OfflineSyncBanner({
       "div",
       {
         role: "status",
-        className: `flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-white ${className}`,
+        className: `flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-800 px-4 py-2 text-center text-sm font-semibold text-white ${className}`,
         children: [
           /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "inline-flex items-center gap-2", children: [
             /* @__PURE__ */ jsxRuntime.jsx(lucideReact.WifiOff, { className: "h-4 w-4 shrink-0" }),
             "Offline mode \u2014 your work is saved and will sync when you\u2019re back online."
           ] }),
-          availableOffline?.length ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-medium text-amber-50/90", children: [
+          availableOffline?.length ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-medium text-amber-50", children: [
             "Available: ",
             availableOffline.join(", ")
           ] }) : null,
-          disabledOffline?.length ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-medium text-amber-50/90", children: [
+          disabledOffline?.length ? /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-xs font-medium text-amber-50", children: [
             "Unavailable: ",
             disabledOffline.join(", ")
           ] }) : null
