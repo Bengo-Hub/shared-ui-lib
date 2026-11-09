@@ -66,7 +66,8 @@ interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
      * input gains extra right padding automatically when this is set. A render prop rather than a
      * plain node so the caller's control can drive the search box itself (e.g. a scanned code
      * should populate + trigger the search) without this component exposing its query state via a
-     * ref: `setQuery` sets the text AND opens the dropdown, exactly like typing it.
+     * ref: `setQuery` sets the text AND opens the dropdown, and searches at once (no typing pause),
+     * since a scanned code is complete when it arrives.
      */
     endAdornment?: (helpers: {
         setQuery: (q: string) => void;

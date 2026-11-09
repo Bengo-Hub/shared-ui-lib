@@ -71,7 +71,8 @@ export interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption
    * input gains extra right padding automatically when this is set. A render prop rather than a
    * plain node so the caller's control can drive the search box itself (e.g. a scanned code
    * should populate + trigger the search) without this component exposing its query state via a
-   * ref: `setQuery` sets the text AND opens the dropdown, exactly like typing it.
+   * ref: `setQuery` sets the text AND opens the dropdown, and searches at once (no typing pause),
+   * since a scanned code is complete when it arrives.
    */
   endAdornment?: (helpers: { setQuery: (q: string) => void; open: () => void }) => React.ReactNode;
   /**
@@ -127,8 +128,14 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
     });
   }, debounceMs);
 
+  // Set by the end-adornment helper (a scan button): that text did not come from typing, so it
+  // is searched at once instead of after the pause.
+  const searchNowRef = useRef(false);
+
   useEffect(() => {
     const q = query.trim();
+    const immediate = searchNowRef.current;
+    searchNowRef.current = false;
     if (q.length < minChars) {
       runSearch.cancel();
       runner.cancel();
@@ -139,6 +146,7 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
     }
     setLoading(true);
     runSearch(q);
+    if (immediate) runSearch.flush();
   }, [query, minChars, runSearch, runner]);
 
   async function handleEnter() {
@@ -248,7 +256,14 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
         />
         {endAdornment && (
           <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-            {endAdornment({ setQuery: (q: string) => { setQuery(q); setOpen(true); }, open: () => setOpen(true) })}
+            {endAdornment({
+              setQuery: (q: string) => {
+                searchNowRef.current = true;
+                setQuery(q);
+                setOpen(true);
+              },
+              open: () => setOpen(true),
+            })}
           </div>
         )}
       </div>

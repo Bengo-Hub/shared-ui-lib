@@ -124,8 +124,11 @@ function SearchAddTable({
       setLoading(false);
     });
   }, debounceMs);
+  const searchNowRef = useRef(false);
   useEffect(() => {
     const q = query.trim();
+    const immediate = searchNowRef.current;
+    searchNowRef.current = false;
     if (q.length < minChars) {
       runSearch.cancel();
       runner.cancel();
@@ -136,6 +139,7 @@ function SearchAddTable({
     }
     setLoading(true);
     runSearch(q);
+    if (immediate) runSearch.flush();
   }, [query, minChars, runSearch, runner]);
   async function handleEnter() {
     const q = query.trim();
@@ -223,10 +227,14 @@ function SearchAddTable({
           )
         }
       ),
-      endAdornment && /* @__PURE__ */ jsx("div", { className: "absolute right-1.5 top-1/2 -translate-y-1/2", children: endAdornment({ setQuery: (q) => {
-        setQuery(q);
-        setOpen(true);
-      }, open: () => setOpen(true) }) })
+      endAdornment && /* @__PURE__ */ jsx("div", { className: "absolute right-1.5 top-1/2 -translate-y-1/2", children: endAdornment({
+        setQuery: (q) => {
+          searchNowRef.current = true;
+          setQuery(q);
+          setOpen(true);
+        },
+        open: () => setOpen(true)
+      }) })
     ] }),
     dropdownVisible && !fixedDropdown && /* @__PURE__ */ jsx("div", { className: "absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg", children: panel }),
     dropdownVisible && fixedDropdown && /* @__PURE__ */ jsx("div", { style: dropdownStyle, className: "rounded-lg border border-border bg-popover shadow-xl", children: panel })

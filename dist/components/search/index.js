@@ -128,11 +128,16 @@ function useDebouncedSearch(options = {}) {
   );
   const schedule = useDebouncedCallback(commit, delay);
   const setValue = useCallback(
-    (next) => {
+    (next, opts) => {
       setValueState(next);
-      if (!composing.current) schedule(next);
+      if (opts?.immediate) {
+        schedule.cancel();
+        commit(next);
+      } else if (!composing.current) {
+        schedule(next);
+      }
     },
-    [schedule]
+    [schedule, commit]
   );
   const valueRef = useLatestRef(value);
   const flush = useCallback(() => {
@@ -151,7 +156,10 @@ function useDebouncedSearch(options = {}) {
       onKeyDown: (e) => {
         if (e.nativeEvent?.isComposing) return;
         if (e.key === "Enter") flush();
-        else if (e.key === "Escape" && valueRef.current) clear();
+        else if (e.key === "Escape" && valueRef.current) {
+          e.stopPropagation?.();
+          clear();
+        }
       },
       onCompositionStart: () => {
         composing.current = true;

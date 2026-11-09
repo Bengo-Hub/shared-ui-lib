@@ -26,7 +26,13 @@ interface UseDebouncedSearchOptions {
 interface DebouncedSearch {
     /** What is in the box right now. */
     value: string;
-    setValue: (value: string) => void;
+    /**
+     * Set the box's text. Pass `{ immediate: true }` for text that did not come from typing,
+     * such as a camera or scan-button result, so it is searched at once instead of after the pause.
+     */
+    setValue: (value: string, options?: {
+        immediate?: boolean;
+    }) => void;
     /** The normalised term to search for. Updates after the pause, or at once on Enter. */
     term: string;
     /** True while the box holds text that has not been searched yet. */
@@ -48,6 +54,7 @@ interface DebouncedSearch {
             nativeEvent?: {
                 isComposing?: boolean;
             };
+            stopPropagation?: () => void;
         }) => void;
         onCompositionStart: () => void;
         onCompositionEnd: (e: {

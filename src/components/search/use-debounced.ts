@@ -61,7 +61,11 @@ export interface UseDebouncedSearchOptions {
 export interface DebouncedSearch {
   /** What is in the box right now. */
   value: string;
-  setValue: (value: string) => void;
+  /**
+   * Set the box's text. Pass `{ immediate: true }` for text that did not come from typing,
+   * such as a camera or scan-button result, so it is searched at once instead of after the pause.
+   */
+  setValue: (value: string, options?: { immediate?: boolean }) => void;
   /** The normalised term to search for. Updates after the pause, or at once on Enter. */
   term: string;
   /** True while the box holds text that has not been searched yet. */
@@ -74,7 +78,7 @@ export interface DebouncedSearch {
   inputProps: {
     value: string;
     onChange: (e: { target: { value: string } }) => void;
-    onKeyDown: (e: { key: string; nativeEvent?: { isComposing?: boolean } }) => void;
+    onKeyDown: (e: { key: string; nativeEvent?: { isComposing?: boolean }; stopPropagation?: () => void }) => void;
     onCompositionStart: () => void;
     onCompositionEnd: (e: { currentTarget: { value: string } }) => void;
   };
@@ -119,11 +123,16 @@ export function useDebouncedSearch(options: UseDebouncedSearchOptions = {}): Deb
   const schedule = useDebouncedCallback(commit, delay);
 
   const setValue = useCallback(
-    (next: string) => {
+    (next: string, opts?: { immediate?: boolean }) => {
       setValueState(next);
-      if (!composing.current) schedule(next);
+      if (opts?.immediate) {
+        schedule.cancel();
+        commit(next);
+      } else if (!composing.current) {
+        schedule(next);
+      }
     },
-    [schedule],
+    [schedule, commit],
   );
 
   const valueRef = useLatestRef(value);
@@ -145,7 +154,12 @@ export function useDebouncedSearch(options: UseDebouncedSearchOptions = {}): Deb
       onKeyDown: (e) => {
         if (e.nativeEvent?.isComposing) return;
         if (e.key === 'Enter') flush();
-        else if (e.key === 'Escape' && valueRef.current) clear();
+        else if (e.key === 'Escape' && valueRef.current) {
+          // The first Escape only empties the box; keep it from also closing a surrounding
+          // dialog or popover. A second Escape on the empty box passes through as usual.
+          e.stopPropagation?.();
+          clear();
+        }
       },
       onCompositionStart: () => {
         composing.current = true;

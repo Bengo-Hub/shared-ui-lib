@@ -7,6 +7,8 @@ Every search box and live filter in the platform uses this module. Typing "pizza
 - Default pause is 300 ms (`DEFAULT_SEARCH_DELAY_MS`). Every keystroke restarts it.
 - The box itself updates on every key. Only the searched term waits.
 - Enter searches at once. Barcode scanners end each scan with Enter, so a scan never waits.
+- Text that does not come from typing (a camera scan, a scan button) goes in with `setValue(code, { immediate: true })` and is searched at once. `SearchAddTable`'s end-adornment `setQuery` does the same.
+- The first Escape empties the box without closing the dialog around it; a second Escape closes it as usual.
 - The term is trimmed, runs of spaces collapse, and it is capped at 100 characters. The Go side applies the same rule (`pagination.SearchTerm`).
 - Pass the `signal` to fetch or axios. Without it, an outdated request is ignored but still runs to the end on the server.
 - Never write a local debounce hook or a `setTimeout` in a search effect. Extend this module instead.
