@@ -31,6 +31,7 @@ export { usableSettlementMethods, type UsableSettlementMethods } from './usable-
 export {
   CURRENCY_META,
   SUPPORTED_CURRENCIES,
+  decimalPlacesFor,
   formatCurrency,
   formatCompactCurrency,
   type CurrencyMeta,

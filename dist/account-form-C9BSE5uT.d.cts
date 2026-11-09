@@ -156,38 +156,6 @@ declare function usableSettlementMethods<T extends {
 }>(methods: readonly T[], usable?: UsableSettlementMethods | null): T[];
 
 /**
- * The ONE currency registry + money formatter shared by every frontend (pos-ui, treasury-ui,
- * ordering-frontend, subscriptions UI). Centralised because pos-ui's `lib/utils.ts` and
- * treasury-ui's `lib/utils/currency.ts` had drifted into two independent copies — plus a THIRD
- * hardcoded `<select>` option list in pos-ui's GeneralTab — and all three forced
- * `minimumFractionDigits: 2` / `maximumFractionDigits: 2`, which is WRONG for zero-decimal
- * currencies (UGX, RWF, JPY render as "USh 1,000.00" instead of "USh 1,000"). This list mirrors
- * treasury-api's `internal/modules/currency.SupportedCurrencies()` Go list field-for-field — keep
- * the two in sync when adding a currency.
- */
-interface CurrencyMeta {
-    code: string;
-    name: string;
-    symbol: string;
-    decimalPlaces: number;
-}
-declare const CURRENCY_META: Record<string, CurrencyMeta>;
-/** Ordered currency codes — replaces the 3 independently-drifted lists. */
-declare const SUPPORTED_CURRENCIES: ReadonlyArray<string>;
-/**
- * Format a money amount for the given ISO 4217 currency code. Decimal places are looked up per
- * currency (0 for UGX/RWF/JPY, 2 otherwise) instead of being hardcoded — the real bug this
- * centralisation fixes. Falls back to 'KES' when no currency is supplied, matching prior behavior.
- */
-declare function formatCurrency(amount: number | string | null | undefined, currency?: string): string;
-/**
- * Compact currency — abbreviates large amounts to K / M / B / T so KPI tiles never truncate a
- * long figure (e.g. "KES 1,525,854.00" -> "KES 1.5M"). Ported from treasury-ui's version; now
- * decimal-place aware via formatCurrency for the under-1000 case.
- */
-declare function formatCompactCurrency(amount: number | string | null | undefined, currency?: string): string;
-
-/**
  * The ONE payment-method label registry shared by every list/report surface that shows how a
  * customer paid or how a tenant was paid (pos-ui sales list, treasury-ui transactions list,
  * receipts, exports). Previously pos-ui (`sales-shared.tsx`) and treasury-ui each kept their own
@@ -296,4 +264,4 @@ declare function AccountForm({ value, onChange, currencies, currencyLabel, banks
  *  button on this rather than each consumer re-deriving the same per-type rule. */
 declare function isAccountFormValid(value: AccountFormValue): boolean;
 
-export { isAccountFormValid as $, AIRTEL_MONEY as A, BANK as B, CARD as C, PAY_SUPPLIER_METHODS as D, EMPTY_ACCOUNT_FORM as E, PayHeroLogo as F, type PaymentResult as G, PaystackLogo as H, type PaystackLogoProps as I, STORE_CREDIT as J, SUPPORTED_CURRENCIES as K, type SettlementMethod as L, MPESA_B2B as M, SettlementModal as N, type SettlementModalProps as O, PAYMENT_METHOD_LABELS as P, type SettlementMode as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, type SettlementSubmitInput as T, SplitPayMark as U, TreasuryPaymentModal as V, type TreasuryPaymentModalProps as W, type UsableSettlementMethods as X, formatCompactCurrency as Y, formatCurrency as Z, getPaymentMethodLabel as _, AccountForm as a, usableSettlementMethods as a0, MastercardLogo as a1, VisaLogo as a2, WhatsAppLogo as a3, datetimeLocalToISO as a4, nowDatetimeLocal as a5, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CURRENCY_META as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, type CurrencyMeta as r, MPESA_B2C as s, MPESA_MANUAL as t, MPESA_STK as u, MTN_MOMO as v, MpesaLogo as w, MtnMomoLogo as x, PAYOUT_METHODS as y, PAYSTACK as z };
+export { datetimeLocalToISO as $, AIRTEL_MONEY as A, BANK as B, CARD as C, type PaymentResult as D, EMPTY_ACCOUNT_FORM as E, PaystackLogo as F, type PaystackLogoProps as G, STORE_CREDIT as H, type SettlementMethod as I, SettlementModal as J, type SettlementModalProps as K, type SettlementMode as L, MPESA_B2B as M, type SettlementSubmitInput as N, SplitPayMark as O, PAYMENT_METHOD_LABELS as P, type TreasuryPaymentModalProps as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, TreasuryPaymentModal as T, type UsableSettlementMethods as U, getPaymentMethodLabel as V, isAccountFormValid as W, usableSettlementMethods as X, MastercardLogo as Y, VisaLogo as Z, WhatsAppLogo as _, AccountForm as a, nowDatetimeLocal as a0, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CUSTOMER_ADVANCE as k, CardMark as l, CashMark as m, CurrencyChangeConfirmModal as n, type CurrencyChangeConfirmModalProps as o, type CurrencyChangeExampleRow as p, MPESA_B2C as q, MPESA_MANUAL as r, MPESA_STK as s, MTN_MOMO as t, MpesaLogo as u, MtnMomoLogo as v, PAYOUT_METHODS as w, PAYSTACK as x, PAY_SUPPLIER_METHODS as y, PayHeroLogo as z };

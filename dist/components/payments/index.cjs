@@ -1146,6 +1146,7 @@ exports.TreasuryPaymentModal = TreasuryPaymentModal;
 exports.VisaLogo = VisaLogo;
 exports.WhatsAppLogo = WhatsAppLogo;
 exports.datetimeLocalToISO = datetimeLocalToISO;
+exports.decimalPlacesFor = decimalPlacesFor;
 exports.formatCompactCurrency = formatCompactCurrency;
 exports.formatCurrency = formatCurrency;
 exports.getPaymentMethodLabel = getPaymentMethodLabel;

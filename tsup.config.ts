@@ -29,6 +29,7 @@ export default defineConfig({
     "src/components/tax/index.ts",
     "src/components/search/index.ts",
     "src/components/search/query.ts",
+    "src/components/format/index.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

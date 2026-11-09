@@ -41,7 +41,7 @@ export const CURRENCY_META: Record<string, CurrencyMeta> = {
 /** Ordered currency codes — replaces the 3 independently-drifted lists. */
 export const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_META) as ReadonlyArray<string>;
 
-function decimalPlacesFor(currency: string): number {
+export function decimalPlacesFor(currency: string): number {
   return CURRENCY_META[currency]?.decimalPlaces ?? 2;
 }
 
