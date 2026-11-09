@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Plus, Search } from 'lucide-react';
+import { createSearchRunner, DEFAULT_SEARCH_DELAY_MS, type SearchContext } from '../search/debounce';
+import { useDebouncedCallback, useLatestRef } from '../search/use-debounced';
 
 /**
  * SearchAddTable — the platform's canonical "search box that appends a row to a table" mechanic,
@@ -31,8 +33,11 @@ export interface SearchAddOption {
 }
 
 export interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
-  /** Debounced as the user types; return the matching options for the current query. */
-  onSearch: (query: string) => Promise<T[]>;
+  /**
+   * Debounced as the user types; return the matching options for the current query.
+   * Pass `context.signal` to fetch or axios: a newer keystroke aborts the older request.
+   */
+  onSearch: (query: string, context: SearchContext) => Promise<T[]>;
   /** Called when a result is picked. The caller appends its own table row from this option;
    *  the search input clears and closes immediately after, ready for the next pick. */
   onAdd: (option: T) => void;
@@ -44,10 +49,19 @@ export interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption
   excludeIds?: Iterable<string>;
   /** Minimum query length before `onSearch` fires. Default 2. */
   minChars?: number;
-  /** Debounce delay in ms. Default 250. */
+  /** Debounce delay in ms. Default 300. */
   debounceMs?: number;
   placeholder?: string;
   emptyText?: string;
+  /** Shown when the search fails. */
+  errorText?: string;
+  /**
+   * Called when Enter is pressed (a typed code, or a barcode scanner, which ends each scan
+   * with Enter). The pending search runs at once instead of waiting for the pause; return
+   * an option to add it straight away (e.g. the exact barcode match), or nothing to just
+   * show the results.
+   */
+  onEnter?: (query: string) => T | void | Promise<T | void>;
   disabled?: boolean;
   className?: string;
   /** Use fixed positioning for the dropdown so it escapes overflow:auto parents (e.g. modals). */
@@ -78,9 +92,11 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
   onAdd,
   excludeIds,
   minChars = 2,
-  debounceMs = 250,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS,
   placeholder = 'Search to add…',
   emptyText = 'No matches',
+  errorText = 'Search failed. Check the connection and try again.',
+  onEnter,
   disabled,
   className,
   fixedDropdown,
@@ -91,40 +107,48 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const requestSeq = useRef(0);
+
+  // Latest-wins search through the shared runner: the newest `onSearch` is always used,
+  // and each new query aborts the request before it.
+  const onSearchRef = useLatestRef(onSearch);
+  const runner = useMemo(() => createSearchRunner<T[]>(() => (q, context) => onSearchRef.current(q, context)), [onSearchRef]);
+  useEffect(() => () => runner.cancel(), [runner]);
+
+  const runSearch = useDebouncedCallback((q: string) => {
+    void runner.run(q).then((outcome) => {
+      if (outcome.status === 'stale') return;
+      setResults(outcome.status === 'ok' ? outcome.value : []);
+      setFailed(outcome.status === 'error');
+      setLoading(false);
+    });
+  }, debounceMs);
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = query.trim();
     if (q.length < minChars) {
+      runSearch.cancel();
+      runner.cancel();
       setResults([]);
+      setFailed(false);
       setLoading(false);
       return;
     }
     setLoading(true);
-    const seq = ++requestSeq.current;
-    debounceRef.current = setTimeout(() => {
-      onSearch(q)
-        .then((res) => {
-          if (requestSeq.current !== seq) return; // stale response
-          setResults(res);
-        })
-        .catch(() => {
-          if (requestSeq.current === seq) setResults([]);
-        })
-        .finally(() => {
-          if (requestSeq.current === seq) setLoading(false);
-        });
-    }, debounceMs);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, minChars, debounceMs]);
+    runSearch(q);
+  }, [query, minChars, runSearch, runner]);
+
+  async function handleEnter() {
+    const q = query.trim();
+    if (q.length < minChars) return;
+    runSearch.flush();
+    if (!onEnter) return;
+    const picked = await onEnter(q);
+    if (picked) pick(picked);
+  }
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -162,7 +186,7 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
           <Loader2 className="h-4 w-4 animate-spin" /> Searching…
         </li>
       ) : visible.length === 0 ? (
-        <li className="px-3 py-6 text-center text-sm text-muted-foreground">{emptyText}</li>
+        <li className="px-3 py-6 text-center text-sm text-muted-foreground">{failed ? errorText : emptyText}</li>
       ) : (
         visible.map((option) => (
           <li key={option.id}>
@@ -209,6 +233,12 @@ export function SearchAddTable<T extends SearchAddOption = SearchAddOption>({
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+            e.preventDefault();
+            setOpen(true);
+            void handleEnter();
           }}
           onFocus={() => query.trim().length >= minChars && setOpen(true)}
           className={cx(

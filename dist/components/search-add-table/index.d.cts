@@ -1,4 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import { S as SearchContext } from '../../debounce-BEP6JASM.cjs';
 
 /**
  * SearchAddTable — the platform's canonical "search box that appends a row to a table" mechanic,
@@ -27,8 +28,11 @@ interface SearchAddOption {
     description?: string;
 }
 interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
-    /** Debounced as the user types; return the matching options for the current query. */
-    onSearch: (query: string) => Promise<T[]>;
+    /**
+     * Debounced as the user types; return the matching options for the current query.
+     * Pass `context.signal` to fetch or axios: a newer keystroke aborts the older request.
+     */
+    onSearch: (query: string, context: SearchContext) => Promise<T[]>;
     /** Called when a result is picked. The caller appends its own table row from this option;
      *  the search input clears and closes immediately after, ready for the next pick. */
     onAdd: (option: T) => void;
@@ -40,10 +44,19 @@ interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
     excludeIds?: Iterable<string>;
     /** Minimum query length before `onSearch` fires. Default 2. */
     minChars?: number;
-    /** Debounce delay in ms. Default 250. */
+    /** Debounce delay in ms. Default 300. */
     debounceMs?: number;
     placeholder?: string;
     emptyText?: string;
+    /** Shown when the search fails. */
+    errorText?: string;
+    /**
+     * Called when Enter is pressed (a typed code, or a barcode scanner, which ends each scan
+     * with Enter). The pending search runs at once instead of waiting for the pause; return
+     * an option to add it straight away (e.g. the exact barcode match), or nothing to just
+     * show the results.
+     */
+    onEnter?: (query: string) => T | void | Promise<T | void>;
     disabled?: boolean;
     className?: string;
     /** Use fixed positioning for the dropdown so it escapes overflow:auto parents (e.g. modals). */
@@ -70,6 +83,6 @@ interface SearchAddTableProps<T extends SearchAddOption = SearchAddOption> {
         clear: () => void;
     }) => React.ReactNode;
 }
-declare function SearchAddTable<T extends SearchAddOption = SearchAddOption>({ onSearch, onAdd, excludeIds, minChars, debounceMs, placeholder, emptyText, disabled, className, fixedDropdown, endAdornment, footer, }: SearchAddTableProps<T>): react_jsx_runtime.JSX.Element;
+declare function SearchAddTable<T extends SearchAddOption = SearchAddOption>({ onSearch, onAdd, excludeIds, minChars, debounceMs, placeholder, emptyText, errorText, onEnter, disabled, className, fixedDropdown, endAdornment, footer, }: SearchAddTableProps<T>): react_jsx_runtime.JSX.Element;
 
 export { type SearchAddOption, SearchAddTable, type SearchAddTableProps };

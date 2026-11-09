@@ -1,4 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import { S as SearchContext } from './debounce-BEP6JASM.cjs';
 
 /**
  * SearchableCombobox — the platform's canonical rich searchable single-select.
@@ -49,10 +50,15 @@ interface SearchableComboboxProps {
      * Optional async fallback invoked (debounced) when the client filter yields
      * fewer than `remoteThreshold` matches. Results merge below local matches,
      * deduped by value. Omit for pure client mode (small lists).
+     * Pass `context.signal` to fetch or axios: a newer keystroke aborts the older request.
      */
-    onRemoteSearch?: (query: string) => Promise<ComboboxOption[]>;
+    onRemoteSearch?: (query: string, context: SearchContext) => Promise<ComboboxOption[]>;
     /** Local-match count under which the remote fallback fires. Default 5. */
     remoteThreshold?: number;
+    /** Pause after the last keystroke before the remote search runs. Default 300 ms. */
+    debounceMs?: number;
+    /** Shown when the remote search fails. */
+    errorText?: string;
     /** Optional "load more" for infinite server lists. */
     onLoadMore?: () => void;
     hasMore?: boolean;
@@ -74,6 +80,6 @@ interface SearchableComboboxProps {
     /** Label of the create row; `{text}` is replaced with what was typed. Default `Add "{text}"`. */
     createLabel?: string;
 }
-declare function SearchableCombobox({ options, value, onChange, valueLabel, onRemoteSearch, remoteThreshold, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, onCreate, createLabel, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
+declare function SearchableCombobox({ options, value, onChange, valueLabel, onRemoteSearch, remoteThreshold, debounceMs, errorText, onLoadMore, hasMore, loading, placeholder, searchPlaceholder, emptyText, disabled, clearable, className, footer, onCreate, createLabel, }: SearchableComboboxProps): react_jsx_runtime.JSX.Element;
 
 export { type ComboboxOption as C, SearchableCombobox as S, type SearchableComboboxProps as a };

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, Plus, Search, X } from 'lucide-react';
 import { fixedPanelPosition, type PanelPosition } from './fixed-position';
+import { createSearchRunner, DEFAULT_SEARCH_DELAY_MS, type SearchContext } from '../search/debounce';
+import { useDebouncedCallback, useLatestRef } from '../search/use-debounced';
 
 /**
  * SearchableCombobox — the platform's canonical rich searchable single-select.
@@ -54,10 +56,15 @@ export interface SearchableComboboxProps {
    * Optional async fallback invoked (debounced) when the client filter yields
    * fewer than `remoteThreshold` matches. Results merge below local matches,
    * deduped by value. Omit for pure client mode (small lists).
+   * Pass `context.signal` to fetch or axios: a newer keystroke aborts the older request.
    */
-  onRemoteSearch?: (query: string) => Promise<ComboboxOption[]>;
+  onRemoteSearch?: (query: string, context: SearchContext) => Promise<ComboboxOption[]>;
   /** Local-match count under which the remote fallback fires. Default 5. */
   remoteThreshold?: number;
+  /** Pause after the last keystroke before the remote search runs. Default 300 ms. */
+  debounceMs?: number;
+  /** Shown when the remote search fails. */
+  errorText?: string;
   /** Optional "load more" for infinite server lists. */
   onLoadMore?: () => void;
   hasMore?: boolean;
@@ -91,6 +98,8 @@ export function SearchableCombobox({
   valueLabel,
   onRemoteSearch,
   remoteThreshold = 5,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS,
+  errorText = 'Search failed. Check the connection and try again.',
   onLoadMore,
   hasMore,
   loading,
@@ -109,10 +118,20 @@ export function SearchableCombobox({
   const [query, setQuery] = useState('');
   const [remoteResults, setRemoteResults] = useState<ComboboxOption[]>([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
+  const [remoteFailed, setRemoteFailed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const requestSeq = useRef(0);
+  // Latest-wins remote search: a newer keystroke aborts the older request, and an inline
+  // `onRemoteSearch` from the host never restarts the wait (it is read through a ref).
+  const onRemoteSearchRef = useLatestRef(onRemoteSearch);
+  const runner = useMemo(
+    () =>
+      createSearchRunner<ComboboxOption[]>(
+        () => (q, context) => onRemoteSearchRef.current?.(q, context) ?? Promise.resolve([]),
+      ),
+    [onRemoteSearchRef],
+  );
+  useEffect(() => () => runner.cancel(), [runner]);
 
   // Fixed-position panel geometry, computed from the trigger's own rect — see the file-level
   // comment for why this can't be a plain `absolute` child. Recomputed each time the panel opens;
@@ -193,34 +212,30 @@ export function SearchableCombobox({
   }, [options, query]);
 
   // Remote fallback: prefetched list first, API only when local search runs dry.
+  const runRemote = useDebouncedCallback((q: string) => {
+    void runner.run(q).then((outcome) => {
+      if (outcome.status === 'stale') return;
+      setRemoteResults(outcome.status === 'ok' ? outcome.value : []);
+      setRemoteFailed(outcome.status === 'error');
+      setRemoteLoading(false);
+    });
+  }, debounceMs);
+
+  const hasRemote = !!onRemoteSearch;
   useEffect(() => {
-    if (!onRemoteSearch) return;
+    if (!hasRemote) return;
     const q = query.trim();
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!q || localMatches.length >= remoteThreshold) {
+      runRemote.cancel();
+      runner.cancel();
       setRemoteResults([]);
+      setRemoteFailed(false);
       setRemoteLoading(false);
       return;
     }
     setRemoteLoading(true);
-    const seq = ++requestSeq.current;
-    debounceRef.current = setTimeout(() => {
-      onRemoteSearch(q)
-        .then((results) => {
-          if (requestSeq.current !== seq) return; // stale response
-          setRemoteResults(results);
-        })
-        .catch(() => {
-          if (requestSeq.current === seq) setRemoteResults([]);
-        })
-        .finally(() => {
-          if (requestSeq.current === seq) setRemoteLoading(false);
-        });
-    }, 250);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, localMatches.length, onRemoteSearch, remoteThreshold]);
+    runRemote(q);
+  }, [query, localMatches.length, hasRemote, remoteThreshold, runRemote, runner]);
 
   const merged = useMemo(() => {
     if (remoteResults.length === 0) return localMatches;
@@ -342,7 +357,7 @@ export function SearchableCombobox({
             )}
             {merged.length === 0 && canCreate ? null : merged.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {busy ? 'Searching…' : emptyText}
+                {busy ? 'Searching…' : remoteFailed ? errorText : emptyText}
               </li>
             ) : (
               merged.map((o) => (

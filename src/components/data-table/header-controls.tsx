@@ -4,6 +4,8 @@ import { useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, Filter, Search, X } from 'lucide-react';
 import { AnchoredPopover } from './popover';
 import { cx, type ColumnFilterState, type FilterOption, type SortDir } from './types';
+import { DEFAULT_SEARCH_DELAY_MS } from '../search/debounce';
+import { useDebouncedCallback, useLatestRef } from '../search/use-debounced';
 
 /** Sort-arrows affordance: neutral ⇅, active ↑/↓ (asc → desc → clear cycle). */
 export function SortButton({
@@ -37,10 +39,13 @@ export function FunnelFilter({
   options,
   state,
   onChange,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS,
 }: {
   options: FilterOption[];
   state: ColumnFilterState | undefined;
   onChange: (next: ColumnFilterState | undefined) => void;
+  /** Pause before a typed "Contains" query is applied. Default 300 ms. */
+  debounceMs?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [optionQuery, setOptionQuery] = useState('');
@@ -58,6 +63,22 @@ export function FunnelFilter({
     const empty = !(next.values?.length ?? 0) && !next.query?.trim();
     onChange(empty ? undefined : next);
   }
+
+  // The "Contains" box shows every keystroke at once but only commits after a pause, so a
+  // server-filtered table runs one query per word instead of one per letter. Ticking a value
+  // still commits immediately.
+  const [draftQuery, setDraftQuery] = useState(state?.query ?? '');
+  const committedQuery = state?.query ?? '';
+  const lastCommitted = useRef(committedQuery);
+  if (lastCommitted.current !== committedQuery) {
+    lastCommitted.current = committedQuery;
+    if (draftQuery !== committedQuery) setDraftQuery(committedQuery);
+  }
+  const stateRef = useLatestRef(state);
+  const commitQuery = useDebouncedCallback((query: string) => {
+    lastCommitted.current = query;
+    commit({ ...stateRef.current, query });
+  }, debounceMs);
 
   return (
     <>
@@ -80,8 +101,14 @@ export function FunnelFilter({
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
             <input
               autoFocus
-              value={state?.query ?? ''}
-              onChange={(e) => commit({ ...state, query: e.target.value })}
+              value={draftQuery}
+              onChange={(e) => {
+                setDraftQuery(e.target.value);
+                commitQuery(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) commitQuery.flush();
+              }}
               placeholder="Contains…"
               className="w-full rounded-md border border-input bg-background pl-7 pr-2 py-1.5 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
             />
@@ -128,6 +155,8 @@ export function FunnelFilter({
             <button
               type="button"
               onClick={() => {
+                commitQuery.cancel();
+                setDraftQuery('');
                 onChange(undefined);
                 setOptionQuery('');
               }}

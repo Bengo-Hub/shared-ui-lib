@@ -2381,6 +2381,89 @@ function fixedPanelPosition(anchor, preferredHeight, minWidth = 0) {
   const top = openAbove ? r.top - GAP - height : r.bottom + GAP;
   return { ...toFixedFrame(anchor, top, left), width, maxHeight };
 }
+
+// src/components/search/debounce.ts
+var DEFAULT_SEARCH_DELAY_MS = 300;
+function createDebouncer(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  let timer = null;
+  let maxTimer = null;
+  let lastArgs = null;
+  const clearTimers = () => {
+    if (timer) clearTimeout(timer);
+    if (maxTimer) clearTimeout(maxTimer);
+    timer = null;
+    maxTimer = null;
+  };
+  const invoke = () => {
+    const args = lastArgs;
+    clearTimers();
+    lastArgs = null;
+    if (args) fn(...args);
+  };
+  const debounced = ((...args) => {
+    lastArgs = args;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(invoke, delay);
+    if (options.maxWait !== void 0 && !maxTimer) {
+      maxTimer = setTimeout(invoke, options.maxWait);
+    }
+  });
+  debounced.cancel = () => {
+    clearTimers();
+    lastArgs = null;
+  };
+  debounced.flush = () => {
+    if (lastArgs) invoke();
+  };
+  debounced.pending = () => lastArgs !== null;
+  return debounced;
+}
+function isAbortError(error) {
+  if (!error || typeof error !== "object") return false;
+  const name = error.name;
+  const code = error.code;
+  return name === "AbortError" || name === "CanceledError" || code === "ERR_CANCELED";
+}
+function createSearchRunner(getSearch) {
+  let seq = 0;
+  let controller = null;
+  const cancel = () => {
+    seq += 1;
+    controller?.abort();
+    controller = null;
+  };
+  const run = async (term) => {
+    cancel();
+    const mine = seq;
+    const own = new AbortController();
+    controller = own;
+    try {
+      const value = await getSearch()(term, { signal: own.signal });
+      return mine === seq ? { status: "ok", value } : { status: "stale" };
+    } catch (error) {
+      if (mine !== seq || isAbortError(error)) return { status: "stale" };
+      return { status: "error", error };
+    } finally {
+      if (controller === own) controller = null;
+    }
+  };
+  return { run, cancel };
+}
+function useLatestRef(value) {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
+}
+function useDebouncedCallback(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  const fnRef = useLatestRef(fn);
+  const { maxWait } = options;
+  const debounced = useMemo(
+    () => createDebouncer((...args) => fnRef.current(...args), delay, { maxWait }),
+    [delay, maxWait, fnRef]
+  );
+  useEffect(() => () => debounced.cancel(), [debounced]);
+  return debounced;
+}
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -2391,6 +2474,8 @@ function SearchableCombobox({
   valueLabel,
   onRemoteSearch,
   remoteThreshold = 5,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS,
+  errorText = "Search failed. Check the connection and try again.",
   onLoadMore,
   hasMore,
   loading,
@@ -2409,10 +2494,17 @@ function SearchableCombobox({
   const [query, setQuery] = useState("");
   const [remoteResults, setRemoteResults] = useState([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
+  const [remoteFailed, setRemoteFailed] = useState(false);
   const ref = useRef(null);
   const panelRef = useRef(null);
-  const debounceRef = useRef(null);
-  const requestSeq = useRef(0);
+  const onRemoteSearchRef = useLatestRef(onRemoteSearch);
+  const runner = useMemo(
+    () => createSearchRunner(
+      () => (q, context) => onRemoteSearchRef.current?.(q, context) ?? Promise.resolve([])
+    ),
+    [onRemoteSearchRef]
+  );
+  useEffect(() => () => runner.cancel(), [runner]);
   const [panelPos, setPanelPos] = useState(null);
   useLayoutEffect(() => {
     if (!open) return;
@@ -2454,31 +2546,29 @@ function SearchableCombobox({
       (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q) || (o.description ?? "").toLowerCase().includes(q)
     );
   }, [options, query]);
+  const runRemote = useDebouncedCallback((q) => {
+    void runner.run(q).then((outcome) => {
+      if (outcome.status === "stale") return;
+      setRemoteResults(outcome.status === "ok" ? outcome.value : []);
+      setRemoteFailed(outcome.status === "error");
+      setRemoteLoading(false);
+    });
+  }, debounceMs);
+  const hasRemote = !!onRemoteSearch;
   useEffect(() => {
-    if (!onRemoteSearch) return;
+    if (!hasRemote) return;
     const q = query.trim();
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!q || localMatches.length >= remoteThreshold) {
+      runRemote.cancel();
+      runner.cancel();
       setRemoteResults([]);
+      setRemoteFailed(false);
       setRemoteLoading(false);
       return;
     }
     setRemoteLoading(true);
-    const seq = ++requestSeq.current;
-    debounceRef.current = setTimeout(() => {
-      onRemoteSearch(q).then((results) => {
-        if (requestSeq.current !== seq) return;
-        setRemoteResults(results);
-      }).catch(() => {
-        if (requestSeq.current === seq) setRemoteResults([]);
-      }).finally(() => {
-        if (requestSeq.current === seq) setRemoteLoading(false);
-      });
-    }, 250);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, localMatches.length, onRemoteSearch, remoteThreshold]);
+    runRemote(q);
+  }, [query, localMatches.length, hasRemote, remoteThreshold, runRemote, runner]);
   const merged = useMemo(() => {
     if (remoteResults.length === 0) return localMatches;
     const seen = new Set(localMatches.map((o) => o.value));
@@ -2594,7 +2684,7 @@ function SearchableCombobox({
                 ]
               }
             ) }),
-            merged.length === 0 && canCreate ? null : merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : emptyText }) : merged.map((o) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+            merged.length === 0 && canCreate ? null : merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : remoteFailed ? errorText : emptyText }) : merged.map((o) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
               "button",
               {
                 type: "button",
@@ -3190,7 +3280,8 @@ function SortButton({
 function FunnelFilter({
   options,
   state,
-  onChange
+  onChange,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS
 }) {
   const [open, setOpen] = useState(false);
   const [optionQuery, setOptionQuery] = useState("");
@@ -3206,6 +3297,18 @@ function FunnelFilter({
     const empty = !(next.values?.length ?? 0) && !next.query?.trim();
     onChange(empty ? void 0 : next);
   }
+  const [draftQuery, setDraftQuery] = useState(state?.query ?? "");
+  const committedQuery = state?.query ?? "";
+  const lastCommitted = useRef(committedQuery);
+  if (lastCommitted.current !== committedQuery) {
+    lastCommitted.current = committedQuery;
+    if (draftQuery !== committedQuery) setDraftQuery(committedQuery);
+  }
+  const stateRef = useLatestRef(state);
+  const commitQuery = useDebouncedCallback((query) => {
+    lastCommitted.current = query;
+    commit({ ...stateRef.current, query });
+  }, debounceMs);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(
       "button",
@@ -3228,8 +3331,14 @@ function FunnelFilter({
           "input",
           {
             autoFocus: true,
-            value: state?.query ?? "",
-            onChange: (e) => commit({ ...state, query: e.target.value }),
+            value: draftQuery,
+            onChange: (e) => {
+              setDraftQuery(e.target.value);
+              commitQuery(e.target.value);
+            },
+            onKeyDown: (e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) commitQuery.flush();
+            },
             placeholder: "Contains\u2026",
             className: "w-full rounded-md border border-input bg-background pl-7 pr-2 py-1.5 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
           }
@@ -3272,6 +3381,8 @@ function FunnelFilter({
         {
           type: "button",
           onClick: () => {
+            commitQuery.cancel();
+            setDraftQuery("");
             onChange(void 0);
             setOptionQuery("");
           },

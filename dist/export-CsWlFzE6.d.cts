@@ -193,10 +193,12 @@ declare function SortButton({ dir, onCycle, }: {
  * FunnelFilter — per-column header filter: a text "contains" query plus a
  * checklist of distinct values. Highlighted when active.
  */
-declare function FunnelFilter({ options, state, onChange, }: {
+declare function FunnelFilter({ options, state, onChange, debounceMs, }: {
     options: FilterOption[];
     state: ColumnFilterState | undefined;
     onChange: (next: ColumnFilterState | undefined) => void;
+    /** Pause before a typed "Contains" query is applied. Default 300 ms. */
+    debounceMs?: number;
 }): react_jsx_runtime.JSX.Element;
 
 /**

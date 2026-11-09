@@ -1,4 +1,4 @@
-import * as React$1 from 'react';
+import * as react from 'react';
 import { CSSProperties } from 'react';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
@@ -37,7 +37,7 @@ interface TreasuryPaymentModalProps {
     /** Called when payment fails */
     onPaymentFailed?: (error: string) => void;
 }
-declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): React$1.ReactPortal | null;
+declare function TreasuryPaymentModal({ open, onOpenChange, paymentIntentId, tenantSlug, amount, currency, description, allowedMethods, treasuryUiUrl, initiateUrl, customerEmail, referenceId, referenceType, timeoutMs, onPaymentConfirmed, onPaymentFailed, }: TreasuryPaymentModalProps): react.ReactPortal | null;
 
 /**
  * The ONE settlement-method registry shared by every "receive/record/pay out" surface across
@@ -136,7 +136,7 @@ interface SettlementModalProps {
  * whichever endpoint applies (treasury AR/AP, pos-api credit settlement) — this component only
  * owns the amount/method/reference form and its validation.
  */
-declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, onMethodChange, }: SettlementModalProps): React$1.ReactPortal | null;
+declare function SettlementModal({ open, mode, title, subjectName, amountLabel, amountValue, currency, defaultAmount, maxAmount, allowOverpayment, methods, onSubmit, onClose, isPending, extraFields, onMethodChange, }: SettlementModalProps): react.ReactPortal | null;
 
 /**
  * Which methods a payment form may offer a tenant. A method backed by a gateway works only when the
@@ -252,7 +252,7 @@ interface CurrencyChangeConfirmModalProps {
  * before committing, per the "always confirm a currency change with a rate summary" requirement —
  * never silently switches an outlet/tenant's currency.
  */
-declare function CurrencyChangeConfirmModal({ open, fromCurrency, toCurrency, rate, rateSource, exampleAmounts, onConfirm, onCancel, loading, error, }: CurrencyChangeConfirmModalProps): React$1.ReactPortal | null;
+declare function CurrencyChangeConfirmModal({ open, fromCurrency, toCurrency, rate, rateSource, exampleAmounts, onConfirm, onCancel, loading, error, }: CurrencyChangeConfirmModalProps): react.ReactPortal | null;
 
 type AccountType = 'bank' | 'mobile_money' | 'cash';
 interface AccountFormValue {

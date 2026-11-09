@@ -27,6 +27,8 @@ export default defineConfig({
     "src/components/app-icon/index.tsx",
     "src/components/media/index.ts",
     "src/components/tax/index.ts",
+    "src/components/search/index.ts",
+    "src/components/search/query.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

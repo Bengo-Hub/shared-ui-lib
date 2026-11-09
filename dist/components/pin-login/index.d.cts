@@ -1,4 +1,4 @@
-import React__default, { ReactNode } from 'react';
+import react__default, { ReactNode } from 'react';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
 /**
@@ -109,7 +109,7 @@ interface PinLoginHeaderProps {
     onSwitchOutlet?: () => void;
     isOnline?: boolean;
     /** Clock / settings-gear / other app-owned controls, right-aligned. */
-    rightSlot?: React__default.ReactNode;
+    rightSlot?: react__default.ReactNode;
     className?: string;
 }
 declare function PinLoginHeader({ serviceName, tenantName, outletName, isHQ, showSwitchOutlet, onSwitchOutlet, isOnline, rightSlot, className, }: PinLoginHeaderProps): react_jsx_runtime.JSX.Element;
@@ -164,13 +164,13 @@ declare function DemoHints({ title, subtitle, hints }: {
 }): react_jsx_runtime.JSX.Element | null;
 
 interface PinLoginLayoutProps {
-    header: React__default.ReactNode;
+    header: react__default.ReactNode;
     /** Left brand column — hidden below the `lg` breakpoint. Omit entirely for a header-only look. */
-    brandPanel?: React__default.ReactNode;
+    brandPanel?: react__default.ReactNode;
     /** The actual login card content (SSO button / passcode field / keypad / scan-card slot / ...). */
-    card: React__default.ReactNode;
+    card: react__default.ReactNode;
     /** Absolutely-positioned extras that shouldn't affect flow (e.g. DemoHints). */
-    footer?: React__default.ReactNode;
+    footer?: react__default.ReactNode;
     /** Tenant screensaver/brand image shown heavily tinted behind the brand-dark gradient. */
     backdropUrl?: string | null;
     className?: string;

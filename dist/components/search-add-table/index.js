@@ -1,8 +1,91 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Loader2, Plus, Search } from 'lucide-react';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 
 // src/components/search-add-table/search-add-table.tsx
+
+// src/components/search/debounce.ts
+var DEFAULT_SEARCH_DELAY_MS = 300;
+function createDebouncer(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  let timer = null;
+  let maxTimer = null;
+  let lastArgs = null;
+  const clearTimers = () => {
+    if (timer) clearTimeout(timer);
+    if (maxTimer) clearTimeout(maxTimer);
+    timer = null;
+    maxTimer = null;
+  };
+  const invoke = () => {
+    const args = lastArgs;
+    clearTimers();
+    lastArgs = null;
+    if (args) fn(...args);
+  };
+  const debounced = ((...args) => {
+    lastArgs = args;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(invoke, delay);
+    if (options.maxWait !== void 0 && !maxTimer) {
+      maxTimer = setTimeout(invoke, options.maxWait);
+    }
+  });
+  debounced.cancel = () => {
+    clearTimers();
+    lastArgs = null;
+  };
+  debounced.flush = () => {
+    if (lastArgs) invoke();
+  };
+  debounced.pending = () => lastArgs !== null;
+  return debounced;
+}
+function isAbortError(error) {
+  if (!error || typeof error !== "object") return false;
+  const name = error.name;
+  const code = error.code;
+  return name === "AbortError" || name === "CanceledError" || code === "ERR_CANCELED";
+}
+function createSearchRunner(getSearch) {
+  let seq = 0;
+  let controller = null;
+  const cancel = () => {
+    seq += 1;
+    controller?.abort();
+    controller = null;
+  };
+  const run = async (term) => {
+    cancel();
+    const mine = seq;
+    const own = new AbortController();
+    controller = own;
+    try {
+      const value = await getSearch()(term, { signal: own.signal });
+      return mine === seq ? { status: "ok", value } : { status: "stale" };
+    } catch (error) {
+      if (mine !== seq || isAbortError(error)) return { status: "stale" };
+      return { status: "error", error };
+    } finally {
+      if (controller === own) controller = null;
+    }
+  };
+  return { run, cancel };
+}
+function useLatestRef(value) {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
+}
+function useDebouncedCallback(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  const fnRef = useLatestRef(fn);
+  const { maxWait } = options;
+  const debounced = useMemo(
+    () => createDebouncer((...args) => fnRef.current(...args), delay, { maxWait }),
+    [delay, maxWait, fnRef]
+  );
+  useEffect(() => () => debounced.cancel(), [debounced]);
+  return debounced;
+}
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -11,9 +94,11 @@ function SearchAddTable({
   onAdd,
   excludeIds,
   minChars = 2,
-  debounceMs = 250,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS,
   placeholder = "Search to add\u2026",
   emptyText = "No matches",
+  errorText = "Search failed. Check the connection and try again.",
+  onEnter,
   disabled,
   className,
   fixedDropdown,
@@ -24,35 +109,42 @@ function SearchAddTable({
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState({});
   const ref = useRef(null);
   const inputRef = useRef(null);
-  const debounceRef = useRef(null);
-  const requestSeq = useRef(0);
+  const onSearchRef = useLatestRef(onSearch);
+  const runner = useMemo(() => createSearchRunner(() => (q, context) => onSearchRef.current(q, context)), [onSearchRef]);
+  useEffect(() => () => runner.cancel(), [runner]);
+  const runSearch = useDebouncedCallback((q) => {
+    void runner.run(q).then((outcome) => {
+      if (outcome.status === "stale") return;
+      setResults(outcome.status === "ok" ? outcome.value : []);
+      setFailed(outcome.status === "error");
+      setLoading(false);
+    });
+  }, debounceMs);
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = query.trim();
     if (q.length < minChars) {
+      runSearch.cancel();
+      runner.cancel();
       setResults([]);
+      setFailed(false);
       setLoading(false);
       return;
     }
     setLoading(true);
-    const seq = ++requestSeq.current;
-    debounceRef.current = setTimeout(() => {
-      onSearch(q).then((res) => {
-        if (requestSeq.current !== seq) return;
-        setResults(res);
-      }).catch(() => {
-        if (requestSeq.current === seq) setResults([]);
-      }).finally(() => {
-        if (requestSeq.current === seq) setLoading(false);
-      });
-    }, debounceMs);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, minChars, debounceMs]);
+    runSearch(q);
+  }, [query, minChars, runSearch, runner]);
+  async function handleEnter() {
+    const q = query.trim();
+    if (q.length < minChars) return;
+    runSearch.flush();
+    if (!onEnter) return;
+    const picked = await onEnter(q);
+    if (picked) pick(picked);
+  }
   useEffect(() => {
     function onDocClick(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -80,7 +172,7 @@ function SearchAddTable({
   const list = /* @__PURE__ */ jsx("ul", { className: "max-h-60 overflow-y-auto py-1", children: loading ? /* @__PURE__ */ jsxs("li", { className: "flex items-center justify-center gap-2 px-3 py-6 text-sm text-muted-foreground", children: [
     /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin" }),
     " Searching\u2026"
-  ] }) : visible.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: emptyText }) : visible.map((option) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+  ] }) : visible.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: failed ? errorText : emptyText }) : visible.map((option) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
     "button",
     {
       type: "button",
@@ -117,6 +209,12 @@ function SearchAddTable({
           onChange: (e) => {
             setQuery(e.target.value);
             setOpen(true);
+          },
+          onKeyDown: (e) => {
+            if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+            e.preventDefault();
+            setOpen(true);
+            void handleEnter();
           },
           onFocus: () => query.trim().length >= minChars && setOpen(true),
           className: cx(

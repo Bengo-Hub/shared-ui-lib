@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import * as React from 'react';
+import * as react from 'react';
 import { ReactNode } from 'react';
 import * as lucide_react from 'lucide-react';
 
@@ -79,21 +79,21 @@ declare function AnnouncementBanner({ service, orgSlug, viewerKey, isAdmin, flag
 type NoticeTone = 'feature' | 'info' | 'warning';
 declare const NOTICE_TONES: {
     readonly feature: {
-        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly icon: react.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & react.RefAttributes<SVGSVGElement>>;
         readonly badge: "New";
         readonly ring: "border-primary/30";
         readonly iconBox: "bg-primary/10 text-primary";
         readonly badgeCls: "bg-primary text-primary-foreground";
     };
     readonly info: {
-        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly icon: react.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & react.RefAttributes<SVGSVGElement>>;
         readonly badge: "Update";
         readonly ring: "border-sky-500/30";
         readonly iconBox: "bg-sky-500/10 text-sky-600 dark:text-sky-400";
         readonly badgeCls: "bg-sky-600 text-white";
     };
     readonly warning: {
-        readonly icon: React.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+        readonly icon: react.ForwardRefExoticComponent<Omit<lucide_react.LucideProps, "ref"> & react.RefAttributes<SVGSVGElement>>;
         readonly badge: "Notice";
         readonly ring: "border-amber-500/40";
         readonly iconBox: "bg-amber-500/10 text-amber-600 dark:text-amber-400";

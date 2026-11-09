@@ -259,6 +259,58 @@ function Checkbox({ checked, indeterminate, onChange, disabled, className, ...re
     }
   );
 }
+
+// src/components/search/debounce.ts
+var DEFAULT_SEARCH_DELAY_MS = 300;
+function createDebouncer(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  let timer = null;
+  let maxTimer = null;
+  let lastArgs = null;
+  const clearTimers = () => {
+    if (timer) clearTimeout(timer);
+    if (maxTimer) clearTimeout(maxTimer);
+    timer = null;
+    maxTimer = null;
+  };
+  const invoke = () => {
+    const args = lastArgs;
+    clearTimers();
+    lastArgs = null;
+    if (args) fn(...args);
+  };
+  const debounced = ((...args) => {
+    lastArgs = args;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(invoke, delay);
+    if (options.maxWait !== void 0 && !maxTimer) {
+      maxTimer = setTimeout(invoke, options.maxWait);
+    }
+  });
+  debounced.cancel = () => {
+    clearTimers();
+    lastArgs = null;
+  };
+  debounced.flush = () => {
+    if (lastArgs) invoke();
+  };
+  debounced.pending = () => lastArgs !== null;
+  return debounced;
+}
+function useLatestRef(value) {
+  const ref = react.useRef(value);
+  ref.current = value;
+  return ref;
+}
+function useDebouncedCallback(fn, delay = DEFAULT_SEARCH_DELAY_MS, options = {}) {
+  const fnRef = useLatestRef(fn);
+  const { maxWait } = options;
+  const debounced = react.useMemo(
+    () => createDebouncer((...args) => fnRef.current(...args), delay, { maxWait }),
+    [delay, maxWait, fnRef]
+  );
+  react.useEffect(() => () => debounced.cancel(), [debounced]);
+  return debounced;
+}
 function SortButton({
   dir,
   onCycle
@@ -281,7 +333,8 @@ function SortButton({
 function FunnelFilter({
   options,
   state,
-  onChange
+  onChange,
+  debounceMs = DEFAULT_SEARCH_DELAY_MS
 }) {
   const [open, setOpen] = react.useState(false);
   const [optionQuery, setOptionQuery] = react.useState("");
@@ -297,6 +350,18 @@ function FunnelFilter({
     const empty = !(next.values?.length ?? 0) && !next.query?.trim();
     onChange(empty ? void 0 : next);
   }
+  const [draftQuery, setDraftQuery] = react.useState(state?.query ?? "");
+  const committedQuery = state?.query ?? "";
+  const lastCommitted = react.useRef(committedQuery);
+  if (lastCommitted.current !== committedQuery) {
+    lastCommitted.current = committedQuery;
+    if (draftQuery !== committedQuery) setDraftQuery(committedQuery);
+  }
+  const stateRef = useLatestRef(state);
+  const commitQuery = useDebouncedCallback((query) => {
+    lastCommitted.current = query;
+    commit({ ...stateRef.current, query });
+  }, debounceMs);
   return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
     /* @__PURE__ */ jsxRuntime.jsx(
       "button",
@@ -319,8 +384,14 @@ function FunnelFilter({
           "input",
           {
             autoFocus: true,
-            value: state?.query ?? "",
-            onChange: (e) => commit({ ...state, query: e.target.value }),
+            value: draftQuery,
+            onChange: (e) => {
+              setDraftQuery(e.target.value);
+              commitQuery(e.target.value);
+            },
+            onKeyDown: (e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) commitQuery.flush();
+            },
             placeholder: "Contains\u2026",
             className: "w-full rounded-md border border-input bg-background pl-7 pr-2 py-1.5 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
           }
@@ -363,6 +434,8 @@ function FunnelFilter({
         {
           type: "button",
           onClick: () => {
+            commitQuery.cancel();
+            setDraftQuery("");
             onChange(void 0);
             setOptionQuery("");
           },

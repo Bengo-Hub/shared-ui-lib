@@ -1,6 +1,7 @@
-import { C as ComboboxOption } from '../../searchable-combobox--z0EwAlN.js';
-export { S as SearchableCombobox, a as SearchableComboboxProps } from '../../searchable-combobox--z0EwAlN.js';
+import { C as ComboboxOption } from '../../searchable-combobox-BU-y0sUG.js';
+export { S as SearchableCombobox, a as SearchableComboboxProps } from '../../searchable-combobox-BU-y0sUG.js';
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import '../../debounce-BEP6JASM.js';
 
 /**
  * MultiSelectCombobox — the platform's canonical chip-based multi-select, for picking several
