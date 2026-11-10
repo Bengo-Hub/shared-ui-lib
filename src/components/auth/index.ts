@@ -9,3 +9,14 @@ export {
   type EmailVerificationState,
   type VerifyEmailStage,
 } from './verify-email-banner';
+export {
+  createSessionRefresher,
+  watchSessionAcrossTabs,
+  expiryMs,
+  errorStatus,
+  isRefusal,
+  type RefreshableSession,
+  type RefreshTokenPayload,
+  type RefreshOutcome,
+  type SessionRefresherOptions,
+} from './session-refresh';

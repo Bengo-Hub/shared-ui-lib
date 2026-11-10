@@ -567,6 +567,88 @@ function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClos
   return /* @__PURE__ */ jsx("div", { className: "veb-overlay", children: card });
 }
 
-export { SSOCallbackError, SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog, revokeServerSession };
+// src/components/auth/session-refresh.ts
+function expiryMs(expiresAt) {
+  if (typeof expiresAt === "number") return Number.isFinite(expiresAt) ? expiresAt : 0;
+  if (!expiresAt) return 0;
+  const t = new Date(expiresAt).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+function errorStatus(err) {
+  const e = err;
+  const s = typeof e?.status === "number" ? e.status : e?.response?.status;
+  return typeof s === "number" ? s : void 0;
+}
+function isRefusal(status) {
+  return status === 400 || status === 401 || status === 403;
+}
+function withCrossTabLock(name, work) {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : void 0;
+  if (!locks?.request) return work();
+  return locks.request(`codevertex-session-refresh:${name}`, work);
+}
+function createSessionRefresher(opts) {
+  const now = opts.now ?? (() => Date.now());
+  const minRemaining = opts.minRemainingMs ?? 3e4;
+  let inFlight = null;
+  const reload = async () => {
+    try {
+      await opts.reloadSession?.();
+    } catch {
+    }
+  };
+  const adoptable = (failed) => {
+    const s = opts.getSession();
+    if (!s?.accessToken || s.accessToken === failed) return null;
+    return expiryMs(s.expiresAt) > now() + minRemaining ? s : null;
+  };
+  const attempt = async (failed) => {
+    await reload();
+    const adopted = adoptable(failed);
+    if (adopted) return { token: adopted.accessToken };
+    const session = opts.getSession();
+    if (!session?.refreshToken) return { rejected: true };
+    const spent = session.refreshToken;
+    let data;
+    try {
+      data = await opts.refresh(spent);
+    } catch (err) {
+      await reload();
+      const late = adoptable(failed);
+      if (late) return { token: late.accessToken };
+      return isRefusal(errorStatus(err)) ? { rejected: true } : { transient: true };
+    }
+    if (!data?.access_token || data.mfa_enrollment_required) return { rejected: true };
+    const expiresInMs = (data.expires_in && data.expires_in > 0 ? data.expires_in : 3600) * 1e3;
+    const until = now() + expiresInMs;
+    const latest = opts.getSession() ?? session;
+    opts.saveSession({
+      ...latest,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || spent,
+      expiresAt: typeof session.expiresAt === "number" ? until : new Date(until).toISOString()
+    });
+    return { token: data.access_token };
+  };
+  return (failedToken) => {
+    if (inFlight) return inFlight;
+    const failed = failedToken ?? opts.getSession()?.accessToken ?? null;
+    inFlight = withCrossTabLock(opts.lockName, () => attempt(failed)).finally(() => {
+      inFlight = null;
+    });
+    return inFlight;
+  };
+}
+function watchSessionAcrossTabs(storageKey, onChange) {
+  if (typeof window === "undefined") return () => {
+  };
+  const handler = (e) => {
+    if (e.key === storageKey) onChange();
+  };
+  window.addEventListener("storage", handler);
+  return () => window.removeEventListener("storage", handler);
+}
+
+export { SSOCallbackError, SSOLoginModal, VerifyEmailBanner, VerifyEmailDialog, createSessionRefresher, errorStatus, expiryMs, isRefusal, revokeServerSession, watchSessionAcrossTabs };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

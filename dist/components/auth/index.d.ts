@@ -113,4 +113,83 @@ interface VerifyEmailDialogProps extends Omit<VerifyEmailBannerProps, 'onVerifie
 }
 declare function VerifyEmailDialog({ state, onSendCode, onVerifyCode, onVerified, onClose, embedded }: VerifyEmailDialogProps): react_jsx_runtime.JSX.Element;
 
-export { type EmailVerificationState, SSOCallbackError, type SSOCallbackErrorProps, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage, revokeServerSession };
+/**
+ * One access-token refresh for every Codevertex web app.
+ *
+ * auth-api rotates the refresh token on every refresh, and every app keeps its session in a
+ * per-tab store persisted to localStorage. With two tabs open, the tab that refreshes first
+ * rotates the token the other tab still holds in memory, so that tab's refresh is refused and the
+ * person is stuck on a page where every save fails with a 401. This helper closes that gap:
+ *
+ * 1. Before spending a refresh token it reloads the persisted session. If another tab already
+ *    holds a newer, unexpired access token, that token is adopted and no refresh is sent.
+ * 2. Tabs take turns through the Web Locks API, so only one tab refreshes at a time and the
+ *    next one finds the fresh session waiting for it.
+ * 3. A refused refresh is checked against storage once more before it counts as a sign-out.
+ * 4. An enrolment-only answer (mfa_enrollment_required) is treated as a sign-out: its token
+ *    opens the authenticator setup only, so the app must send the person to sign in.
+ * 5. Network and server errors come back as `transient`, so a weak connection never signs
+ *    anyone out.
+ *
+ * The helper knows nothing about the app's store: the app passes how to read, reload and save
+ * its session. Pure TypeScript, safe to import on the server (it only touches `navigator` and
+ * `window` when called).
+ */
+interface RefreshableSession {
+    accessToken: string;
+    refreshToken: string;
+    /** ISO string or epoch milliseconds, whichever the app stores; the saved value keeps that type. */
+    expiresAt: string | number;
+}
+/** The fields of auth-api's POST /api/v1/auth/refresh answer this helper reads. */
+interface RefreshTokenPayload {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    mfa_enrollment_required?: boolean;
+}
+type RefreshOutcome = {
+    token: string;
+}
+/** auth-api refused the session (expired, ended, rotated away, or enrolment only): sign out. */
+ | {
+    rejected: true;
+}
+/** auth-api could not be reached or failed: keep the session and let the request fail softly. */
+ | {
+    transient: true;
+};
+interface SessionRefresherOptions<S extends RefreshableSession> {
+    /** Names the cross-tab lock; use the app's persisted store key, e.g. 'treasury-auth-storage'. */
+    lockName: string;
+    getSession: () => S | null;
+    /** Re-reads the session another tab may have written (zustand: `useAuthStore.persist.rehydrate`). */
+    reloadSession?: () => unknown | Promise<unknown>;
+    saveSession: (next: S) => void;
+    /** Calls auth-api's refresh endpoint; throw an error carrying `status` on a non-2xx answer. */
+    refresh: (refreshToken: string) => Promise<RefreshTokenPayload>;
+    /** A token closer than this to expiry is not adopted from another tab. Default 30 seconds. */
+    minRemainingMs?: number;
+    now?: () => number;
+}
+/** Epoch milliseconds of an ISO or epoch expiry; 0 when it cannot be read. */
+declare function expiryMs(expiresAt: string | number | null | undefined): number;
+/** The HTTP status on a fetch-style (`status`) or axios-style (`response.status`) error. */
+declare function errorStatus(err: unknown): number | undefined;
+/** 400, 401 and 403 mean auth-api refused the refresh token; anything else is transient. */
+declare function isRefusal(status: number | undefined): boolean;
+/**
+ * Builds the app's refresh function. Concurrent calls in one tab share one attempt.
+ *
+ * Pass the access token the server just rejected as `failedToken` when it is known (the 401
+ * handler has it); otherwise the token held in memory at call time is used.
+ */
+declare function createSessionRefresher<S extends RefreshableSession>(opts: SessionRefresherOptions<S>): (failedToken?: string | null) => Promise<RefreshOutcome>;
+/**
+ * Calls `onChange` when another tab writes the persisted session, so this tab picks up the new
+ * tokens instead of writing its stale copy back over them. Returns the unsubscribe function.
+ * zustand apps pass `() => useAuthStore.persist.rehydrate()` and then re-point their API client.
+ */
+declare function watchSessionAcrossTabs(storageKey: string, onChange: () => void): () => void;
+
+export { type EmailVerificationState, type RefreshOutcome, type RefreshTokenPayload, type RefreshableSession, SSOCallbackError, type SSOCallbackErrorProps, type SessionRefresherOptions, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage, createSessionRefresher, errorStatus, expiryMs, isRefusal, revokeServerSession, watchSessionAcrossTabs };
