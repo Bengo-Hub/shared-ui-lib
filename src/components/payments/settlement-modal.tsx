@@ -21,6 +21,10 @@ export interface SettlementMethod {
 export const CASH: SettlementMethod = { value: 'cash', label: 'Cash' };
 export const MPESA_STK: SettlementMethod = { value: 'mpesa', label: 'M-Pesa (STK / Paybill)' };
 export const MPESA_MANUAL: SettlementMethod = { value: 'mpesa_manual', label: 'M-Pesa (code)', optionalReferenceLabel: 'M-Pesa code' };
+// Offline tenders recorded by hand like M-Pesa code. No gateway behind them, so they always show.
+export const MTN_MOMO_MANUAL: SettlementMethod = { value: 'mtn_momo_manual', label: 'MTN MoMo (code)', optionalReferenceLabel: 'MTN transaction ID' };
+export const AIRTEL_MONEY_MANUAL: SettlementMethod = { value: 'airtel_money_manual', label: 'Airtel Money (code)', optionalReferenceLabel: 'Airtel transaction ID' };
+export const OTHER_MANUAL: SettlementMethod = { value: 'other_manual', label: 'Other', optionalReferenceLabel: 'Reference' };
 export const BANK: SettlementMethod = { value: 'bank', label: 'Bank transfer', requiresReference: true };
 export const CHEQUE: SettlementMethod = { value: 'cheque', label: 'Cheque', requiresReference: true };
 export const CARD: SettlementMethod = { value: 'card', label: 'Card' };
@@ -35,14 +39,14 @@ export const AIRTEL_MONEY: SettlementMethod = { value: 'airtel_money', label: 'A
 export const BANK_TRANSFER: SettlementMethod = { value: 'bank_transfer', label: 'Bank Transfer', requiresReference: true };
 
 /** Every method the platform supports for RECEIVING money (customer/supplier repayment). */
-export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
+export const RECEIVE_METHODS: SettlementMethod[] = [CASH, MPESA_STK, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 /** Real cash-out channels only — paying money OUT, never a book-entry method. */
-export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MPESA_B2C, BANK, CHEQUE];
+export const PAYOUT_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, MPESA_B2C, BANK, CHEQUE];
 /** Paying a supplier — offline references + online dispatch methods. */
-export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
+export const PAY_SUPPLIER_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
 /** Settling a completed on-account (credit) sale at the till — recording money already
  *  collected offline, never a live STK push (that's a separate checkout-time tender). */
-export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
+export const SETTLE_CREDIT_SALE_METHODS: SettlementMethod[] = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 
 export type SettlementMode = 'receive' | 'payout' | 'apply_to_debt' | 'pay_supplier' | 'record_refund';
 

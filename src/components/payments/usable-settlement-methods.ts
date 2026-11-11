@@ -2,7 +2,9 @@
  * Which methods a payment form may offer a tenant. A method backed by a gateway works only when the
  * tenant has that gateway configured and switched on, so it is shown only when treasury lists it
  * (GET /{tenant}/gateways/settlement-methods). Offline methods need no gateway and always show,
- * including M-Pesa paid by hand with its optional code (mpesa_manual).
+ * including M-Pesa paid by hand with its optional code (mpesa_manual) and its MTN, Airtel and
+ * Other siblings (mtn_momo_manual, airtel_money_manual, other_manual). Those manual codes must
+ * never be added to the gateway set below.
  */
 export interface UsableSettlementMethods {
   /** Online methods money can come in on. */

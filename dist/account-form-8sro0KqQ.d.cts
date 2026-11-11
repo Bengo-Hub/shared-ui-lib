@@ -56,6 +56,9 @@ interface SettlementMethod {
 declare const CASH: SettlementMethod;
 declare const MPESA_STK: SettlementMethod;
 declare const MPESA_MANUAL: SettlementMethod;
+declare const MTN_MOMO_MANUAL: SettlementMethod;
+declare const AIRTEL_MONEY_MANUAL: SettlementMethod;
+declare const OTHER_MANUAL: SettlementMethod;
 declare const BANK: SettlementMethod;
 declare const CHEQUE: SettlementMethod;
 declare const CARD: SettlementMethod;
@@ -142,7 +145,9 @@ declare function SettlementModal({ open, mode, title, subjectName, amountLabel, 
  * Which methods a payment form may offer a tenant. A method backed by a gateway works only when the
  * tenant has that gateway configured and switched on, so it is shown only when treasury lists it
  * (GET /{tenant}/gateways/settlement-methods). Offline methods need no gateway and always show,
- * including M-Pesa paid by hand with its optional code (mpesa_manual).
+ * including M-Pesa paid by hand with its optional code (mpesa_manual) and its MTN, Airtel and
+ * Other siblings (mtn_momo_manual, airtel_money_manual, other_manual). Those manual codes must
+ * never be added to the gateway set below.
  */
 interface UsableSettlementMethods {
     /** Online methods money can come in on. */
@@ -169,8 +174,12 @@ declare const PAYMENT_METHOD_LABELS: Record<string, string>;
  * in parens so a generic method like `bank_transfer` or `mpesa_manual` reads as e.g.
  * "Bank Transfer (Equity Bank Uganda)" — lets a tenant trace exactly which account/provider a
  * transaction moved through, not just the generic method bucket.
+ *
+ * For `other_manual` the second argument is the payment label the cashier typed, so
+ * getPaymentMethodLabel('other_manual', 'Voucher') reads "Other (Voucher)". A blank label is
+ * ignored and the method shows as plain "Other".
  */
-declare function getPaymentMethodLabel(method: string | null | undefined, providerName?: string | null): string;
+declare function getPaymentMethodLabel(method: string | null | undefined, providerNameOrLabel?: string | null): string;
 
 interface LogoProps {
     className?: string;
@@ -264,4 +273,4 @@ declare function AccountForm({ value, onChange, currencies, currencyLabel, banks
  *  button on this rather than each consumer re-deriving the same per-type rule. */
 declare function isAccountFormValid(value: AccountFormValue): boolean;
 
-export { datetimeLocalToISO as $, AIRTEL_MONEY as A, BANK as B, CARD as C, type PaymentResult as D, EMPTY_ACCOUNT_FORM as E, PaystackLogo as F, type PaystackLogoProps as G, STORE_CREDIT as H, type SettlementMethod as I, SettlementModal as J, type SettlementModalProps as K, type SettlementMode as L, MPESA_B2B as M, type SettlementSubmitInput as N, SplitPayMark as O, PAYMENT_METHOD_LABELS as P, type TreasuryPaymentModalProps as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, TreasuryPaymentModal as T, type UsableSettlementMethods as U, getPaymentMethodLabel as V, isAccountFormValid as W, usableSettlementMethods as X, MastercardLogo as Y, VisaLogo as Z, WhatsAppLogo as _, AccountForm as a, nowDatetimeLocal as a0, type AccountFormBankOption as b, type AccountFormProps as c, type AccountFormValue as d, type AccountType as e, AirtelMoneyLogo as f, BANK_TRANSFER as g, CARD_MANUAL as h, CASH as i, CHEQUE as j, CUSTOMER_ADVANCE as k, CardMark as l, CashMark as m, CurrencyChangeConfirmModal as n, type CurrencyChangeConfirmModalProps as o, type CurrencyChangeExampleRow as p, MPESA_B2C as q, MPESA_MANUAL as r, MPESA_STK as s, MTN_MOMO as t, MpesaLogo as u, MtnMomoLogo as v, PAYOUT_METHODS as w, PAYSTACK as x, PAY_SUPPLIER_METHODS as y, PayHeroLogo as z };
+export { MastercardLogo as $, AIRTEL_MONEY as A, BANK as B, CARD as C, PAY_SUPPLIER_METHODS as D, EMPTY_ACCOUNT_FORM as E, PayHeroLogo as F, type PaymentResult as G, PaystackLogo as H, type PaystackLogoProps as I, STORE_CREDIT as J, type SettlementMethod as K, SettlementModal as L, MPESA_B2B as M, type SettlementModalProps as N, OTHER_MANUAL as O, PAYMENT_METHOD_LABELS as P, type SettlementMode as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, type SettlementSubmitInput as T, SplitPayMark as U, TreasuryPaymentModal as V, type TreasuryPaymentModalProps as W, type UsableSettlementMethods as X, getPaymentMethodLabel as Y, isAccountFormValid as Z, usableSettlementMethods as _, AIRTEL_MONEY_MANUAL as a, VisaLogo as a0, WhatsAppLogo as a1, datetimeLocalToISO as a2, nowDatetimeLocal as a3, AccountForm as b, type AccountFormBankOption as c, type AccountFormProps as d, type AccountFormValue as e, type AccountType as f, AirtelMoneyLogo as g, BANK_TRANSFER as h, CARD_MANUAL as i, CASH as j, CHEQUE as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, MPESA_B2C as r, MPESA_MANUAL as s, MPESA_STK as t, MTN_MOMO as u, MTN_MOMO_MANUAL as v, MpesaLogo as w, MtnMomoLogo as x, PAYOUT_METHODS as y, PAYSTACK as z };

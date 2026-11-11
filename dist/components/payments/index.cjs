@@ -290,6 +290,9 @@ function TreasuryPaymentModal({
 var CASH = { value: "cash", label: "Cash" };
 var MPESA_STK = { value: "mpesa", label: "M-Pesa (STK / Paybill)" };
 var MPESA_MANUAL = { value: "mpesa_manual", label: "M-Pesa (code)", optionalReferenceLabel: "M-Pesa code" };
+var MTN_MOMO_MANUAL = { value: "mtn_momo_manual", label: "MTN MoMo (code)", optionalReferenceLabel: "MTN transaction ID" };
+var AIRTEL_MONEY_MANUAL = { value: "airtel_money_manual", label: "Airtel Money (code)", optionalReferenceLabel: "Airtel transaction ID" };
+var OTHER_MANUAL = { value: "other_manual", label: "Other", optionalReferenceLabel: "Reference" };
 var BANK = { value: "bank", label: "Bank transfer", requiresReference: true };
 var CHEQUE = { value: "cheque", label: "Cheque", requiresReference: true };
 var CARD = { value: "card", label: "Card" };
@@ -302,10 +305,10 @@ var MPESA_B2B = { value: "mpesa_b2b", label: "M-Pesa (send to supplier till/payb
 var MTN_MOMO = { value: "mtn_momo", label: "MTN Mobile Money", requiresReference: true };
 var AIRTEL_MONEY = { value: "airtel_money", label: "Airtel Money", requiresReference: true };
 var BANK_TRANSFER = { value: "bank_transfer", label: "Bank Transfer", requiresReference: true };
-var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
-var PAYOUT_METHODS = [CASH, MPESA_MANUAL, MPESA_B2C, BANK, CHEQUE];
-var PAY_SUPPLIER_METHODS = [CASH, MPESA_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
-var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
+var RECEIVE_METHODS = [CASH, MPESA_STK, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, BANK, CHEQUE, CARD, PAYSTACK, STORE_CREDIT, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
+var PAYOUT_METHODS = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, MPESA_B2C, BANK, CHEQUE];
+var PAY_SUPPLIER_METHODS = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, MPESA_B2B, BANK, CHEQUE, CARD, BANK_TRANSFER];
+var SETTLE_CREDIT_SALE_METHODS = [CASH, MPESA_MANUAL, MTN_MOMO_MANUAL, AIRTEL_MONEY_MANUAL, OTHER_MANUAL, CARD_MANUAL, BANK, CHEQUE, PAYSTACK, MTN_MOMO, AIRTEL_MONEY, BANK_TRANSFER];
 function nowDatetimeLocal() {
   const d = /* @__PURE__ */ new Date();
   d.setSeconds(0, 0);
@@ -626,6 +629,11 @@ var PAYMENT_METHOD_LABELS = {
   // Legacy alias: rows captured before 2026-07-13 stored the M-Pesa-Code tender as bare
   // "manual" (backfilled server-side, but keep the label so any straggler still reads right).
   manual: "M-Pesa (Code)",
+  // Offline tenders captured by hand like mpesa_manual. other_manual carries a cashier typed
+  // payment label, shown as "Other (<label>)" through the second argument below.
+  mtn_momo_manual: "MTN MoMo (Code)",
+  airtel_money_manual: "Airtel Money (Code)",
+  other_manual: "Other",
   paystack: "Paystack",
   wallet: "Wallet",
   cod: "Cash on Delivery",
@@ -647,10 +655,11 @@ var PAYMENT_METHOD_LABELS = {
   insurance: "Insurance",
   loyalty: "Loyalty Points"
 };
-function getPaymentMethodLabel(method, providerName) {
+function getPaymentMethodLabel(method, providerNameOrLabel) {
   if (!method) return "\u2014";
   const base = method === "multiple" ? "Multiple" : PAYMENT_METHOD_LABELS[method] ?? method.replace(/_/g, " ");
-  return providerName ? `${base} (${providerName})` : base;
+  const suffix = providerNameOrLabel?.trim();
+  return suffix ? `${base} (${suffix})` : base;
 }
 function VisaLogo({ className, style, title = "Visa" }) {
   return /* @__PURE__ */ jsxRuntime.jsxs("svg", { viewBox: "0 0 1000 324.68", className, style, role: "img", "aria-label": title, children: [
@@ -1108,6 +1117,7 @@ function resolveDefaultAccount(accounts, method, outletId, invoiceType) {
 }
 
 exports.AIRTEL_MONEY = AIRTEL_MONEY;
+exports.AIRTEL_MONEY_MANUAL = AIRTEL_MONEY_MANUAL;
 exports.AccountForm = AccountForm;
 exports.AirtelMoneyLogo = AirtelMoneyLogo;
 exports.BANK = BANK;
@@ -1127,9 +1137,11 @@ exports.MPESA_B2C = MPESA_B2C;
 exports.MPESA_MANUAL = MPESA_MANUAL;
 exports.MPESA_STK = MPESA_STK;
 exports.MTN_MOMO = MTN_MOMO;
+exports.MTN_MOMO_MANUAL = MTN_MOMO_MANUAL;
 exports.MastercardLogo = MastercardLogo;
 exports.MpesaLogo = MpesaLogo;
 exports.MtnMomoLogo = MtnMomoLogo;
+exports.OTHER_MANUAL = OTHER_MANUAL;
 exports.PAYMENT_METHOD_LABELS = PAYMENT_METHOD_LABELS;
 exports.PAYOUT_METHODS = PAYOUT_METHODS;
 exports.PAYSTACK = PAYSTACK;

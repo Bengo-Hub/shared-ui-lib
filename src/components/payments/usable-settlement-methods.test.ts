@@ -17,3 +17,14 @@ test('no answer from treasury leaves offline methods only', () => {
 test('a gateway method shows only when treasury lists it', () => {
   assert.deepEqual(values({ collect: ['paystack'], payout: ['mpesa_b2b'] }), ['cash', 'mpesa_manual', 'bank', 'paystack', 'mpesa_b2b']);
 });
+
+test('MTN, Airtel and Other manual tenders always show, even with no gateway', () => {
+  const manual = ['mtn_momo_manual', 'airtel_money_manual', 'other_manual', 'mtn_momo', 'airtel_money'].map((value) => ({ value }));
+  const offline = ['mtn_momo_manual', 'airtel_money_manual', 'other_manual'];
+  assert.deepEqual(usableSettlementMethods(manual, null).map((m) => m.value), offline);
+  assert.deepEqual(usableSettlementMethods(manual, { collect: [], payout: [] }).map((m) => m.value), offline);
+  assert.deepEqual(
+    usableSettlementMethods(manual, { collect: ['mtn_momo'] }).map((m) => m.value),
+    [...offline, 'mtn_momo'],
+  );
+});

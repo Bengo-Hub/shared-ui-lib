@@ -22,6 +22,11 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   // Legacy alias: rows captured before 2026-07-13 stored the M-Pesa-Code tender as bare
   // "manual" (backfilled server-side, but keep the label so any straggler still reads right).
   manual: 'M-Pesa (Code)',
+  // Offline tenders captured by hand like mpesa_manual. other_manual carries a cashier typed
+  // payment label, shown as "Other (<label>)" through the second argument below.
+  mtn_momo_manual: 'MTN MoMo (Code)',
+  airtel_money_manual: 'Airtel Money (Code)',
+  other_manual: 'Other',
   paystack: 'Paystack',
   wallet: 'Wallet',
   cod: 'Cash on Delivery',
@@ -50,11 +55,19 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
  * in parens so a generic method like `bank_transfer` or `mpesa_manual` reads as e.g.
  * "Bank Transfer (Equity Bank Uganda)" — lets a tenant trace exactly which account/provider a
  * transaction moved through, not just the generic method bucket.
+ *
+ * For `other_manual` the second argument is the payment label the cashier typed, so
+ * getPaymentMethodLabel('other_manual', 'Voucher') reads "Other (Voucher)". A blank label is
+ * ignored and the method shows as plain "Other".
  */
-export function getPaymentMethodLabel(method: string | null | undefined, providerName?: string | null): string {
+export function getPaymentMethodLabel(
+  method: string | null | undefined,
+  providerNameOrLabel?: string | null,
+): string {
   if (!method) return '—';
   const base = method === 'multiple'
     ? 'Multiple'
     : PAYMENT_METHOD_LABELS[method] ?? method.replace(/_/g, ' ');
-  return providerName ? `${base} (${providerName})` : base;
+  const suffix = providerNameOrLabel?.trim();
+  return suffix ? `${base} (${suffix})` : base;
 }
