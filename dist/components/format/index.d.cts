@@ -1,34 +1,61 @@
-/**
- * The ONE currency registry + money formatter shared by every frontend (pos-ui, treasury-ui,
- * ordering-frontend, subscriptions UI). Centralised because pos-ui's `lib/utils.ts` and
- * treasury-ui's `lib/utils/currency.ts` had drifted into two independent copies — plus a THIRD
- * hardcoded `<select>` option list in pos-ui's GeneralTab — and all three forced
- * `minimumFractionDigits: 2` / `maximumFractionDigits: 2`, which is WRONG for zero-decimal
- * currencies (UGX, RWF, JPY render as "USh 1,000.00" instead of "USh 1,000"). This list mirrors
- * treasury-api's `internal/modules/currency.SupportedCurrencies()` Go list field-for-field — keep
- * the two in sync when adding a currency.
- */
-interface CurrencyMeta {
-    code: string;
-    name: string;
-    symbol: string;
-    decimalPlaces: number;
-}
-declare const CURRENCY_META: Record<string, CurrencyMeta>;
-/** Ordered currency codes — replaces the 3 independently-drifted lists. */
-declare const SUPPORTED_CURRENCIES: ReadonlyArray<string>;
-declare function decimalPlacesFor(currency: string): number;
-/**
- * Format a money amount for the given ISO 4217 currency code. Decimal places are looked up per
- * currency (0 for UGX/RWF/JPY, 2 otherwise) instead of being hardcoded — the real bug this
- * centralisation fixes. Falls back to 'KES' when no currency is supplied, matching prior behavior.
- */
-declare function formatCurrency(amount: number | string | null | undefined, currency?: string): string;
-/**
- * Compact currency — abbreviates large amounts to K / M / B / T so KPI tiles never truncate a
- * long figure (e.g. "KES 1,525,854.00" -> "KES 1.5M"). Ported from treasury-ui's version; now
- * decimal-place aware via formatCurrency for the under-1000 case.
- */
-declare function formatCompactCurrency(amount: number | string | null | undefined, currency?: string): string;
+export { C as CURRENCY_META, a as CurrencyMeta, S as SUPPORTED_CURRENCIES, d as decimalPlacesFor, f as formatCompactCurrency, b as formatCurrency } from '../../currency-HfXim15h.cjs';
 
-export { CURRENCY_META, type CurrencyMeta, SUPPORTED_CURRENCIES, decimalPlacesFor, formatCompactCurrency, formatCurrency };
+/**
+ * Time zones for screens. SSO (auth-api) owns them and GET /api/v1/auth/me carries both:
+ * `profile.timezone` for the signed-in person and `tenant.timezone` for the active organisation.
+ * A screen shows times in the person's zone, then the organisation's, then Africa/Nairobi.
+ *
+ * Each app calls `applyUserTimeZone(me, me.tenant)` once /me loads. From then on the formatters
+ * below use that zone unless a call passes its own. Pure TypeScript, safe on the server, where
+ * the active zone stays Africa/Nairobi.
+ */
+declare const DEFAULT_TIME_ZONE = "Africa/Nairobi";
+/** The fields of the /me user this module reads. */
+interface TimeZoneUser {
+    profile?: {
+        timezone?: string | null;
+    } | null;
+    timezone?: string | null;
+}
+/** The fields of the /me tenant this module reads. */
+interface TimeZoneTenant {
+    timezone?: string | null;
+}
+type DateInput = Date | string | number | null | undefined;
+/**
+ * Intl options plus a locale. Naming any date or time part (or dateStyle/timeStyle) replaces
+ * the formatter's default parts; options such as hour12 alone merge with them.
+ */
+interface DateFormatOptions extends Intl.DateTimeFormatOptions {
+    /** Defaults to en-KE ("14 Nov 2026"). */
+    locale?: string;
+    /** Returned for empty input. Unparseable strings come back unchanged. Defaults to ''. */
+    fallback?: string;
+}
+/** True when this runtime knows the IANA zone name. */
+declare function isValidTimeZone(zone: unknown): zone is string;
+/** The user's zone, then the tenant's, then Africa/Nairobi. Unknown names are skipped. */
+declare function resolveTimeZone(user?: TimeZoneUser | null, tenant?: TimeZoneTenant | null): string;
+/** The zone screens use right now. */
+declare function getActiveTimeZone(): string;
+/** Sets the zone screens use. An unknown name resets it to Africa/Nairobi. */
+declare function setActiveTimeZone(zone: string | null | undefined): string;
+/** Resolves the zone from a /me answer and makes it the active one. Returns the zone. */
+declare function applyUserTimeZone(user?: TimeZoneUser | null, tenant?: TimeZoneTenant | null): string;
+/** Calls `listener` whenever the active zone changes. Returns the unsubscribe function. */
+declare function subscribeTimeZone(listener: () => void): () => void;
+/** "14 Nov 2026" in the given zone, or the active zone when none is given. */
+declare function formatDate(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string;
+/** "14 Nov 2026, 01:30" (24 hour) in the given zone, or the active zone when none is given. */
+declare function formatDateTime(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string;
+/** "01:30" (24 hour) in the given zone, or the active zone when none is given. */
+declare function formatTime(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string;
+
+/**
+ * The zone this screen should show times in. With no arguments it returns the active zone the
+ * app set from /me (see applyUserTimeZone) and re-renders when it changes. Given a user and
+ * tenant it resolves from them instead.
+ */
+declare function useUserTimeZone(user?: TimeZoneUser | null, tenant?: TimeZoneTenant | null): string;
+
+export { DEFAULT_TIME_ZONE, type DateFormatOptions, type DateInput, type TimeZoneTenant, type TimeZoneUser, applyUserTimeZone, formatDate, formatDateTime, formatTime, getActiveTimeZone, isValidTimeZone, resolveTimeZone, setActiveTimeZone, subscribeTimeZone, useUserTimeZone };

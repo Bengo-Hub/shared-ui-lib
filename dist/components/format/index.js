@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react';
+
 // src/components/payments/currency.ts
 var CURRENCY_META = {
   KES: { code: "KES", name: "Kenyan Shilling", symbol: "Ksh", decimalPlaces: 2 },
@@ -56,6 +58,121 @@ function formatCompactCurrency(amount, currency = "KES") {
   return formatCurrency(n, currency);
 }
 
-export { CURRENCY_META, SUPPORTED_CURRENCIES, decimalPlacesFor, formatCompactCurrency, formatCurrency };
+// src/components/format/timezone.ts
+var DEFAULT_TIME_ZONE = "Africa/Nairobi";
+var validity = /* @__PURE__ */ new Map();
+function isValidTimeZone(zone) {
+  if (typeof zone !== "string" || zone.trim() === "") return false;
+  const cached = validity.get(zone);
+  if (cached !== void 0) return cached;
+  let ok = true;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: zone });
+  } catch {
+    ok = false;
+  }
+  validity.set(zone, ok);
+  return ok;
+}
+function resolveTimeZone(user, tenant) {
+  const candidates = [user?.profile?.timezone, user?.timezone, tenant?.timezone];
+  for (const zone of candidates) {
+    const trimmed = typeof zone === "string" ? zone.trim() : zone;
+    if (isValidTimeZone(trimmed)) return trimmed;
+  }
+  return DEFAULT_TIME_ZONE;
+}
+var STORE_KEY = /* @__PURE__ */ Symbol.for("@bengo-hub/shared-ui-lib/time-zone");
+function store() {
+  const g = globalThis;
+  let s = g[STORE_KEY];
+  if (!s) {
+    s = { zone: DEFAULT_TIME_ZONE, listeners: /* @__PURE__ */ new Set() };
+    g[STORE_KEY] = s;
+  }
+  return s;
+}
+function getActiveTimeZone() {
+  return store().zone;
+}
+function setActiveTimeZone(zone) {
+  const s = store();
+  const next = isValidTimeZone(zone) ? zone : DEFAULT_TIME_ZONE;
+  if (next !== s.zone) {
+    s.zone = next;
+    s.listeners.forEach((fn) => fn());
+  }
+  return next;
+}
+function applyUserTimeZone(user, tenant) {
+  return setActiveTimeZone(resolveTimeZone(user, tenant));
+}
+function subscribeTimeZone(listener) {
+  const s = store();
+  s.listeners.add(listener);
+  return () => {
+    s.listeners.delete(listener);
+  };
+}
+function toDate(value) {
+  if (value == null || value === "") return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function isCalendarDay(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+var formatters = /* @__PURE__ */ new Map();
+function formatter(locale, opts) {
+  const key = `${locale}|${JSON.stringify(opts)}`;
+  let f = formatters.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, opts);
+    formatters.set(key, f);
+  }
+  return f;
+}
+var DATE_PARTS = { day: "2-digit", month: "short", year: "numeric" };
+var TIME_PARTS = { hour: "2-digit", minute: "2-digit", hour12: false };
+var PART_KEYS = [
+  "dateStyle",
+  "timeStyle",
+  "weekday",
+  "era",
+  "year",
+  "month",
+  "day",
+  "dayPeriod",
+  "hour",
+  "minute",
+  "second",
+  "fractionalSecondDigits",
+  "timeZoneName"
+];
+function format(value, timeZone, defaults, options = {}) {
+  const { locale = "en-KE", fallback = "", ...intl } = options;
+  const date = toDate(value);
+  if (!date) return typeof value === "string" && value !== "" ? value : fallback;
+  const zone = isCalendarDay(value) ? "UTC" : isValidTimeZone(timeZone) ? timeZone : getActiveTimeZone();
+  const named = intl;
+  const base = PART_KEYS.some((k) => named[k] !== void 0) ? {} : defaults;
+  return formatter(locale, { ...base, ...intl, timeZone: zone }).format(date);
+}
+function formatDate(value, timeZone, options) {
+  return format(value, timeZone, DATE_PARTS, options);
+}
+function formatDateTime(value, timeZone, options) {
+  return format(value, timeZone, { ...DATE_PARTS, ...TIME_PARTS }, options);
+}
+function formatTime(value, timeZone, options) {
+  return format(value, timeZone, TIME_PARTS, options);
+}
+function useUserTimeZone(user, tenant) {
+  const active = useSyncExternalStore(subscribeTimeZone, getActiveTimeZone, () => DEFAULT_TIME_ZONE);
+  if (user === void 0 && tenant === void 0) return active;
+  return resolveTimeZone(user, tenant);
+}
+
+export { CURRENCY_META, DEFAULT_TIME_ZONE, SUPPORTED_CURRENCIES, applyUserTimeZone, decimalPlacesFor, formatCompactCurrency, formatCurrency, formatDate, formatDateTime, formatTime, getActiveTimeZone, isValidTimeZone, resolveTimeZone, setActiveTimeZone, subscribeTimeZone, useUserTimeZone };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

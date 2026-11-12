@@ -4,9 +4,73 @@ import { createPortal } from 'react-dom';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 
 // src/components/subscription/subscription-banner.tsx
-function formatDate(d) {
-  if (!d) return "";
-  return d.toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
+
+// src/components/format/timezone.ts
+var DEFAULT_TIME_ZONE = "Africa/Nairobi";
+function isValidTimeZone(zone) {
+  return false;
+}
+var STORE_KEY = /* @__PURE__ */ Symbol.for("@bengo-hub/shared-ui-lib/time-zone");
+function store() {
+  const g = globalThis;
+  let s = g[STORE_KEY];
+  if (!s) {
+    s = { zone: DEFAULT_TIME_ZONE, listeners: /* @__PURE__ */ new Set() };
+    g[STORE_KEY] = s;
+  }
+  return s;
+}
+function getActiveTimeZone() {
+  return store().zone;
+}
+function toDate(value) {
+  if (value == null || value === "") return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function isCalendarDay(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+var formatters = /* @__PURE__ */ new Map();
+function formatter(locale, opts) {
+  const key = `${locale}|${JSON.stringify(opts)}`;
+  let f = formatters.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, opts);
+    formatters.set(key, f);
+  }
+  return f;
+}
+var DATE_PARTS = { day: "2-digit", month: "short", year: "numeric" };
+var PART_KEYS = [
+  "dateStyle",
+  "timeStyle",
+  "weekday",
+  "era",
+  "year",
+  "month",
+  "day",
+  "dayPeriod",
+  "hour",
+  "minute",
+  "second",
+  "fractionalSecondDigits",
+  "timeZoneName"
+];
+function format(value, timeZone, defaults, options = {}) {
+  const { locale = "en-KE", fallback = "", ...intl } = options;
+  const date = toDate(value);
+  if (!date) return typeof value === "string" && value !== "" ? value : fallback;
+  const zone = isCalendarDay(value) ? "UTC" : isValidTimeZone() ? timeZone : getActiveTimeZone();
+  const named = intl;
+  const base = PART_KEYS.some((k) => named[k] !== void 0) ? {} : defaults;
+  return formatter(locale, { ...base, ...intl, timeZone: zone }).format(date);
+}
+function formatDate(value, timeZone, options) {
+  return format(value, timeZone, DATE_PARTS, options);
+}
+function formatDate2(d) {
+  return formatDate(d, void 0, { day: "numeric", month: "short", year: "numeric" });
 }
 function useOnlineStatus() {
   const [online, setOnline] = useState(
@@ -353,7 +417,7 @@ function SubscriptionBanner({
       {
         variant: "info",
         icon: /* @__PURE__ */ jsx(Clock, { className: "size-4" }),
-        message: `${planLabel} trial \u2014 ${days} day${days === 1 ? "" : "s"} left. Expires ${formatDate(expiresAt)}.`,
+        message: `${planLabel} trial \u2014 ${days} day${days === 1 ? "" : "s"} left. Expires ${formatDate2(expiresAt)}.`,
         actionLabel: "Upgrade plan",
         actionHref: upgradeUrl,
         onDismiss: () => setDismissed(true)
@@ -366,7 +430,7 @@ function SubscriptionBanner({
       {
         variant: "error",
         icon: /* @__PURE__ */ jsx(AlertTriangle, { className: "size-4" }),
-        message: `${planLabel} plan cancelled${expiresAt ? ` \u2014 access until ${formatDate(expiresAt)}` : ""}. Reactivate to keep your features.`,
+        message: `${planLabel} plan cancelled${expiresAt ? ` \u2014 access until ${formatDate2(expiresAt)}` : ""}. Reactivate to keep your features.`,
         actionLabel: "Reactivate",
         actionHref: upgradeUrl,
         onDismiss: () => setDismissed(true)
@@ -397,7 +461,7 @@ function SubscriptionBanner({
     if (!inRenewalWindow) return null;
     const isDanger = daysLeft !== null && daysLeft <= 2;
     const severityClasses = isDanger ? { border: "border-red-200 dark:border-red-800", bg: "bg-red-50/80 dark:bg-red-950/30", text: "text-red-900 dark:text-red-100", subtext: "text-red-700 dark:text-red-300", icon: "text-red-600 dark:text-red-400", action: "bg-red-600 hover:bg-red-700 text-white", hover: "hover:bg-red-100 dark:hover:bg-red-900/40", divider: "border-red-200 dark:border-red-800" } : { border: "border-amber-200 dark:border-amber-800", bg: "bg-amber-50/80 dark:bg-amber-950/30", text: "text-amber-900 dark:text-amber-100", subtext: "text-amber-700 dark:text-amber-300", icon: "text-amber-600 dark:text-amber-400", action: "bg-amber-600 hover:bg-amber-700 text-white", hover: "hover:bg-amber-100 dark:hover:bg-amber-900/40", divider: "border-amber-200 dark:border-amber-800" };
-    const renewalText = `Renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"} \xB7 ${formatDate(expiresAt)}`;
+    const renewalText = `Renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"} \xB7 ${formatDate2(expiresAt)}`;
     return /* @__PURE__ */ jsxs(
       "div",
       {
@@ -459,7 +523,7 @@ function SubscriptionBanner({
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsx("span", { className: "font-medium text-foreground", children: "Next renewal" }),
               " ",
-              formatDate(expiresAt)
+              formatDate2(expiresAt)
             ] }),
             /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-3", children: [
               /* @__PURE__ */ jsxs(

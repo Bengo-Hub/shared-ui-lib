@@ -3,6 +3,7 @@
 import { AlertTriangle, ArrowRight, ChevronDown, ChevronRight, Clock, ExternalLink, RefreshCw, ShieldAlert, TrendingUp, WifiOff, X, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { formatDate as formatInZone } from '../format/timezone';
 
 export interface UsageAlert {
   metric: string;
@@ -44,8 +45,7 @@ export interface SubscriptionBannerProps {
 }
 
 function formatDate(d: Date | null | undefined): string {
-  if (!d) return '';
-  return d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatInZone(d, undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function useOnlineStatus(): boolean {
