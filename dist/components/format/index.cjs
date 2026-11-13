@@ -1,7 +1,5 @@
 'use strict';
 
-var react = require('react');
-
 // src/components/payments/currency.ts
 var CURRENCY_META = {
   KES: { code: "KES", name: "Kenyan Shilling", symbol: "Ksh", decimalPlaces: 2 },
@@ -169,10 +167,34 @@ function formatDateTime(value, timeZone, options) {
 function formatTime(value, timeZone, options) {
   return format(value, timeZone, TIME_PARTS, options);
 }
-function useUserTimeZone(user, tenant) {
-  const active = react.useSyncExternalStore(subscribeTimeZone, getActiveTimeZone, () => DEFAULT_TIME_ZONE);
-  if (user === void 0 && tenant === void 0) return active;
-  return resolveTimeZone(user, tenant);
+var wallClockFormatters = /* @__PURE__ */ new Map();
+function wallClockFormatter(zone) {
+  let f = wallClockFormatters.get(zone);
+  if (!f) {
+    f = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    wallClockFormatters.set(zone, f);
+  }
+  return f;
+}
+function toUserZone(date, timeZone) {
+  if (Number.isNaN(date.getTime())) return date;
+  const zone = isValidTimeZone(timeZone) ? timeZone : getActiveTimeZone();
+  const get = {};
+  for (const p of wallClockFormatter(zone).formatToParts(date)) {
+    if (p.type !== "literal") get[p.type] = Number(p.value);
+  }
+  const out = new Date(get.year, get.month - 1, get.day, get.hour % 24, get.minute, get.second, date.getMilliseconds());
+  out.setFullYear(get.year);
+  return out;
 }
 
 exports.CURRENCY_META = CURRENCY_META;
@@ -190,6 +212,6 @@ exports.isValidTimeZone = isValidTimeZone;
 exports.resolveTimeZone = resolveTimeZone;
 exports.setActiveTimeZone = setActiveTimeZone;
 exports.subscribeTimeZone = subscribeTimeZone;
-exports.useUserTimeZone = useUserTimeZone;
+exports.toUserZone = toUserZone;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

@@ -4475,12 +4475,41 @@ function formatDateTime(value, timeZone, options) {
 function formatTime(value, timeZone, options) {
   return format(value, timeZone, TIME_PARTS, options);
 }
+var wallClockFormatters = /* @__PURE__ */ new Map();
+function wallClockFormatter(zone) {
+  let f = wallClockFormatters.get(zone);
+  if (!f) {
+    f = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    wallClockFormatters.set(zone, f);
+  }
+  return f;
+}
+function toUserZone(date, timeZone) {
+  if (Number.isNaN(date.getTime())) return date;
+  const zone = isValidTimeZone(timeZone) ? timeZone : getActiveTimeZone();
+  const get = {};
+  for (const p of wallClockFormatter(zone).formatToParts(date)) {
+    if (p.type !== "literal") get[p.type] = Number(p.value);
+  }
+  const out = new Date(get.year, get.month - 1, get.day, get.hour % 24, get.minute, get.second, date.getMilliseconds());
+  out.setFullYear(get.year);
+  return out;
+}
 function useUserTimeZone(user, tenant) {
   const active = useSyncExternalStore(subscribeTimeZone, getActiveTimeZone, () => DEFAULT_TIME_ZONE);
   if (user === void 0 && tenant === void 0) return active;
   return resolveTimeZone(user, tenant);
 }
 
-export { AIRTEL_MONEY, AIRTEL_MONEY_MANUAL, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DEFAULT_TIME_ZONE, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MEDIA_IMAGE_WIDTHS, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MTN_MOMO_MANUAL, MediaImage, MpesaLogo, MtnMomoLogo, OTHER_MANUAL, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, applyUserTimeZone, exportRowsAsCsv, formatCompactCurrency, formatCurrency, formatDate, formatDateTime, formatTime, getActiveTimeZone, getPaymentMethodLabel, imageSrcSet, isAccountFormValid, isTransformableImage, isValidTimeZone, legalUrls, mediaImageLoader, mediaImageLoaderFor, openCookieSettings, registerServiceWorker, resolveTimeZone, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, setActiveTimeZone, snapImageWidth, subscribeTimeZone, tenantBrandWord, transformImageUrl, usableSettlementMethods, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus, useUserTimeZone };
+export { AIRTEL_MONEY, AIRTEL_MONEY_MANUAL, AccountForm, AirtelMoneyLogo, BANK, BANK_TRANSFER, BulkActionBar, CARD, CARD_MANUAL, CASH, CHEQUE, CURRENCY_META, CUSTOMER_ADVANCE, CardMark, CashMark, Checkbox, ColumnVisibilityButton, CookieNotice, CurrencyChangeConfirmModal, DEFAULT_TIME_ZONE, DataTable, EMPTY_ACCOUNT_FORM, FunnelFilter, ImagePreview, LegalLinks, MEDIA_IMAGE_WIDTHS, MPESA_B2B, MPESA_B2C, MPESA_MANUAL, MPESA_STK, MTN_MOMO, MTN_MOMO_MANUAL, MediaImage, MpesaLogo, MtnMomoLogo, OTHER_MANUAL, OfflineBar, OfflineSyncBanner, PAYMENT_METHOD_LABELS, PAYOUT_METHODS, PAYSTACK, PAY_SUPPLIER_METHODS, PLATFORM_LEGAL_ENTITY, PayHeroLogo, PaystackLogo, PdfPreview, PoweredByBadge, PwaUpdater, RECEIVE_METHODS, RichText, RichTextEditor, SETTLE_CREDIT_SALE_METHODS, SSOLoginModal, STORE_CREDIT, SUPPORTED_CURRENCIES, SearchableCombobox, SettlementModal, SortButton, SplitPayMark, SupplierForm, SyncedConfirmation, TableFooter, TrackingIframeModal, TreasuryPaymentModal, applyUserTimeZone, exportRowsAsCsv, formatCompactCurrency, formatCurrency, formatDate, formatDateTime, formatTime, getActiveTimeZone, getPaymentMethodLabel, imageSrcSet, isAccountFormValid, isTransformableImage, isValidTimeZone, legalUrls, mediaImageLoader, mediaImageLoaderFor, openCookieSettings, registerServiceWorker, resolveTimeZone, serviceAppName, serviceBrandingEntry, serviceBrandingMap, serviceFullName, serviceShortName, setActiveTimeZone, snapImageWidth, subscribeTimeZone, tenantBrandWord, toUserZone, transformImageUrl, usableSettlementMethods, useCookieConsent, useCookieConsentState, useDocumentPreview, useImagePreview, useOfflineSync, useOnlineStatus, useUserTimeZone };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

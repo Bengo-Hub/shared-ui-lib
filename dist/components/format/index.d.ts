@@ -50,12 +50,11 @@ declare function formatDate(value: DateInput, timeZone?: string | null, options?
 declare function formatDateTime(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string;
 /** "01:30" (24 hour) in the given zone, or the active zone when none is given. */
 declare function formatTime(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string;
-
 /**
- * The zone this screen should show times in. With no arguments it returns the active zone the
- * app set from /me (see applyUserTimeZone) and re-renders when it changes. Given a user and
- * tenant it resolves from them instead.
+ * For date-fns `format`, which always reads the browser's own zone: a Date whose local fields
+ * (getDate, getHours and so on) show the wall clock of `date` in the given zone, or the active
+ * zone. Display only: never send the result to an API, and never pass a calendar day.
  */
-declare function useUserTimeZone(user?: TimeZoneUser | null, tenant?: TimeZoneTenant | null): string;
+declare function toUserZone(date: Date, timeZone?: string | null): Date;
 
-export { DEFAULT_TIME_ZONE, type DateFormatOptions, type DateInput, type TimeZoneTenant, type TimeZoneUser, applyUserTimeZone, formatDate, formatDateTime, formatTime, getActiveTimeZone, isValidTimeZone, resolveTimeZone, setActiveTimeZone, subscribeTimeZone, useUserTimeZone };
+export { DEFAULT_TIME_ZONE, type DateFormatOptions, type DateInput, type TimeZoneTenant, type TimeZoneUser, applyUserTimeZone, formatDate, formatDateTime, formatTime, getActiveTimeZone, isValidTimeZone, resolveTimeZone, setActiveTimeZone, subscribeTimeZone, toUserZone };

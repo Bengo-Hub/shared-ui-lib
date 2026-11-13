@@ -12,6 +12,7 @@ import {
   resolveTimeZone,
   setActiveTimeZone,
   subscribeTimeZone,
+  toUserZone,
 } from './timezone.ts';
 
 // 22:30 UTC on 13 Nov is already 14 Nov in Nairobi (UTC+3).
@@ -84,4 +85,14 @@ test('subscribers hear zone changes once', () => {
   setActiveTimeZone(DEFAULT_TIME_ZONE);
   assert.equal(calls, 2);
   assert.equal(getActiveTimeZone(), DEFAULT_TIME_ZONE);
+});
+
+test('toUserZone shows the wall clock of the given zone for date-fns', () => {
+  // 22:30 UTC on the 13th is 01:30 on the 14th in Nairobi and 17:30 on the 13th in New York.
+  const nairobi = toUserZone(new Date(LATE_UTC), 'Africa/Nairobi');
+  assert.deepEqual([nairobi.getDate(), nairobi.getHours(), nairobi.getMinutes()], [14, 1, 30]);
+  const ny = toUserZone(new Date(LATE_UTC), 'America/New_York');
+  assert.deepEqual([ny.getDate(), ny.getHours(), ny.getMinutes()], [13, 17, 30]);
+  const bad = new Date('not a date');
+  assert.equal(toUserZone(bad), bad);
 });

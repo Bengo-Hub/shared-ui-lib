@@ -25,9 +25,11 @@ export {
   formatDate,
   formatDateTime,
   formatTime,
+  toUserZone,
   type TimeZoneUser,
   type TimeZoneTenant,
   type DateInput,
   type DateFormatOptions,
 } from './timezone';
-export { useUserTimeZone } from './use-user-time-zone';
+// The React hook useUserTimeZone is exported from the package root only, so this entry stays free
+// of React and server components can format dates from it.

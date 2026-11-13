@@ -183,9 +183,10 @@ export {
   formatDate,
   formatDateTime,
   formatTime,
-  useUserTimeZone,
+  toUserZone,
   type TimeZoneUser,
   type TimeZoneTenant,
   type DateInput,
   type DateFormatOptions,
 } from './components/format';
+export { useUserTimeZone } from './components/format/use-user-time-zone';

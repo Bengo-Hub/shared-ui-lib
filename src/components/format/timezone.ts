@@ -170,3 +170,40 @@ export function formatDateTime(value: DateInput, timeZone?: string | null, optio
 export function formatTime(value: DateInput, timeZone?: string | null, options?: DateFormatOptions): string {
   return format(value, timeZone, TIME_PARTS, options);
 }
+
+const wallClockFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function wallClockFormatter(zone: string): Intl.DateTimeFormat {
+  let f = wallClockFormatters.get(zone);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    wallClockFormatters.set(zone, f);
+  }
+  return f;
+}
+
+/**
+ * For date-fns `format`, which always reads the browser's own zone: a Date whose local fields
+ * (getDate, getHours and so on) show the wall clock of `date` in the given zone, or the active
+ * zone. Display only: never send the result to an API, and never pass a calendar day.
+ */
+export function toUserZone(date: Date, timeZone?: string | null): Date {
+  if (Number.isNaN(date.getTime())) return date;
+  const zone = isValidTimeZone(timeZone) ? timeZone : getActiveTimeZone();
+  const get: Record<string, number> = {};
+  for (const p of wallClockFormatter(zone).formatToParts(date)) {
+    if (p.type !== 'literal') get[p.type] = Number(p.value);
+  }
+  const out = new Date(get.year, get.month - 1, get.day, get.hour % 24, get.minute, get.second, date.getMilliseconds());
+  out.setFullYear(get.year);
+  return out;
+}

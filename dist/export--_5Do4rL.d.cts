@@ -240,4 +240,4 @@ declare function TableFooter({ page, totalPages, onPageChange, total, pageSize, 
  */
 declare function exportRowsAsCsv<T>(rows: T[], columns: DataTableColumn<T>[], fileName: string): void;
 
-export { type BulkAction as B, Checkbox as C, DataTable as D, type FilterMap as F, SortButton as S, TableFooter as T, BulkActionBar as a, type ColumnFilterState as b, ColumnVisibilityButton as c, type DataTableColumn as d, type DataTableProps as e, type FilterOption as f, FunnelFilter as g, type SortDir as h, type SortState as i, exportRowsAsCsv as j, type CheckboxProps as k, type ColumnMeta as l, cellText as m, compareValues as n, loadHiddenColumns as o };
+export { type BulkAction as B, Checkbox as C, DataTable as D, type FilterMap as F, SortButton as S, TableFooter as T, BulkActionBar as a, type CheckboxProps as b, type ColumnFilterState as c, type ColumnMeta as d, ColumnVisibilityButton as e, type DataTableColumn as f, type DataTableProps as g, type FilterOption as h, FunnelFilter as i, type SortDir as j, type SortState as k, cellText as l, compareValues as m, exportRowsAsCsv as n, loadHiddenColumns as o };
