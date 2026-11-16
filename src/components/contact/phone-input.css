@@ -14,7 +14,10 @@
   padding: 0 0.75rem;
   border-radius: 0.75rem;
   border: 1px solid hsl(var(--border));
-  background-color: hsl(var(--background));
+  /* Transparent like every other shadcn input, so the field takes its card's colour. It used to
+     paint the page colour (--background), which showed as a cream box on a white card in apps whose
+     page colour is not white (Hadia). An app that wants a fill sets --phone-input-background. */
+  background-color: var(--phone-input-background, transparent);
   color: hsl(var(--foreground));
   transition: box-shadow 0.15s, border-color 0.15s;
 }
