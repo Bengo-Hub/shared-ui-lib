@@ -1,8 +1,10 @@
 'use client';
 
 import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion';
 import {
   Bold,
   Heading2,
@@ -17,7 +19,9 @@ import {
   Undo2,
   type LucideIcon,
 } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { filterMentions, type MentionOption } from './mentions';
 
 /**
  * RichTextEditor — the platform's canonical Tiptap-based rich text editor.
@@ -43,6 +47,24 @@ export interface RichTextEditorProps {
   ariaLabelledBy?: string;
   /** id of help or error text for the editable area. */
   ariaDescribedBy?: string;
+  /**
+   * People (or anything) the user can mention by typing @. Passing the prop at first render turns
+   * mentions on; the list itself may change later (e.g. after it loads). A mention is stored as
+   * `<span data-type="mention" data-id="{id}" data-label="{label}">@{label}</span>`, the one
+   * mention format the services parse, so a host's sanitiser and read-only view must keep the
+   * data-type, data-id and data-label attributes on span.
+   */
+  mentions?: MentionOption[];
+}
+
+/** The open suggestion list: the matches, the highlighted one and where to draw it. */
+interface SuggestionState {
+  items: MentionOption[];
+  index: number;
+  /** Caret position relative to the editor's own box, so the list stays inside modals. */
+  top: number;
+  left: number;
+  command: (item: { id: string; label: string }) => void;
 }
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -128,7 +150,18 @@ export function RichTextEditor({
   ariaLabel,
   ariaLabelledBy,
   ariaDescribedBy,
+  mentions,
 }: RichTextEditorProps) {
+  // Tiptap builds its extensions once, so the suggestion callbacks read the latest list and the
+  // open state through refs.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const mentionsRef = useRef<MentionOption[]>(mentions ?? []);
+  mentionsRef.current = mentions ?? [];
+  const [suggest, setSuggest] = useState<SuggestionState | null>(null);
+  const suggestRef = useRef<SuggestionState | null>(null);
+  suggestRef.current = suggest;
+  const [mentionsOn] = useState(() => mentions !== undefined);
+
   const editor = useEditor({
     immediatelyRender: false,
     editable: !disabled,
@@ -145,6 +178,59 @@ export function RichTextEditor({
         protocols: ['http', 'https', 'mailto'],
         HTMLAttributes: { rel: 'noopener noreferrer nofollow', class: 'text-primary underline' },
       }),
+      ...(mentionsOn
+        ? [
+            Mention.configure({
+              HTMLAttributes: { class: 'rounded bg-primary/10 px-1 font-medium text-primary' },
+              renderText: ({ node }) => `@${node.attrs.label ?? node.attrs.id}`,
+              suggestion: {
+                char: '@',
+                items: ({ query }) => filterMentions(mentionsRef.current, query),
+                render: () => {
+                  const show = (p: SuggestionProps<MentionOption>) => {
+                    const caret = p.clientRect?.();
+                    const box = boxRef.current?.getBoundingClientRect();
+                    if (!caret || !box || p.items.length === 0) {
+                      setSuggest(null);
+                      return;
+                    }
+                    setSuggest((prev) => ({
+                      items: p.items,
+                      index: prev ? Math.min(prev.index, p.items.length - 1) : 0,
+                      top: caret.bottom - box.top + 4,
+                      left: Math.max(0, Math.min(caret.left - box.left, box.width - 240)),
+                      command: p.command,
+                    }));
+                  };
+                  return {
+                    onStart: show,
+                    onUpdate: show,
+                    onKeyDown: ({ event }: SuggestionKeyDownProps) => {
+                      const s = suggestRef.current;
+                      if (!s) return false;
+                      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                        const step = event.key === 'ArrowDown' ? 1 : -1;
+                        setSuggest({ ...s, index: (s.index + step + s.items.length) % s.items.length });
+                        return true;
+                      }
+                      if (event.key === 'Enter' || event.key === 'Tab') {
+                        const item = s.items[s.index];
+                        if (item) s.command({ id: item.id, label: item.label });
+                        return true;
+                      }
+                      if (event.key === 'Escape') {
+                        setSuggest(null);
+                        return true;
+                      }
+                      return false;
+                    },
+                    onExit: () => setSuggest(null),
+                  };
+                },
+              },
+            }),
+          ]
+        : []),
     ],
     content: value || '',
     editorProps: {
@@ -195,13 +281,42 @@ export function RichTextEditor({
   return (
     <div
       id={id}
+      ref={boxRef}
       className={cx(
-        'overflow-hidden rounded-lg border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring',
+        // overflow stays visible while the mention list is open so the list is not clipped.
+        'relative rounded-lg border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring',
+        suggest ? 'overflow-visible' : 'overflow-hidden',
         className,
       )}
     >
       <Toolbar editor={editor} />
       <EditorContent editor={editor} />
+      {suggest && (
+        <ul
+          role="listbox"
+          aria-label="People to mention"
+          className="absolute z-50 max-h-64 w-60 overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          style={{ top: suggest.top, left: suggest.left }}
+        >
+          {suggest.items.map((item, i) => (
+            <li key={item.id} role="option" aria-selected={i === suggest.index}>
+              <button
+                type="button"
+                // Keep the editor focused so the mention lands at the caret.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => suggest.command({ id: item.id, label: item.label })}
+                className={cx(
+                  'flex w-full flex-col items-start rounded px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground',
+                  i === suggest.index && 'bg-accent text-accent-foreground',
+                )}
+              >
+                <span className="truncate font-medium">{item.label}</span>
+                {item.description && <span className="truncate text-xs text-muted-foreground">{item.description}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -1,11 +1,31 @@
 import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Strikethrough, Heading2, Heading3, List, ListOrdered, Link2, Link2Off, Undo2, Redo2 } from 'lucide-react';
-import { useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { jsx, jsxs } from 'react/jsx-runtime';
 
 // src/components/rich-text-editor/rich-text-editor.tsx
+
+// src/components/rich-text-editor/mentions.ts
+var MENTION_LIMIT = 8;
+function filterMentions(options, query, limit = MENTION_LIMIT) {
+  const q = query.trim().toLowerCase();
+  if (!q) return options.slice(0, limit);
+  const starts = [];
+  const contains = [];
+  for (const o of options) {
+    const label = o.label.toLowerCase();
+    if (label.split(/\s+/).some((w) => w.startsWith(q))) {
+      starts.push(o);
+      if (starts.length >= limit) break;
+    } else if (label.includes(q) || (o.description ?? "").toLowerCase().includes(q)) {
+      contains.push(o);
+    }
+  }
+  return [...starts, ...contains].slice(0, limit);
+}
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -72,8 +92,16 @@ function RichTextEditor({
   id,
   ariaLabel,
   ariaLabelledBy,
-  ariaDescribedBy
+  ariaDescribedBy,
+  mentions
 }) {
+  const boxRef = useRef(null);
+  const mentionsRef = useRef(mentions ?? []);
+  mentionsRef.current = mentions ?? [];
+  const [suggest, setSuggest] = useState(null);
+  const suggestRef = useRef(null);
+  suggestRef.current = suggest;
+  const [mentionsOn] = useState(() => mentions !== void 0);
   const editor = useEditor({
     immediatelyRender: false,
     editable: !disabled,
@@ -89,7 +117,58 @@ function RichTextEditor({
         // Only allow safe schemes — strips javascript:/data: etc.
         protocols: ["http", "https", "mailto"],
         HTMLAttributes: { rel: "noopener noreferrer nofollow", class: "text-primary underline" }
-      })
+      }),
+      ...mentionsOn ? [
+        Mention.configure({
+          HTMLAttributes: { class: "rounded bg-primary/10 px-1 font-medium text-primary" },
+          renderText: ({ node }) => `@${node.attrs.label ?? node.attrs.id}`,
+          suggestion: {
+            char: "@",
+            items: ({ query }) => filterMentions(mentionsRef.current, query),
+            render: () => {
+              const show = (p) => {
+                const caret = p.clientRect?.();
+                const box = boxRef.current?.getBoundingClientRect();
+                if (!caret || !box || p.items.length === 0) {
+                  setSuggest(null);
+                  return;
+                }
+                setSuggest((prev) => ({
+                  items: p.items,
+                  index: prev ? Math.min(prev.index, p.items.length - 1) : 0,
+                  top: caret.bottom - box.top + 4,
+                  left: Math.max(0, Math.min(caret.left - box.left, box.width - 240)),
+                  command: p.command
+                }));
+              };
+              return {
+                onStart: show,
+                onUpdate: show,
+                onKeyDown: ({ event }) => {
+                  const s = suggestRef.current;
+                  if (!s) return false;
+                  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                    const step = event.key === "ArrowDown" ? 1 : -1;
+                    setSuggest({ ...s, index: (s.index + step + s.items.length) % s.items.length });
+                    return true;
+                  }
+                  if (event.key === "Enter" || event.key === "Tab") {
+                    const item = s.items[s.index];
+                    if (item) s.command({ id: item.id, label: item.label });
+                    return true;
+                  }
+                  if (event.key === "Escape") {
+                    setSuggest(null);
+                    return true;
+                  }
+                  return false;
+                },
+                onExit: () => setSuggest(null)
+              };
+            }
+          }
+        })
+      ] : []
     ],
     content: value || "",
     editorProps: {
@@ -131,19 +210,47 @@ function RichTextEditor({
     "div",
     {
       id,
+      ref: boxRef,
       className: cx(
-        "overflow-hidden rounded-lg border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring",
+        // overflow stays visible while the mention list is open so the list is not clipped.
+        "relative rounded-lg border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring",
+        suggest ? "overflow-visible" : "overflow-hidden",
         className
       ),
       children: [
         /* @__PURE__ */ jsx(Toolbar, { editor }),
-        /* @__PURE__ */ jsx(EditorContent, { editor })
+        /* @__PURE__ */ jsx(EditorContent, { editor }),
+        suggest && /* @__PURE__ */ jsx(
+          "ul",
+          {
+            role: "listbox",
+            "aria-label": "People to mention",
+            className: "absolute z-50 max-h-64 w-60 overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md",
+            style: { top: suggest.top, left: suggest.left },
+            children: suggest.items.map((item, i) => /* @__PURE__ */ jsx("li", { role: "option", "aria-selected": i === suggest.index, children: /* @__PURE__ */ jsxs(
+              "button",
+              {
+                type: "button",
+                onMouseDown: (e) => e.preventDefault(),
+                onClick: () => suggest.command({ id: item.id, label: item.label }),
+                className: cx(
+                  "flex w-full flex-col items-start rounded px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground",
+                  i === suggest.index && "bg-accent text-accent-foreground"
+                ),
+                children: [
+                  /* @__PURE__ */ jsx("span", { className: "truncate font-medium", children: item.label }),
+                  item.description && /* @__PURE__ */ jsx("span", { className: "truncate text-xs text-muted-foreground", children: item.description })
+                ]
+              }
+            ) }, item.id))
+          }
+        )
       ]
     }
   );
 }
 var RichText = RichTextEditor;
 
-export { RichText, RichTextEditor };
+export { MENTION_LIMIT, RichText, RichTextEditor, filterMentions };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
