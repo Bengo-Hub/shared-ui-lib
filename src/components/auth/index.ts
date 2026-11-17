@@ -27,3 +27,4 @@ export {
   type CookieSessionPayload,
   type CookieSessionState,
 } from './cookie-session';
+export { COOKIE_SESSION_SITE, cookieSessionAllowed, scrubStoredSession } from './session-mode';

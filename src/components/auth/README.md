@@ -8,6 +8,8 @@
 
 Only apps served from a `*.codevertexafrica.com` host whose origin is on auth-api's CORS list. Apps on any other registrable domain must not use it and keep their stored tokens (owner decision, 2026-11-17). That covers erp.masterspace.co.ke, tenant custom domains, kura.go.ke, theurbanloftcafe.com and hadiafrica.com: the sso cookie is a third-party cookie there, and Safari and Chrome drop it. The mobile apps and the offline POS PWA also keep their stored tokens.
 
+Decide per page with `cookieSessionAllowed(process.env.NEXT_PUBLIC_COOKIE_SESSION)` (v0.1.151). It is true only when the app's build flag is `"true"` (or `"1"`), the page is served over https and its host is a subdomain of codevertexafrica.com. So one build serves both: its own `*.codevertexafrica.com` host gets the cookie session, and a tenant's custom domain keeps stored tokens. Before the persisted store loads, call `scrubStoredSession(storageKey)` when it is allowed. It drops the tokens an earlier build left in the store and keeps the profile.
+
 ### Moving an app over
 
 1. Create one session for the app, at module level:

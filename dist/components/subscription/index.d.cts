@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import react__default from 'react';
+import React__default from 'react';
 
 interface UsageAlert {
     metric: string;
@@ -193,7 +193,7 @@ interface SubscriptionEntitlements {
     upgradeBaseUrl?: string;
 }
 /** SubscriptionContext is exported so sibling gate components (FeatureLock) share one provider. */
-declare const SubscriptionContext: react__default.Context<SubscriptionEntitlements>;
+declare const SubscriptionContext: React__default.Context<SubscriptionEntitlements>;
 /**
  * SubscriptionProvider makes the tenant's entitlements available to useFeature / useLimit /
  * FeatureGate anywhere below it. Wrap the authenticated app shell with it, fed from the
@@ -201,7 +201,7 @@ declare const SubscriptionContext: react__default.Context<SubscriptionEntitlemen
  */
 declare function SubscriptionProvider({ value, children, }: {
     value: SubscriptionEntitlements;
-    children: react__default.ReactNode;
+    children: React__default.ReactNode;
 }): react_jsx_runtime.JSX.Element;
 /** useEntitlements returns the raw entitlement snapshot. */
 declare function useEntitlements(): SubscriptionEntitlements;
@@ -244,10 +244,10 @@ interface FeatureGateProps {
     /** Pass any of these feature codes (OR). */
     anyOf?: string[];
     /** Rendered when the feature is NOT available (default: nothing). */
-    fallback?: react__default.ReactNode;
+    fallback?: React__default.ReactNode;
     /** Rendered while entitlements are still loading (default: nothing). */
-    loadingFallback?: react__default.ReactNode;
-    children: react__default.ReactNode;
+    loadingFallback?: React__default.ReactNode;
+    children: React__default.ReactNode;
 }
 /**
  * FeatureGate renders its children only when the tenant's plan includes the feature (or the
@@ -299,7 +299,7 @@ type FeatureLockMode = "overlay" | "badge" | "block";
 interface FeatureLockProps {
     feature: string;
     mode?: FeatureLockMode;
-    children: react__default.ReactNode;
+    children: React__default.ReactNode;
     className?: string;
     /** Optional copy overrides for the block/dialog. */
     title?: string;
@@ -339,7 +339,7 @@ type ServiceLockMode = "overlay" | "badge" | "block";
 interface ServiceLockProps {
     serviceTag: string;
     mode?: ServiceLockMode;
-    children: react__default.ReactNode;
+    children: React__default.ReactNode;
     className?: string;
     /** Optional copy overrides for the block/dialog. */
     title?: string;
@@ -375,7 +375,7 @@ interface PlanServiceLockProps {
     upgradeBaseUrl?: string;
     title?: string;
     description?: string;
-    children: react__default.ReactNode;
+    children: React__default.ReactNode;
 }
 /**
  * PlanServiceLock shows the "not in your plan" upgrade card in place of a whole app when the

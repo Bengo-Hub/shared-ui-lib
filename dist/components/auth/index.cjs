@@ -851,16 +851,42 @@ function createCookieSession(opts) {
   };
 }
 
+// src/components/auth/session-mode.ts
+var COOKIE_SESSION_SITE = "codevertexafrica.com";
+function cookieSessionAllowed(flag, hostname, protocol) {
+  if (flag !== "true" && flag !== "1") return false;
+  const loc = typeof window !== "undefined" ? window.location : void 0;
+  const host = (hostname ?? loc?.hostname ?? "").toLowerCase().replace(/\.$/, "");
+  const proto = protocol ?? loc?.protocol ?? "https:";
+  if (proto !== "https:") return false;
+  return host.endsWith("." + COOKIE_SESSION_SITE);
+}
+function scrubStoredSession(storageKey, field = "session") {
+  try {
+    if (typeof localStorage === "undefined") return;
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.state || !(field in parsed.state)) return;
+    delete parsed.state[field];
+    localStorage.setItem(storageKey, JSON.stringify(parsed));
+  } catch {
+  }
+}
+
+exports.COOKIE_SESSION_SITE = COOKIE_SESSION_SITE;
 exports.SSOCallbackError = SSOCallbackError;
 exports.SSOLoginModal = SSOLoginModal;
 exports.VerifyEmailBanner = VerifyEmailBanner;
 exports.VerifyEmailDialog = VerifyEmailDialog;
+exports.cookieSessionAllowed = cookieSessionAllowed;
 exports.createCookieSession = createCookieSession;
 exports.createSessionRefresher = createSessionRefresher;
 exports.errorStatus = errorStatus;
 exports.expiryMs = expiryMs;
 exports.isRefusal = isRefusal;
 exports.revokeServerSession = revokeServerSession;
+exports.scrubStoredSession = scrubStoredSession;
 exports.watchSessionAcrossTabs = watchSessionAcrossTabs;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

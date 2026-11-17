@@ -1,9 +1,9 @@
 import { D as DebounceOptions, a as Debounced } from '../../debounce-BEP6JASM.cjs';
 export { b as DEFAULT_SEARCH_DELAY_MS, c as DEFAULT_SEARCH_MAX_LENGTH, S as SearchContext, d as SearchFn, e as SearchOutcome, f as SearchRunner, g as SearchTermOptions, h as createDebouncer, i as createSearchRunner, j as isAbortError, n as normalizeSearchTerm } from '../../debounce-BEP6JASM.cjs';
-import * as react from 'react';
+import * as React$1 from 'react';
 
 /** Keeps a ref pointing at the latest value, so timers never call a stale callback. */
-declare function useLatestRef<T>(value: T): react.RefObject<T>;
+declare function useLatestRef<T>(value: T): React$1.RefObject<T>;
 /** `value`, but only after it has stopped changing for `delay` ms. */
 declare function useDebouncedValue<T>(value: T, delay?: number): T;
 /**
@@ -93,6 +93,6 @@ interface SearchInputProps {
  * The standard search box: search icon, clear button and a small spinner while waiting.
  * Plain theme tokens only, resolved by the host app's Tailwind build.
  */
-declare const SearchInput: react.ForwardRefExoticComponent<SearchInputProps & react.RefAttributes<HTMLInputElement>>;
+declare const SearchInput: React$1.ForwardRefExoticComponent<SearchInputProps & React$1.RefAttributes<HTMLInputElement>>;
 
 export { DebounceOptions, Debounced, type DebouncedSearch, SearchInput, type SearchInputProps, type UseDebouncedSearchOptions, useDebouncedCallback, useDebouncedSearch, useDebouncedValue, useLatestRef };
