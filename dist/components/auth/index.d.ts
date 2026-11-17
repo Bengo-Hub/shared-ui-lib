@@ -192,4 +192,86 @@ declare function createSessionRefresher<S extends RefreshableSession>(opts: Sess
  */
 declare function watchSessionAcrossTabs(storageKey: string, onChange: () => void): () => void;
 
-export { type EmailVerificationState, type RefreshOutcome, type RefreshTokenPayload, type RefreshableSession, SSOCallbackError, type SSOCallbackErrorProps, type SessionRefresherOptions, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage, createSessionRefresher, errorStatus, expiryMs, isRefusal, revokeServerSession, watchSessionAcrossTabs };
+/**
+ * Cookie session for Codevertex browser apps on `*.codevertexafrica.com` (fleet plan G11).
+ *
+ * The refresh token lives in auth-api's HttpOnly `__Host-cv_refresh` cookie on the sso host, so no
+ * page script can read it. The access token and its expiry live in this module's memory only:
+ * never in localStorage, sessionStorage or document.cookie. A full reload therefore starts with no
+ * token, and the first `getAccessToken()` spends one refresh to get a new one.
+ *
+ * Tabs cooperate in two ways:
+ * 1. Refreshes take turns through the same Web Locks helper `createSessionRefresher` uses, so one
+ *    tab refreshes at a time.
+ * 2. A tab that gets a new token posts it on a BroadcastChannel. Other tabs adopt it without
+ *    calling auth-api, and a tab that was waiting for the lock finds the token already there.
+ *
+ * Opt-in only. Apps that do not call `createCookieSession` keep their stored-token flow unchanged.
+ * Apps on other registrable domains (tenant custom domains, erp.masterspace.co.ke, kura.go.ke,
+ * theurbanloftcafe.com, hadiafrica.com) must not use it: browsers drop the sso cookie there.
+ *
+ * Safe to import on the server: `BroadcastChannel`, `navigator` and `fetch` are only touched when
+ * a session is created or called, and each one is optional.
+ */
+
+/** The body of POST /api/v1/session/start and /session/refresh. It never carries a refresh token. */
+interface CookieSessionPayload {
+    access_token: string;
+    token_type?: string;
+    expires_in?: number;
+    refresh_expires_in?: number;
+    user?: unknown;
+    tenant?: unknown;
+    roles?: string[];
+    permissions?: string[];
+    amr?: string[];
+    mfa_enrollment_required?: boolean;
+}
+interface CookieSessionState {
+    accessToken: string;
+    /** Epoch milliseconds. */
+    expiresAt: number;
+    /** The full reply the token came with (user, tenant, roles, permissions, amr). */
+    payload: CookieSessionPayload;
+}
+interface CookieSessionOptions {
+    /** The auth-api origin, e.g. https://sso.codevertexafrica.com. */
+    authBaseUrl: string;
+    /** The app's OAuth client id, sent with /session/start. */
+    clientId: string;
+    /** Called with the new state whenever the token changes, and with null on sign-out. */
+    onChange?: (state: CookieSessionState | null) => void;
+    /** BroadcastChannel and lock name. Default `codevertex-cookie-session:<clientId>`. */
+    channelName?: string;
+    /** `getAccessToken` refreshes when the token is closer than this to expiry. Default 60 seconds. */
+    refreshSkewMs?: number;
+    /**
+     * Wait before the one retry after a 401 from /session/refresh. Every app shares the one sso
+     * cookie, and Web Locks do not reach across origins, so another app may have rotated the cookie
+     * while this call was in flight. The retry sends the rotated value. Default 300 ms.
+     */
+    retryDelayMs?: number;
+    fetch?: typeof fetch;
+    now?: () => number;
+}
+interface CookieSession {
+    /** Moves a session onto the cookie with the refresh token from the code exchange. */
+    start(refreshToken: string): Promise<RefreshOutcome>;
+    /** The current access token, refreshed first when missing or within the skew of expiry. */
+    getAccessToken(): Promise<string | null>;
+    /**
+     * Trades the cookie for a new access token. Concurrent calls in one tab share one attempt.
+     * Pass the token the server just rejected when it is known, so a newer token another tab
+     * shared is adopted instead of spending another refresh.
+     */
+    refresh(failedToken?: string | null): Promise<RefreshOutcome>;
+    /** Revokes the session on auth-api, clears the cookie and signs every tab out. Never throws. */
+    end(): Promise<void>;
+    /** The in-memory state, without any network call. */
+    getState(): CookieSessionState | null;
+    /** Stops listening to other tabs. */
+    dispose(): void;
+}
+declare function createCookieSession(opts: CookieSessionOptions): CookieSession;
+
+export { type CookieSession, type CookieSessionOptions, type CookieSessionPayload, type CookieSessionState, type EmailVerificationState, type RefreshOutcome, type RefreshTokenPayload, type RefreshableSession, SSOCallbackError, type SSOCallbackErrorProps, type SessionRefresherOptions, VerifyEmailBanner, type VerifyEmailBannerProps, VerifyEmailDialog, type VerifyEmailDialogProps, type VerifyEmailStage, createCookieSession, createSessionRefresher, errorStatus, expiryMs, isRefusal, revokeServerSession, watchSessionAcrossTabs };

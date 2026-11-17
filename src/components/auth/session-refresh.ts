@@ -79,7 +79,12 @@ export function isRefusal(status: number | undefined): boolean {
 
 type LockManager = { request: <T>(name: string, cb: () => Promise<T>) => Promise<T> };
 
-function withCrossTabLock<T>(name: string, work: () => Promise<T>): Promise<T> {
+/**
+ * Runs `work` while holding a Web Lock named after `name`, so tabs of one origin take turns. Runs
+ * it straight away where the Web Locks API is missing (SSR, older browsers). Also used by
+ * `createCookieSession`.
+ */
+export function withCrossTabLock<T>(name: string, work: () => Promise<T>): Promise<T> {
   const locks = (typeof navigator !== 'undefined'
     ? (navigator as unknown as { locks?: LockManager }).locks
     : undefined);

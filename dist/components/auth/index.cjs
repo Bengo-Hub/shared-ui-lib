@@ -670,10 +670,192 @@ function watchSessionAcrossTabs(storageKey, onChange) {
   return () => window.removeEventListener("storage", handler);
 }
 
+// src/components/auth/cookie-session.ts
+var CSRF_HEADER = "X-Requested-With";
+var CSRF_VALUE = "codevertex";
+var SessionHttpError = class extends Error {
+  constructor(status) {
+    super(`auth-api session call failed with HTTP ${status}`);
+    this.status = status;
+  }
+};
+function refused(status) {
+  return status === 400 || status === 401 || status === 403;
+}
+function openChannel(name) {
+  try {
+    if (typeof BroadcastChannel === "undefined") return null;
+    return new BroadcastChannel(name);
+  } catch {
+    return null;
+  }
+}
+function createCookieSession(opts) {
+  const now = opts.now ?? (() => Date.now());
+  const skew = opts.refreshSkewMs ?? 6e4;
+  const retryDelay = opts.retryDelayMs ?? 300;
+  const name = opts.channelName ?? `codevertex-cookie-session:${opts.clientId}`;
+  const base = opts.authBaseUrl.replace(/\/+$/, "");
+  let state = null;
+  let inFlight = null;
+  let epoch = 0;
+  const channel = openChannel(name);
+  const setState = (next) => {
+    state = next;
+    opts.onChange?.(next);
+  };
+  const post = (msg) => {
+    try {
+      channel?.postMessage(msg);
+    } catch {
+    }
+  };
+  const freshToken = (failed) => state?.accessToken && state.accessToken !== failed && state.expiresAt - now() > skew ? state.accessToken : null;
+  if (channel) {
+    channel.onmessage = (ev) => {
+      const msg = ev.data;
+      if (!msg || typeof msg !== "object") return;
+      if (msg.type === "token") {
+        const s = msg.state;
+        if (!s?.accessToken || typeof s.expiresAt !== "number") return;
+        if (state && state.expiresAt >= s.expiresAt) return;
+        setState(s);
+      } else if (msg.type === "signed-out") {
+        if (!state) return;
+        if (msg.reason === "ended" || state.accessToken === msg.token) setState(null);
+      }
+    };
+  }
+  const call = async (path, init) => {
+    const doFetch = opts.fetch ?? fetch;
+    const headers = { [CSRF_HEADER]: CSRF_VALUE };
+    if (init.body !== void 0) headers["Content-Type"] = "application/json";
+    if (init.bearer) headers.Authorization = `Bearer ${init.bearer}`;
+    const res = await doFetch(`${base}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body: init.body === void 0 ? void 0 : JSON.stringify(init.body)
+    });
+    if (!res.ok) throw new SessionHttpError(res.status);
+    return res;
+  };
+  const toState = (data) => {
+    if (!data?.access_token || data.mfa_enrollment_required) return null;
+    const ttl = data.expires_in && data.expires_in > 0 ? data.expires_in : 3600;
+    return { accessToken: data.access_token, expiresAt: now() + ttl * 1e3, payload: data };
+  };
+  const overtaken = () => {
+    const token = freshToken();
+    return token ? { token } : { rejected: true };
+  };
+  const accept = (next, startedAt) => {
+    if (startedAt !== epoch) return overtaken();
+    setState(next);
+    post({ type: "token", state: next });
+    return { token: next.accessToken };
+  };
+  const signOutRejected = (failed, startedAt) => {
+    if (startedAt !== epoch) return overtaken();
+    if (state) setState(null);
+    else opts.onChange?.(null);
+    post({ type: "signed-out", reason: "rejected", token: failed });
+    return { rejected: true };
+  };
+  const sessionCall = async (path, body, failed, startedAt) => {
+    let data;
+    try {
+      const res = await call(path, { body });
+      data = await res.json();
+    } catch (err) {
+      const status = err instanceof SessionHttpError ? err.status : void 0;
+      return status !== void 0 && refused(status) ? signOutRejected(failed, startedAt) : { transient: true };
+    }
+    const next = toState(data);
+    return next ? accept(next, startedAt) : signOutRejected(failed, startedAt);
+  };
+  const attemptRefresh = async (failed, startedAt) => {
+    if (startedAt !== epoch) return overtaken();
+    const shared = freshToken(failed);
+    if (shared) return { token: shared };
+    let status;
+    for (let tries = 0; tries < 2; tries++) {
+      if (tries > 0) {
+        await new Promise((r) => setTimeout(r, retryDelay));
+        const late = freshToken(failed);
+        if (late) return { token: late };
+      }
+      try {
+        const res = await call("/api/v1/session/refresh", {});
+        const next = toState(await res.json());
+        return next ? accept(next, startedAt) : signOutRejected(failed, startedAt);
+      } catch (err) {
+        if (!(err instanceof SessionHttpError)) return { transient: true };
+        status = err.status;
+        if (status !== 401) break;
+      }
+    }
+    return status !== void 0 && refused(status) ? signOutRejected(failed, startedAt) : { transient: true };
+  };
+  const refresh = (failedToken) => {
+    if (inFlight) return inFlight;
+    const failed = failedToken ?? state?.accessToken ?? null;
+    const startedAt = epoch;
+    inFlight = withCrossTabLock(name, () => attemptRefresh(failed, startedAt)).finally(() => {
+      inFlight = null;
+    });
+    return inFlight;
+  };
+  return {
+    start(refreshToken) {
+      const startedAt = ++epoch;
+      return withCrossTabLock(
+        name,
+        () => sessionCall(
+          "/api/v1/session/start",
+          { refresh_token: refreshToken, client_id: opts.clientId },
+          state?.accessToken ?? null,
+          startedAt
+        )
+      );
+    },
+    async getAccessToken() {
+      const current = freshToken();
+      if (current) return current;
+      const outcome = await refresh();
+      if ("token" in outcome) return outcome.token;
+      const held = state;
+      return held && held.expiresAt > now() ? held.accessToken : null;
+    },
+    refresh,
+    async end() {
+      const bearer = state?.accessToken ?? null;
+      epoch++;
+      try {
+        await call("/api/v1/session/end", { bearer });
+      } catch {
+      }
+      if (state) setState(null);
+      else opts.onChange?.(null);
+      post({ type: "signed-out", reason: "ended" });
+    },
+    getState: () => state,
+    dispose() {
+      if (!channel) return;
+      channel.onmessage = null;
+      try {
+        channel.close();
+      } catch {
+      }
+    }
+  };
+}
+
 exports.SSOCallbackError = SSOCallbackError;
 exports.SSOLoginModal = SSOLoginModal;
 exports.VerifyEmailBanner = VerifyEmailBanner;
 exports.VerifyEmailDialog = VerifyEmailDialog;
+exports.createCookieSession = createCookieSession;
 exports.createSessionRefresher = createSessionRefresher;
 exports.errorStatus = errorStatus;
 exports.expiryMs = expiryMs;

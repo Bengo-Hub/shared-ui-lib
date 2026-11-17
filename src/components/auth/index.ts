@@ -20,3 +20,10 @@ export {
   type RefreshOutcome,
   type SessionRefresherOptions,
 } from './session-refresh';
+export {
+  createCookieSession,
+  type CookieSession,
+  type CookieSessionOptions,
+  type CookieSessionPayload,
+  type CookieSessionState,
+} from './cookie-session';
