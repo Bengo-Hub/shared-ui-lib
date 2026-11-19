@@ -4189,18 +4189,22 @@ function openCookieSettings() {
 
 // src/components/legal/legal-urls.ts
 var DEFAULT_LEGAL_BASE_URL = "https://accounts.codevertexafrica.com";
+var DEFAULT_DATA_DELETION_URL = "https://marketflow.codevertexafrica.com/data-deletion";
 function resolveLegalBaseUrl(baseUrl) {
   const fromEnv = typeof process !== "undefined" ? process.env?.NEXT_PUBLIC_LEGAL_BASE_URL : void 0;
   return (baseUrl || fromEnv || DEFAULT_LEGAL_BASE_URL).replace(/\/+$/, "");
 }
-function legalUrls(baseUrl) {
+function legalUrls(baseUrl, options = {}) {
   const base = resolveLegalBaseUrl(baseUrl);
+  const deletionFromEnv = typeof process !== "undefined" ? process.env?.NEXT_PUBLIC_DATA_DELETION_URL : void 0;
   return {
     privacy: `${base}/privacy`,
     terms: `${base}/terms-of-service`,
     cookies: `${base}/cookies`,
     refunds: `${base}/refund-policy`,
-    dataRequests: `${base}/data-requests`
+    dataRequests: `${base}/data-requests`,
+    dataDeletion: options.dataDeletionUrl || deletionFromEnv || DEFAULT_DATA_DELETION_URL,
+    autopilotTerms: `${base}/legal/marketflow-autopublish-terms`
   };
 }
 var PLATFORM_LEGAL_ENTITY = {
@@ -4306,9 +4310,12 @@ function LegalLinks({
   layout = "row",
   showEntity = true,
   entity = PLATFORM_LEGAL_ENTITY,
+  showDataDeletion = false,
+  dataDeletionUrl,
+  showAutopilotTerms = false,
   className = ""
 }) {
-  const urls = legalUrls(legalBaseUrl);
+  const urls = legalUrls(legalBaseUrl, { dataDeletionUrl });
   const links = [
     { label: "Privacy", href: urls.privacy },
     { label: "Terms", href: urls.terms },
@@ -4316,6 +4323,8 @@ function LegalLinks({
     { label: "Refunds", href: urls.refunds },
     { label: "Your data", href: urls.dataRequests }
   ];
+  if (showDataDeletion) links.push({ label: "Data deletion", href: urls.dataDeletion });
+  if (showAutopilotTerms) links.push({ label: "Autopilot terms", href: urls.autopilotTerms });
   const linkClass = "rounded hover:text-foreground hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `text-xs text-muted-foreground ${className}`, children: [
     /* @__PURE__ */ jsxRuntime.jsxs(

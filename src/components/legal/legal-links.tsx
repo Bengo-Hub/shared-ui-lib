@@ -11,6 +11,12 @@ export interface LegalLinksProps {
   showEntity?: boolean;
   /** The business running this app. Tenant apps on their own brand pass their own details. */
   entity?: LegalEntity;
+  /** Add a "Data deletion" link (MarketFlow and any app with a platform login). */
+  showDataDeletion?: boolean;
+  /** Replaces the data deletion page; see DEFAULT_DATA_DELETION_URL. */
+  dataDeletionUrl?: string;
+  /** Add an "Autopilot terms" link to the MarketFlow Autopilot auto-publish terms. */
+  showAutopilotTerms?: boolean;
   className?: string;
 }
 
@@ -23,9 +29,12 @@ export function LegalLinks({
   layout = 'row',
   showEntity = true,
   entity = PLATFORM_LEGAL_ENTITY,
+  showDataDeletion = false,
+  dataDeletionUrl,
+  showAutopilotTerms = false,
   className = '',
 }: LegalLinksProps) {
-  const urls = legalUrls(legalBaseUrl);
+  const urls = legalUrls(legalBaseUrl, { dataDeletionUrl });
   const links: { label: string; href: string }[] = [
     { label: 'Privacy', href: urls.privacy },
     { label: 'Terms', href: urls.terms },
@@ -33,6 +42,8 @@ export function LegalLinks({
     { label: 'Refunds', href: urls.refunds },
     { label: 'Your data', href: urls.dataRequests },
   ];
+  if (showDataDeletion) links.push({ label: 'Data deletion', href: urls.dataDeletion });
+  if (showAutopilotTerms) links.push({ label: 'Autopilot terms', href: urls.autopilotTerms });
   const linkClass =
     'rounded hover:text-foreground hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary';
 

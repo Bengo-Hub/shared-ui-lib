@@ -14,10 +14,12 @@ export {
   type CookieConsentState,
 } from './consent-store';
 export {
+  DEFAULT_DATA_DELETION_URL,
   DEFAULT_LEGAL_BASE_URL,
   PLATFORM_LEGAL_ENTITY,
   legalUrls,
   resolveLegalBaseUrl,
   type LegalEntity,
+  type LegalUrlOptions,
   type LegalUrls,
 } from './legal-urls';

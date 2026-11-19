@@ -1,4 +1,4 @@
-import * as React$1 from 'react';
+import * as react from 'react';
 
 /**
  * Right-side slide-over account panel — the piece missing from every *-ui's
@@ -33,6 +33,6 @@ interface AccountPanelProps {
     /** Host-specific content (plan/subscription info, storage bar, app switcher…). */
     children?: React.ReactNode;
 }
-declare function AccountPanel({ open, onClose, user, onSignOut, links, children }: AccountPanelProps): React$1.ReactPortal | null;
+declare function AccountPanel({ open, onClose, user, onSignOut, links, children }: AccountPanelProps): react.ReactPortal | null;
 
 export { AccountPanel, type AccountPanelLink, type AccountPanelProps, type AccountPanelUser };

@@ -20,15 +20,28 @@ declare function CookieNotice({ legalBaseUrl, offsetClassName, className }: Cook
  * environment, or pass `baseUrl` to the components directly.
  */
 declare const DEFAULT_LEGAL_BASE_URL = "https://accounts.codevertexafrica.com";
+/**
+ * MarketFlow's data deletion page, where a Meta deletion confirmation code is checked. Override it
+ * with NEXT_PUBLIC_DATA_DELETION_URL, or pass `dataDeletionUrl`.
+ */
+declare const DEFAULT_DATA_DELETION_URL = "https://marketflow.codevertexafrica.com/data-deletion";
 interface LegalUrls {
     privacy: string;
     terms: string;
     cookies: string;
     refunds: string;
     dataRequests: string;
+    /** Data deletion instructions and the confirmation code check. */
+    dataDeletion: string;
+    /** The MarketFlow Autopilot auto-publish terms. */
+    autopilotTerms: string;
+}
+interface LegalUrlOptions {
+    /** Replaces the data deletion page (default DEFAULT_DATA_DELETION_URL). */
+    dataDeletionUrl?: string;
 }
 declare function resolveLegalBaseUrl(baseUrl?: string): string;
-declare function legalUrls(baseUrl?: string): LegalUrls;
+declare function legalUrls(baseUrl?: string, options?: LegalUrlOptions): LegalUrls;
 /** A business's registered details as shown in a footer. */
 interface LegalEntity {
     name: string;
@@ -48,13 +61,19 @@ interface LegalLinksProps {
     showEntity?: boolean;
     /** The business running this app. Tenant apps on their own brand pass their own details. */
     entity?: LegalEntity;
+    /** Add a "Data deletion" link (MarketFlow and any app with a platform login). */
+    showDataDeletion?: boolean;
+    /** Replaces the data deletion page; see DEFAULT_DATA_DELETION_URL. */
+    dataDeletionUrl?: string;
+    /** Add an "Autopilot terms" link to the MarketFlow Autopilot auto-publish terms. */
+    showAutopilotTerms?: boolean;
     className?: string;
 }
 /**
  * Footer block every app mounts: links to the shared legal pages, a button that reopens the
  * cookie notice, and the registered business details.
  */
-declare function LegalLinks({ legalBaseUrl, layout, showEntity, entity, className, }: LegalLinksProps): react_jsx_runtime.JSX.Element;
+declare function LegalLinks({ legalBaseUrl, layout, showEntity, entity, showDataDeletion, dataDeletionUrl, showAutopilotTerms, className, }: LegalLinksProps): react_jsx_runtime.JSX.Element;
 
 /**
  * Cookie consent store shared by every Codevertex app.
@@ -96,4 +115,4 @@ declare function useCookieConsentState(): CookieConsentState | null;
  */
 declare function useCookieConsent(category: ConsentCategory): boolean;
 
-export { CONSENT_CHANGED_EVENT, CONSENT_COOKIE, type ConsentCategory, type CookieConsentState, CookieNotice, type CookieNoticeProps, DEFAULT_LEGAL_BASE_URL, type LegalEntity, LegalLinks, type LegalLinksProps, type LegalUrls, NO_OPTIONAL_CONSENT, OPEN_SETTINGS_EVENT, PLATFORM_LEGAL_ENTITY, consentCookieDomain, legalUrls, openCookieSettings, readCookieConsent, resolveLegalBaseUrl, useCookieConsent, useCookieConsentState, writeCookieConsent };
+export { CONSENT_CHANGED_EVENT, CONSENT_COOKIE, type ConsentCategory, type CookieConsentState, CookieNotice, type CookieNoticeProps, DEFAULT_DATA_DELETION_URL, DEFAULT_LEGAL_BASE_URL, type LegalEntity, LegalLinks, type LegalLinksProps, type LegalUrlOptions, type LegalUrls, NO_OPTIONAL_CONSENT, OPEN_SETTINGS_EVENT, PLATFORM_LEGAL_ENTITY, consentCookieDomain, legalUrls, openCookieSettings, readCookieConsent, resolveLegalBaseUrl, useCookieConsent, useCookieConsentState, writeCookieConsent };
