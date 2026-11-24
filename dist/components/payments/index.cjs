@@ -608,13 +608,20 @@ function normalizeCurrency(code) {
 }
 function parseMoneyInput(text) {
   if (text == null) return null;
-  const cleaned = String(text).replace(/[\s,_]/g, "").replace(/^[^\d.-]+/, "");
+  let cleaned = String(text).replace(/[\s,_]/g, "").replace(/^[^\d.-]+/, "");
+  let multiplier = 1;
+  const suffix = /[kmb]$/i.exec(cleaned);
+  if (suffix) {
+    multiplier = MONEY_SUFFIXES[suffix[0].toLowerCase()];
+    cleaned = cleaned.slice(0, -1);
+  }
   if (cleaned === "" || cleaned === "." || cleaned === "-") return null;
   if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
   const n = Number(cleaned);
   if (!Number.isFinite(n) || n < 0) return null;
-  return n;
+  return multiplier === 1 ? n : Number((n * multiplier).toPrecision(15));
 }
+var MONEY_SUFFIXES = { k: 1e3, m: 1e6, b: 1e9 };
 function roundMoney(amount, currency) {
   const f = 10 ** decimalPlacesFor(normalizeCurrency(currency) || "KES");
   return Math.round(amount * f) / f;
@@ -699,8 +706,7 @@ function MoneyInput({
             },
             onChange: (e) => {
               const raw = e.target.value;
-              if (raw !== "" && !/^[\d,\s.]*$/.test(raw)) return;
-              if (dp === 0 && raw.includes(".")) return;
+              if (raw !== "" && !/^[\d,\s.]*[kmb]?$/i.test(raw)) return;
               setText(raw);
               commit(raw);
             },

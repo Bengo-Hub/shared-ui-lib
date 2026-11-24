@@ -11,11 +11,28 @@ test('parseMoneyInput reads typed amounts', () => {
   assert.equal(parseMoneyInput('.5'), 0.5);
 });
 
+test('parseMoneyInput reads k, m and b shorthand in either case', () => {
+  assert.equal(parseMoneyInput('100k'), 100000);
+  assert.equal(parseMoneyInput('100K'), 100000);
+  assert.equal(parseMoneyInput('1.5m'), 1500000);
+  assert.equal(parseMoneyInput('1.5M'), 1500000);
+  assert.equal(parseMoneyInput('2b'), 2000000000);
+  assert.equal(parseMoneyInput('2,500'), 2500);
+  assert.equal(parseMoneyInput('2,500k'), 2500000);
+  assert.equal(parseMoneyInput('1.1k'), 1100);
+  assert.equal(parseMoneyInput('.5k'), 500);
+  assert.equal(parseMoneyInput('KES 100k'), 100000);
+  assert.equal(parseMoneyInput(' 250 k '), 250000);
+});
+
 test('parseMoneyInput rejects empty, unreadable and negative text', () => {
   assert.equal(parseMoneyInput(''), null);
   assert.equal(parseMoneyInput(null), null);
   assert.equal(parseMoneyInput('abc'), null);
-  assert.equal(parseMoneyInput('5k'), null);
+  assert.equal(parseMoneyInput('k'), null);
+  assert.equal(parseMoneyInput('5kk'), null);
+  assert.equal(parseMoneyInput('5x'), null);
+  assert.equal(parseMoneyInput('-5k'), null);
   assert.equal(parseMoneyInput('1.2.3'), null);
   assert.equal(parseMoneyInput('-5'), null);
 });

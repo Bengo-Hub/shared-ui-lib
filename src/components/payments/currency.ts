@@ -97,20 +97,30 @@ export function normalizeCurrency(code: string | null | undefined): string {
 
 /**
  * Reads a typed amount. Grouping commas, spaces, underscores and a leading currency code or
- * symbol are ignored ("KES 5,000", "5 000", "$12.50"). Returns null for empty or unreadable text
- * and for negative amounts, which no budget or price field accepts.
+ * symbol are ignored ("KES 5,000", "5 000", "$12.50"). A trailing k, m or b in either case
+ * multiplies by a thousand, a million or a billion ("100k", "1.5M", "2b"). Returns null for empty
+ * or unreadable text and for negative amounts, which no budget or price field accepts.
  */
 export function parseMoneyInput(text: string | null | undefined): number | null {
   if (text == null) return null;
-  const cleaned = String(text)
+  let cleaned = String(text)
     .replace(/[\s,_]/g, '')
     .replace(/^[^\d.-]+/, '');
+  let multiplier = 1;
+  const suffix = /[kmb]$/i.exec(cleaned);
+  if (suffix) {
+    multiplier = MONEY_SUFFIXES[suffix[0].toLowerCase()];
+    cleaned = cleaned.slice(0, -1);
+  }
   if (cleaned === '' || cleaned === '.' || cleaned === '-') return null;
   if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
   const n = Number(cleaned);
   if (!Number.isFinite(n) || n < 0) return null;
-  return n;
+  // toPrecision drops the float noise a multiply leaves (1.1 * 1000 is 1100.0000000000002).
+  return multiplier === 1 ? n : Number((n * multiplier).toPrecision(15));
 }
+
+const MONEY_SUFFIXES: Record<string, number> = { k: 1e3, m: 1e6, b: 1e9 };
 
 /** Rounds an amount to the decimal places its currency uses (0 for UGX, 2 for KES). */
 export function roundMoney(amount: number, currency: string): number {

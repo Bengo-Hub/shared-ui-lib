@@ -104,9 +104,11 @@ export function MoneyInput({
         }}
         onChange={(e) => {
           const raw = e.target.value;
-          // Keep only what an amount can hold; the rest is ignored as it is typed.
-          if (raw !== '' && !/^[\d,\s.]*$/.test(raw)) return;
-          if (dp === 0 && raw.includes('.')) return;
+          // Keep only what an amount can hold, plus a k/m/b shorthand at the end ("100k", "1.5m");
+          // the rest is ignored as it is typed.
+          if (raw !== '' && !/^[\d,\s.]*[kmb]?$/i.test(raw)) return;
+          // A whole-unit currency takes a decimal point only on the way to a shorthand ("1.5m");
+          // the amount is rounded to whole units when it is committed.
           setText(raw);
           commit(raw);
         }}

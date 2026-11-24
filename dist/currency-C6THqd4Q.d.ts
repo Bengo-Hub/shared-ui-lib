@@ -34,8 +34,9 @@ declare function formatCompactCurrency(amount: number | string | null | undefine
 declare function normalizeCurrency(code: string | null | undefined): string;
 /**
  * Reads a typed amount. Grouping commas, spaces, underscores and a leading currency code or
- * symbol are ignored ("KES 5,000", "5 000", "$12.50"). Returns null for empty or unreadable text
- * and for negative amounts, which no budget or price field accepts.
+ * symbol are ignored ("KES 5,000", "5 000", "$12.50"). A trailing k, m or b in either case
+ * multiplies by a thousand, a million or a billion ("100k", "1.5M", "2b"). Returns null for empty
+ * or unreadable text and for negative amounts, which no budget or price field accepts.
  */
 declare function parseMoneyInput(text: string | null | undefined): number | null;
 /** Rounds an amount to the decimal places its currency uses (0 for UGX, 2 for KES). */
