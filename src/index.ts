@@ -35,8 +35,15 @@ export {
   SUPPORTED_CURRENCIES,
   formatCurrency,
   formatCompactCurrency,
+  decimalPlacesFor,
+  normalizeCurrency,
+  parseMoneyInput,
+  roundMoney,
+  formatMoneyInputValue,
+  formatMoneyText,
   type CurrencyMeta,
 } from './components/payments/currency';
+export { MoneyInput, type MoneyInputProps } from './components/payments/money-input';
 export {
   PAYMENT_METHOD_LABELS,
   getPaymentMethodLabel,

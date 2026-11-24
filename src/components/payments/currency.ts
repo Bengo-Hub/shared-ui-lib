@@ -88,3 +88,58 @@ export function formatCompactCurrency(amount: number | string | null | undefined
   }
   return formatCurrency(n, currency);
 }
+
+/** Normalises a currency code: trimmed, upper case, empty when it is not three letters. */
+export function normalizeCurrency(code: string | null | undefined): string {
+  const c = (code ?? '').trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : '';
+}
+
+/**
+ * Reads a typed amount. Grouping commas, spaces, underscores and a leading currency code or
+ * symbol are ignored ("KES 5,000", "5 000", "$12.50"). Returns null for empty or unreadable text
+ * and for negative amounts, which no budget or price field accepts.
+ */
+export function parseMoneyInput(text: string | null | undefined): number | null {
+  if (text == null) return null;
+  const cleaned = String(text)
+    .replace(/[\s,_]/g, '')
+    .replace(/^[^\d.-]+/, '');
+  if (cleaned === '' || cleaned === '.' || cleaned === '-') return null;
+  if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+/** Rounds an amount to the decimal places its currency uses (0 for UGX, 2 for KES). */
+export function roundMoney(amount: number, currency: string): number {
+  const f = 10 ** decimalPlacesFor(normalizeCurrency(currency) || 'KES');
+  return Math.round(amount * f) / f;
+}
+
+/**
+ * The amount grouped for an input field, without the currency: "5,000" or "12.50". Whole amounts
+ * drop their zero decimals so a typed 5000 reads back as "5,000", not "5,000.00".
+ */
+export function formatMoneyInputValue(amount: number | null | undefined, currency: string): string {
+  if (amount == null || !Number.isFinite(amount)) return '';
+  const dp = decimalPlacesFor(normalizeCurrency(currency) || 'KES');
+  const rounded = roundMoney(amount, currency);
+  const whole = Number.isInteger(rounded);
+  return rounded.toLocaleString('en-US', {
+    minimumFractionDigits: whole ? 0 : dp,
+    maximumFractionDigits: dp,
+  });
+}
+
+/**
+ * The amount with its currency code, for prose, prompts and notes: "KES 5,000", "USD 12.50".
+ * The code (not a symbol) is used so text sent to a person or an assistant is never ambiguous
+ * ("$" is several currencies, "Ksh" and "KES" are the same one).
+ */
+export function formatMoneyText(amount: number | null | undefined, currency: string): string {
+  const code = normalizeCurrency(currency) || 'KES';
+  const v = formatMoneyInputValue(amount ?? 0, code);
+  return `${code} ${v}`;
+}

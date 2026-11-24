@@ -55,6 +55,38 @@ function formatCompactCurrency(amount, currency = "KES") {
   }
   return formatCurrency(n, currency);
 }
+function normalizeCurrency(code) {
+  const c = (code ?? "").trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : "";
+}
+function parseMoneyInput(text) {
+  if (text == null) return null;
+  const cleaned = String(text).replace(/[\s,_]/g, "").replace(/^[^\d.-]+/, "");
+  if (cleaned === "" || cleaned === "." || cleaned === "-") return null;
+  if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+function roundMoney(amount, currency) {
+  const f = 10 ** decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  return Math.round(amount * f) / f;
+}
+function formatMoneyInputValue(amount, currency) {
+  if (amount == null || !Number.isFinite(amount)) return "";
+  const dp = decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  const rounded = roundMoney(amount, currency);
+  const whole = Number.isInteger(rounded);
+  return rounded.toLocaleString("en-US", {
+    minimumFractionDigits: whole ? 0 : dp,
+    maximumFractionDigits: dp
+  });
+}
+function formatMoneyText(amount, currency) {
+  const code = normalizeCurrency(currency) || "KES";
+  const v = formatMoneyInputValue(amount ?? 0, code);
+  return `${code} ${v}`;
+}
 
 // src/components/format/timezone.ts
 var DEFAULT_TIME_ZONE = "Africa/Nairobi";
@@ -195,6 +227,6 @@ function toUserZone(date, timeZone) {
   return out;
 }
 
-export { CURRENCY_META, DEFAULT_TIME_ZONE, SUPPORTED_CURRENCIES, applyUserTimeZone, decimalPlacesFor, formatCompactCurrency, formatCurrency, formatDate, formatDateTime, formatTime, getActiveTimeZone, isValidTimeZone, resolveTimeZone, setActiveTimeZone, subscribeTimeZone, toUserZone };
+export { CURRENCY_META, DEFAULT_TIME_ZONE, SUPPORTED_CURRENCIES, applyUserTimeZone, decimalPlacesFor, formatCompactCurrency, formatCurrency, formatDate, formatDateTime, formatMoneyInputValue, formatMoneyText, formatTime, getActiveTimeZone, isValidTimeZone, normalizeCurrency, parseMoneyInput, resolveTimeZone, roundMoney, setActiveTimeZone, subscribeTimeZone, toUserZone };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

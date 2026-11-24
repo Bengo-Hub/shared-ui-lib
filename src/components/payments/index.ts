@@ -37,8 +37,14 @@ export {
   decimalPlacesFor,
   formatCurrency,
   formatCompactCurrency,
+  normalizeCurrency,
+  parseMoneyInput,
+  roundMoney,
+  formatMoneyInputValue,
+  formatMoneyText,
   type CurrencyMeta,
 } from './currency';
+export { MoneyInput, type MoneyInputProps } from './money-input';
 export {
   PAYMENT_METHOD_LABELS,
   getPaymentMethodLabel,

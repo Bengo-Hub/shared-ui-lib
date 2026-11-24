@@ -602,6 +602,119 @@ function formatCompactCurrency(amount, currency = "KES") {
   }
   return formatCurrency(n, currency);
 }
+function normalizeCurrency(code) {
+  const c = (code ?? "").trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : "";
+}
+function parseMoneyInput(text) {
+  if (text == null) return null;
+  const cleaned = String(text).replace(/[\s,_]/g, "").replace(/^[^\d.-]+/, "");
+  if (cleaned === "" || cleaned === "." || cleaned === "-") return null;
+  if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+function roundMoney(amount, currency) {
+  const f = 10 ** decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  return Math.round(amount * f) / f;
+}
+function formatMoneyInputValue(amount, currency) {
+  if (amount == null || !Number.isFinite(amount)) return "";
+  const dp = decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  const rounded = roundMoney(amount, currency);
+  const whole = Number.isInteger(rounded);
+  return rounded.toLocaleString("en-US", {
+    minimumFractionDigits: whole ? 0 : dp,
+    maximumFractionDigits: dp
+  });
+}
+function formatMoneyText(amount, currency) {
+  const code = normalizeCurrency(currency) || "KES";
+  const v = formatMoneyInputValue(amount ?? 0, code);
+  return `${code} ${v}`;
+}
+function MoneyInput({
+  value,
+  onChange,
+  currency,
+  id,
+  name,
+  placeholder,
+  disabled,
+  required,
+  min,
+  max,
+  wholeOnly,
+  className,
+  inputClassName,
+  onBlur,
+  ...aria
+}) {
+  const code = normalizeCurrency(currency) || "KES";
+  const [text, setText] = react.useState(() => formatMoneyInputValue(value, code));
+  const focused = react.useRef(false);
+  react.useEffect(() => {
+    if (!focused.current) setText(formatMoneyInputValue(value, code));
+  }, [value, code]);
+  const commit = (raw) => {
+    const n = parseMoneyInput(raw);
+    if (n == null) return onChange(null);
+    onChange(wholeOnly ? Math.round(n) : roundMoney(n, code));
+  };
+  const outOfRange = value != null && (min != null && value < min || max != null && value > max);
+  const dp = wholeOnly ? 0 : decimalPlacesFor(code);
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "div",
+    {
+      className: [
+        "flex w-full items-center rounded-xl border border-input bg-background text-sm focus-within:ring-2 focus-within:ring-ring",
+        disabled ? "opacity-60" : "",
+        className ?? ""
+      ].join(" "),
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("span", { className: "select-none pl-3 pr-1 text-muted-foreground tabular-nums", "aria-hidden": "true", children: code }),
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "input",
+          {
+            id,
+            name,
+            type: "text",
+            inputMode: dp > 0 ? "decimal" : "numeric",
+            autoComplete: "off",
+            className: [
+              "h-10 w-full min-w-0 bg-transparent py-2 pr-3 text-foreground tabular-nums outline-none placeholder:text-muted-foreground",
+              inputClassName ?? ""
+            ].join(" "),
+            value: text,
+            placeholder,
+            disabled,
+            required,
+            "aria-label": aria["aria-label"],
+            "aria-describedby": aria["aria-describedby"],
+            "aria-invalid": aria["aria-invalid"] ?? (outOfRange || void 0),
+            "data-currency": code,
+            onFocus: () => {
+              focused.current = true;
+            },
+            onChange: (e) => {
+              const raw = e.target.value;
+              if (raw !== "" && !/^[\d,\s.]*$/.test(raw)) return;
+              if (dp === 0 && raw.includes(".")) return;
+              setText(raw);
+              commit(raw);
+            },
+            onBlur: () => {
+              focused.current = false;
+              setText(formatMoneyInputValue(parseMoneyInput(text) == null ? null : value, code));
+              onBlur?.();
+            }
+          }
+        )
+      ]
+    }
+  );
+}
 
 // src/components/payments/payment-method-labels.ts
 var PAYMENT_METHOD_LABELS = {
@@ -1131,6 +1244,7 @@ exports.MPESA_STK = MPESA_STK;
 exports.MTN_MOMO = MTN_MOMO;
 exports.MTN_MOMO_MANUAL = MTN_MOMO_MANUAL;
 exports.MastercardLogo = MastercardLogo;
+exports.MoneyInput = MoneyInput;
 exports.MpesaLogo = MpesaLogo;
 exports.MtnMomoLogo = MtnMomoLogo;
 exports.OTHER_MANUAL = OTHER_MANUAL;
@@ -1153,10 +1267,15 @@ exports.datetimeLocalToISO = datetimeLocalToISO;
 exports.decimalPlacesFor = decimalPlacesFor;
 exports.formatCompactCurrency = formatCompactCurrency;
 exports.formatCurrency = formatCurrency;
+exports.formatMoneyInputValue = formatMoneyInputValue;
+exports.formatMoneyText = formatMoneyText;
 exports.getPaymentMethodLabel = getPaymentMethodLabel;
 exports.isAccountFormValid = isAccountFormValid;
+exports.normalizeCurrency = normalizeCurrency;
 exports.nowDatetimeLocal = nowDatetimeLocal;
+exports.parseMoneyInput = parseMoneyInput;
 exports.resolveDefaultAccount = resolveDefaultAccount;
+exports.roundMoney = roundMoney;
 exports.usableSettlementMethods = usableSettlementMethods;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

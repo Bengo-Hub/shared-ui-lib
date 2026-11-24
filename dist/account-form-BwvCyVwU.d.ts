@@ -160,6 +160,38 @@ declare function usableSettlementMethods<T extends {
     value: string;
 }>(methods: readonly T[], usable?: UsableSettlementMethods | null): T[];
 
+interface MoneyInputProps {
+    /** The amount, or null when the field is empty. */
+    value: number | null | undefined;
+    /** Called with the typed amount (rounded to the currency's places), or null when cleared. */
+    onChange: (value: number | null) => void;
+    /** ISO 4217 code shown inside the field and used for decimal places, e.g. "KES". */
+    currency: string;
+    id?: string;
+    name?: string;
+    placeholder?: string;
+    disabled?: boolean;
+    required?: boolean;
+    /** Smallest and largest accepted amounts; the browser's validity reflects them. */
+    min?: number;
+    max?: number;
+    /** Whole amounts only (ad budgets are whole units of the ad account's currency). */
+    wholeOnly?: boolean;
+    className?: string;
+    inputClassName?: string;
+    'aria-label'?: string;
+    'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
+    onBlur?: () => void;
+}
+/**
+ * The one amount field: the currency code sits inside the field so every budget, price and
+ * amount always shows its currency, the digits group as you leave the field ("5,000"), and the
+ * value is a number rounded at the currency's decimal places (0 for UGX, 2 for KES). Styled with
+ * the platform's semantic tokens like the shared comboboxes.
+ */
+declare function MoneyInput({ value, onChange, currency, id, name, placeholder, disabled, required, min, max, wholeOnly, className, inputClassName, onBlur, ...aria }: MoneyInputProps): react_jsx_runtime.JSX.Element;
+
 /**
  * The ONE payment-method label registry shared by every list/report surface that shows how a
  * customer paid or how a tenant was paid (pos-ui sales list, treasury-ui transactions list,
@@ -273,4 +305,4 @@ declare function AccountForm({ value, onChange, currencies, currencyLabel, banks
  *  button on this rather than each consumer re-deriving the same per-type rule. */
 declare function isAccountFormValid(value: AccountFormValue): boolean;
 
-export { datetimeLocalToISO as $, AIRTEL_MONEY as A, BANK as B, CARD as C, PAYSTACK as D, EMPTY_ACCOUNT_FORM as E, PAY_SUPPLIER_METHODS as F, PayHeroLogo as G, type PaymentResult as H, PaystackLogo as I, type PaystackLogoProps as J, STORE_CREDIT as K, type SettlementMethod as L, MPESA_B2B as M, SettlementModal as N, OTHER_MANUAL as O, PAYMENT_METHOD_LABELS as P, type SettlementModalProps as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, type SettlementMode as T, type SettlementSubmitInput as U, SplitPayMark as V, TreasuryPaymentModal as W, type TreasuryPaymentModalProps as X, type UsableSettlementMethods as Y, VisaLogo as Z, WhatsAppLogo as _, AIRTEL_MONEY_MANUAL as a, getPaymentMethodLabel as a0, isAccountFormValid as a1, nowDatetimeLocal as a2, usableSettlementMethods as a3, AccountForm as b, type AccountFormBankOption as c, type AccountFormProps as d, type AccountFormValue as e, type AccountType as f, AirtelMoneyLogo as g, BANK_TRANSFER as h, CARD_MANUAL as i, CASH as j, CHEQUE as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, MPESA_B2C as r, MPESA_MANUAL as s, MPESA_STK as t, MTN_MOMO as u, MTN_MOMO_MANUAL as v, MastercardLogo as w, MpesaLogo as x, MtnMomoLogo as y, PAYOUT_METHODS as z };
+export { VisaLogo as $, AIRTEL_MONEY as A, BANK as B, CARD as C, MtnMomoLogo as D, EMPTY_ACCOUNT_FORM as E, PAYOUT_METHODS as F, PAYSTACK as G, PAY_SUPPLIER_METHODS as H, PayHeroLogo as I, type PaymentResult as J, PaystackLogo as K, type PaystackLogoProps as L, MPESA_B2B as M, STORE_CREDIT as N, OTHER_MANUAL as O, PAYMENT_METHOD_LABELS as P, type SettlementMethod as Q, RECEIVE_METHODS as R, SETTLE_CREDIT_SALE_METHODS as S, SettlementModal as T, type SettlementModalProps as U, type SettlementMode as V, type SettlementSubmitInput as W, SplitPayMark as X, TreasuryPaymentModal as Y, type TreasuryPaymentModalProps as Z, type UsableSettlementMethods as _, AIRTEL_MONEY_MANUAL as a, WhatsAppLogo as a0, datetimeLocalToISO as a1, getPaymentMethodLabel as a2, isAccountFormValid as a3, nowDatetimeLocal as a4, usableSettlementMethods as a5, AccountForm as b, type AccountFormBankOption as c, type AccountFormProps as d, type AccountFormValue as e, type AccountType as f, AirtelMoneyLogo as g, BANK_TRANSFER as h, CARD_MANUAL as i, CASH as j, CHEQUE as k, CUSTOMER_ADVANCE as l, CardMark as m, CashMark as n, CurrencyChangeConfirmModal as o, type CurrencyChangeConfirmModalProps as p, type CurrencyChangeExampleRow as q, MPESA_B2C as r, MPESA_MANUAL as s, MPESA_STK as t, MTN_MOMO as u, MTN_MOMO_MANUAL as v, MastercardLogo as w, MoneyInput as x, type MoneyInputProps as y, MpesaLogo as z };

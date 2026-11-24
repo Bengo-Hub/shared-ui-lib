@@ -30,5 +30,26 @@ declare function formatCurrency(amount: number | string | null | undefined, curr
  * decimal-place aware via formatCurrency for the under-1000 case.
  */
 declare function formatCompactCurrency(amount: number | string | null | undefined, currency?: string): string;
+/** Normalises a currency code: trimmed, upper case, empty when it is not three letters. */
+declare function normalizeCurrency(code: string | null | undefined): string;
+/**
+ * Reads a typed amount. Grouping commas, spaces, underscores and a leading currency code or
+ * symbol are ignored ("KES 5,000", "5 000", "$12.50"). Returns null for empty or unreadable text
+ * and for negative amounts, which no budget or price field accepts.
+ */
+declare function parseMoneyInput(text: string | null | undefined): number | null;
+/** Rounds an amount to the decimal places its currency uses (0 for UGX, 2 for KES). */
+declare function roundMoney(amount: number, currency: string): number;
+/**
+ * The amount grouped for an input field, without the currency: "5,000" or "12.50". Whole amounts
+ * drop their zero decimals so a typed 5000 reads back as "5,000", not "5,000.00".
+ */
+declare function formatMoneyInputValue(amount: number | null | undefined, currency: string): string;
+/**
+ * The amount with its currency code, for prose, prompts and notes: "KES 5,000", "USD 12.50".
+ * The code (not a symbol) is used so text sent to a person or an assistant is never ambiguous
+ * ("$" is several currencies, "Ksh" and "KES" are the same one).
+ */
+declare function formatMoneyText(amount: number | null | undefined, currency: string): string;
 
-export { CURRENCY_META as C, SUPPORTED_CURRENCIES as S, type CurrencyMeta as a, formatCurrency as b, decimalPlacesFor as d, formatCompactCurrency as f };
+export { CURRENCY_META as C, SUPPORTED_CURRENCIES as S, type CurrencyMeta as a, formatCurrency as b, formatMoneyInputValue as c, decimalPlacesFor as d, formatMoneyText as e, formatCompactCurrency as f, normalizeCurrency as n, parseMoneyInput as p, roundMoney as r };

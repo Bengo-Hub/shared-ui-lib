@@ -57,6 +57,38 @@ function formatCompactCurrency(amount, currency = "KES") {
   }
   return formatCurrency(n, currency);
 }
+function normalizeCurrency(code) {
+  const c = (code ?? "").trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : "";
+}
+function parseMoneyInput(text) {
+  if (text == null) return null;
+  const cleaned = String(text).replace(/[\s,_]/g, "").replace(/^[^\d.-]+/, "");
+  if (cleaned === "" || cleaned === "." || cleaned === "-") return null;
+  if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+function roundMoney(amount, currency) {
+  const f = 10 ** decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  return Math.round(amount * f) / f;
+}
+function formatMoneyInputValue(amount, currency) {
+  if (amount == null || !Number.isFinite(amount)) return "";
+  const dp = decimalPlacesFor(normalizeCurrency(currency) || "KES");
+  const rounded = roundMoney(amount, currency);
+  const whole = Number.isInteger(rounded);
+  return rounded.toLocaleString("en-US", {
+    minimumFractionDigits: whole ? 0 : dp,
+    maximumFractionDigits: dp
+  });
+}
+function formatMoneyText(amount, currency) {
+  const code = normalizeCurrency(currency) || "KES";
+  const v = formatMoneyInputValue(amount ?? 0, code);
+  return `${code} ${v}`;
+}
 
 // src/components/format/timezone.ts
 var DEFAULT_TIME_ZONE = "Africa/Nairobi";
@@ -206,10 +238,15 @@ exports.formatCompactCurrency = formatCompactCurrency;
 exports.formatCurrency = formatCurrency;
 exports.formatDate = formatDate;
 exports.formatDateTime = formatDateTime;
+exports.formatMoneyInputValue = formatMoneyInputValue;
+exports.formatMoneyText = formatMoneyText;
 exports.formatTime = formatTime;
 exports.getActiveTimeZone = getActiveTimeZone;
 exports.isValidTimeZone = isValidTimeZone;
+exports.normalizeCurrency = normalizeCurrency;
+exports.parseMoneyInput = parseMoneyInput;
 exports.resolveTimeZone = resolveTimeZone;
+exports.roundMoney = roundMoney;
 exports.setActiveTimeZone = setActiveTimeZone;
 exports.subscribeTimeZone = subscribeTimeZone;
 exports.toUserZone = toUserZone;
