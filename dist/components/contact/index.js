@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect, useId, useCallback } from 'react';
 import PhoneInput, { isValidPhoneNumber, parsePhoneNumber, getCountries } from 'react-phone-number-input';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { X, ChevronsUpDown, Search, Loader2, Plus, Check } from 'lucide-react';
@@ -357,6 +357,17 @@ function SearchableCombobox({
     const seen = new Set(localMatches.map((o) => o.value));
     return [...localMatches, ...remoteResults.filter((o) => !seen.has(o.value))];
   }, [localMatches, remoteResults]);
+  const [active, setActive] = useState(-1);
+  const listId = `scb${useId()}`;
+  useEffect(() => {
+    if (!open) return;
+    const at = merged.findIndex((o) => o.value === value);
+    setActive(merged.length ? Math.max(at, 0) : -1);
+  }, [open, merged, value]);
+  useEffect(() => {
+    if (!open || active < 0) return;
+    document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [open, active, listId]);
   const close = useCallback(() => {
     setOpen(false);
     setQuery("");
@@ -403,6 +414,14 @@ function SearchableCombobox({
         type: "button",
         disabled,
         onClick: () => open ? close() : setOpen(true),
+        onKeyDown: (e) => {
+          if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+            e.preventDefault();
+            setOpen(true);
+          }
+        },
+        "aria-haspopup": "listbox",
+        "aria-expanded": open,
         className: "flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60",
         children: [
           /* @__PURE__ */ jsxs("span", { className: cx("flex min-w-0 items-center gap-2 text-left", !selected && "text-muted-foreground"), children: [
@@ -441,10 +460,28 @@ function SearchableCombobox({
                 autoFocus: true,
                 value: query,
                 onChange: (e) => setQuery(e.target.value),
+                role: "combobox",
+                "aria-expanded": true,
+                "aria-controls": listId,
+                "aria-autocomplete": "list",
+                "aria-activedescendant": active >= 0 ? `${listId}-${active}` : void 0,
                 onKeyDown: (e) => {
-                  if (e.key === "Enter" && canCreate && merged.length === 0) {
+                  const n = merged.length;
+                  if (n > 0 && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End")) {
                     e.preventDefault();
-                    void create();
+                    setActive(
+                      (i) => e.key === "Home" ? 0 : e.key === "End" ? n - 1 : e.key === "ArrowDown" ? (i + 1) % n : (i - 1 + n) % n
+                    );
+                    return;
+                  }
+                  if (e.key === "Enter") {
+                    if (active >= 0 && active < n) {
+                      e.preventDefault();
+                      select(merged[active]);
+                    } else if (canCreate && n === 0) {
+                      e.preventDefault();
+                      void create();
+                    }
                   }
                 },
                 placeholder: searchPlaceholder,
@@ -453,7 +490,7 @@ function SearchableCombobox({
             ),
             busy && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 shrink-0 animate-spin text-muted-foreground" })
           ] }),
-          /* @__PURE__ */ jsxs("ul", { className: "max-h-60 min-h-0 flex-1 overflow-y-auto py-1", children: [
+          /* @__PURE__ */ jsxs("ul", { id: listId, role: "listbox", className: "max-h-60 min-h-0 flex-1 overflow-y-auto py-1", children: [
             canCreate && /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
               "button",
               {
@@ -467,12 +504,17 @@ function SearchableCombobox({
                 ]
               }
             ) }),
-            merged.length === 0 && canCreate ? null : merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : remoteFailed ? errorText : emptyText }) : merged.map((o) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+            merged.length === 0 && canCreate ? null : merged.length === 0 ? /* @__PURE__ */ jsx("li", { className: "px-3 py-6 text-center text-sm text-muted-foreground", children: busy ? "Searching\u2026" : remoteFailed ? errorText : emptyText }) : merged.map((o, i) => /* @__PURE__ */ jsx("li", { id: `${listId}-${i}`, role: "option", "aria-selected": o.value === value, children: /* @__PURE__ */ jsxs(
               "button",
               {
                 type: "button",
+                tabIndex: -1,
                 onClick: () => select(o),
-                className: "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60",
+                onMouseMove: () => i !== active && setActive(i),
+                className: cx(
+                  "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60",
+                  i === active && "bg-muted/60"
+                ),
                 children: [
                   /* @__PURE__ */ jsxs("span", { className: "flex min-w-0 items-center gap-2", children: [
                     o.icon,

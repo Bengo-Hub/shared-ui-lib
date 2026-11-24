@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, Plus, Search, X } from 'lucide-react';
 import { fixedPanelPosition, type PanelPosition } from './fixed-position';
 import { createSearchRunner, DEFAULT_SEARCH_DELAY_MS, type SearchContext } from '../search/debounce';
@@ -243,6 +243,22 @@ export function SearchableCombobox({
     return [...localMatches, ...remoteResults.filter((o) => !seen.has(o.value))];
   }, [localMatches, remoteResults]);
 
+  // Keyboard navigation: the option Up/Down/Home/End moves to and Enter picks. It starts on the
+  // selected option (or the first) whenever the panel opens or the list changes.
+  const [active, setActive] = useState(-1);
+  // useId is stable between server and client render (no hydration mismatch).
+  const listId = `scb${useId()}`;
+  useEffect(() => {
+    if (!open) return;
+    const at = merged.findIndex((o) => o.value === value);
+    setActive(merged.length ? Math.max(at, 0) : -1);
+  }, [open, merged, value]);
+  useEffect(() => {
+    if (!open || active < 0) return;
+    // getElementById: useId values contain characters a CSS selector would need escaped.
+    document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: 'nearest' });
+  }, [open, active, listId]);
+
   const close = useCallback(() => {
     setOpen(false);
     setQuery('');
@@ -296,6 +312,14 @@ export function SearchableCombobox({
         type="button"
         disabled={disabled}
         onClick={() => (open ? close() : setOpen(true))}
+        onKeyDown={(e) => {
+          if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         className="flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
       >
         <span className={cx('flex min-w-0 items-center gap-2 text-left', !selected && 'text-muted-foreground')}>
@@ -329,11 +353,32 @@ export function SearchableCombobox({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              role="combobox"
+              aria-expanded
+              aria-controls={listId}
+              aria-autocomplete="list"
+              aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
               onKeyDown={(e) => {
-                // Enter adds the typed entry when it is new and nothing else matches.
-                if (e.key === 'Enter' && canCreate && merged.length === 0) {
+                const n = merged.length;
+                if (n > 0 && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End')) {
                   e.preventDefault();
-                  void create();
+                  setActive((i) =>
+                    e.key === 'Home' ? 0
+                      : e.key === 'End' ? n - 1
+                        : e.key === 'ArrowDown' ? (i + 1) % n
+                          : (i - 1 + n) % n,
+                  );
+                  return;
+                }
+                if (e.key === 'Enter') {
+                  // Enter picks the highlighted option; with no matches it adds the typed entry.
+                  if (active >= 0 && active < n) {
+                    e.preventDefault();
+                    select(merged[active]);
+                  } else if (canCreate && n === 0) {
+                    e.preventDefault();
+                    void create();
+                  }
                 }
               }}
               placeholder={searchPlaceholder}
@@ -341,7 +386,7 @@ export function SearchableCombobox({
             />
             {busy && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
           </div>
-          <ul className="max-h-60 min-h-0 flex-1 overflow-y-auto py-1">
+          <ul id={listId} role="listbox" className="max-h-60 min-h-0 flex-1 overflow-y-auto py-1">
             {canCreate && (
               <li>
                 <button
@@ -360,12 +405,17 @@ export function SearchableCombobox({
                 {busy ? 'Searching…' : remoteFailed ? errorText : emptyText}
               </li>
             ) : (
-              merged.map((o) => (
-                <li key={o.value}>
+              merged.map((o, i) => (
+                <li key={o.value} id={`${listId}-${i}`} role="option" aria-selected={o.value === value}>
                   <button
                     type="button"
+                    tabIndex={-1}
                     onClick={() => select(o)}
-                    className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60"
+                    onMouseMove={() => i !== active && setActive(i)}
+                    className={cx(
+                      'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-muted/60',
+                      i === active && 'bg-muted/60',
+                    )}
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       {o.icon}
