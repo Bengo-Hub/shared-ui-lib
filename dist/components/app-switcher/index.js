@@ -1,5 +1,5 @@
-import { ShoppingCart, Package, Globe, Truck, FolderKanban, Scale, UserSquare, Users, Landmark, Tag, BookOpen, Mail, Bell, Ticket, HeartPulse, Library, Wifi, Building2, Gift, Grid3x3 } from 'lucide-react';
-import { useMemo, useState, useRef } from 'react';
+import { ShoppingCart, Package, Globe, Landmark, UserSquare, Users, FolderKanban, Truck, HeartPulse, Scale, Library, Building2, Wifi, Gift, BookOpen, Tag, Bell, Ticket, Mail, Grid3x3 } from 'lucide-react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { createPortal } from 'react-dom';
 
@@ -9,32 +9,34 @@ var DEFAULT_SERVICE_URLS = {
   hadia: "https://hadiafrica.com"
 };
 var SERVICE_REGISTRY = [
-  // Commerce
-  { key: "pos", label: "POS", Icon: ShoppingCart, category: "Commerce", color: "violet", manageOnly: false, serviceTag: "pos", status: "live" },
-  { key: "inventory", label: "Inventory", Icon: Package, category: "Commerce", color: "blue", manageOnly: false, serviceTag: "inventory", status: "live" },
-  { key: "ordering", label: "Online Store", Icon: Globe, category: "Commerce", color: "emerald", manageOnly: false, serviceTag: "ordering", status: "live" },
-  // Operations
-  { key: "logistics", label: "Logistics", Icon: Truck, category: "Operations", color: "amber", manageOnly: true, serviceTag: "logistics", status: "live" },
-  { key: "projects", label: "Projects", Icon: FolderKanban, category: "Operations", color: "cyan", manageOnly: true, serviceTag: "projects", status: "live" },
+  // A label is the name, optionally followed by a short explanation in parentheses; AppSwitcherGrid
+  // prints that part smaller, on its own line. Groups show in the order they first appear here.
   // Sourcing and Traceability are not built yet, so they are not listed (no "Soon" tiles).
-  { key: "truload", label: "TruLoad", Icon: Scale, category: "Operations", color: "amber", manageOnly: true, serviceTag: "truload", status: "live" },
-  // Growth & Finance
-  { key: "marketflow", label: "CRM (MarketFlow)", Icon: UserSquare, category: "Growth & Finance", color: "fuchsia", manageOnly: true, serviceTag: "marketflow", status: "live" },
-  { key: "erp", label: "ERP (HR, Payroll)", Icon: Users, category: "Growth & Finance", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
-  { key: "treasury", label: "Treasury (Books)", Icon: Landmark, category: "Growth & Finance", color: "emerald", manageOnly: true, status: "live" },
-  { key: "subscriptions", label: "Subscriptions", Icon: Tag, category: "Growth & Finance", color: "violet", manageOnly: true, status: "live", path: "/billing" },
-  // Platform
-  { key: "auth", label: "Account Portal", Icon: BookOpen, category: "Platform", color: "violet", manageOnly: false, status: "live", path: "/dashboard/my-tenant" },
-  { key: "mail", label: "Mail", Icon: Mail, category: "Platform", color: "fuchsia", manageOnly: false, status: "live" },
-  { key: "notifications", label: "Notifications", Icon: Bell, category: "Platform", color: "amber", manageOnly: true, status: "live", path: "/dashboard" },
-  { key: "ticketing", label: "Ticketing", Icon: Ticket, category: "Platform", color: "rose", manageOnly: false, status: "live" },
-  // Specialized
-  { key: "afya", label: "Afya", Icon: HeartPulse, category: "Specialized", color: "rose", manageOnly: false, serviceTag: "hospital", status: "live" },
-  { key: "library", label: "Library", Icon: Library, category: "Specialized", color: "blue", manageOnly: false, serviceTag: "library", status: "live" },
-  { key: "ispbilling", label: "ISP Billing", Icon: Wifi, category: "Specialized", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
-  { key: "maskani", label: "Maskani", Icon: Building2, category: "Specialized", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" },
+  // Commerce
+  { key: "pos", label: "Point of Sale (POS)", Icon: ShoppingCart, category: "Commerce", color: "violet", manageOnly: false, serviceTag: "pos", status: "live" },
+  { key: "inventory", label: "Inventory & Procurement", Icon: Package, category: "Commerce", color: "blue", manageOnly: false, serviceTag: "inventory", status: "live" },
+  { key: "ordering", label: "Storefront (e-Commerce)", Icon: Globe, category: "Commerce", color: "emerald", manageOnly: false, serviceTag: "ordering", status: "live" },
+  // Finance & Growth
+  { key: "treasury", label: "Treasury (Accounting & Ledgers)", Icon: Landmark, category: "Finance & Growth", color: "emerald", manageOnly: true, status: "live" },
+  { key: "marketflow", label: "CRM (MarketFlow)", Icon: UserSquare, category: "Finance & Growth", color: "fuchsia", manageOnly: true, serviceTag: "marketflow", status: "live" },
+  // People & Operations
+  { key: "erp", label: "ERP (HR & Payroll)", Icon: Users, category: "People & Operations", color: "rose", manageOnly: true, serviceTag: "erp", status: "live" },
+  { key: "projects", label: "Projects & Tenders", Icon: FolderKanban, category: "People & Operations", color: "cyan", manageOnly: true, serviceTag: "projects", status: "live" },
+  { key: "logistics", label: "Logistics & Courier", Icon: Truck, category: "People & Operations", color: "amber", manageOnly: true, serviceTag: "logistics", status: "live" },
+  // Industry
+  { key: "afya", label: "Hospital Management (Afya)", Icon: HeartPulse, category: "Industry", color: "rose", manageOnly: false, serviceTag: "hospital", status: "live" },
+  { key: "truload", label: "TruLoad (Weighing & Axle Load)", Icon: Scale, category: "Industry", color: "amber", manageOnly: true, serviceTag: "truload", status: "live" },
+  { key: "library", label: "Library", Icon: Library, category: "Industry", color: "blue", manageOnly: false, serviceTag: "library", status: "live" },
+  { key: "maskani", label: "Property (Maskani)", Icon: Building2, category: "Industry", color: "fuchsia", manageOnly: false, serviceTag: "maskani", status: "live" },
+  { key: "ispbilling", label: "ISP Billing", Icon: Wifi, category: "Industry", color: "cyan", manageOnly: true, serviceTag: "isp_billing", status: "live" },
   // Custom service for one client: only the hadia tenant ever sees it.
-  { key: "hadia", label: "Hadia", Icon: Gift, category: "Specialized", color: "emerald", manageOnly: true, status: "live", onlyForTenant: "hadia", path: "/admin" }
+  { key: "hadia", label: "Hadia", Icon: Gift, category: "Industry", color: "emerald", manageOnly: true, status: "live", onlyForTenant: "hadia", path: "/admin" },
+  // Account & Support
+  { key: "auth", label: "Manage Account", Icon: BookOpen, category: "Account & Support", color: "violet", manageOnly: false, status: "live", path: "/dashboard/my-tenant" },
+  { key: "subscriptions", label: "Billing & Subscriptions", Icon: Tag, category: "Account & Support", color: "violet", manageOnly: true, status: "live", path: "/billing" },
+  { key: "notifications", label: "Notifications", Icon: Bell, category: "Account & Support", color: "amber", manageOnly: true, status: "live", path: "/dashboard" },
+  { key: "ticketing", label: "Ticketing", Icon: Ticket, category: "Account & Support", color: "rose", manageOnly: false, status: "live" },
+  { key: "mail", label: "Mail", Icon: Mail, category: "Account & Support", color: "fuchsia", manageOnly: false, status: "live" }
 ];
 
 // src/components/app-switcher/visible-services.ts
@@ -110,6 +112,29 @@ var ACCENT_CLASSES = {
   cyan: "bg-cyan-500/10 text-cyan-600 group-hover:bg-cyan-500/15 dark:text-cyan-400",
   fuchsia: "bg-fuchsia-500/10 text-fuchsia-600 group-hover:bg-fuchsia-500/15 dark:text-fuchsia-400"
 };
+var GRID_STYLE = { gridTemplateColumns: "repeat(auto-fill, minmax(min(5.75rem, 100%), 1fr))" };
+function TileLabel({ label }) {
+  const m = /^(.+?)\s*\((.+)\)$/.exec(label);
+  return /* @__PURE__ */ jsxs("span", { className: "w-full break-words text-xs font-semibold leading-tight text-foreground", children: [
+    m ? m[1] : label,
+    m && /* @__PURE__ */ jsx("span", { className: "mt-0.5 block text-[10px] font-medium leading-tight text-muted-foreground", children: m[2] })
+  ] });
+}
+function LockedTile({
+  label,
+  href,
+  Icon,
+  accent,
+  onNavigate
+}) {
+  const body = /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("div", { className: `flex h-10 w-10 items-center justify-center rounded-xl opacity-60 ${accent}`, children: /* @__PURE__ */ jsx(Icon, { className: "h-5 w-5" }) }),
+    /* @__PURE__ */ jsx(TileLabel, { label }),
+    /* @__PURE__ */ jsx("span", { className: "rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground", children: "Not in your plan" })
+  ] });
+  const cls = "flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center";
+  return href ? /* @__PURE__ */ jsx("a", { href, target: "_blank", rel: "noopener noreferrer", onClick: onNavigate, title: `${label} is not in your plan. Open plans.`, className: `${cls} transition-colors hover:bg-secondary`, children: body }) : /* @__PURE__ */ jsx("div", { className: `${cls} opacity-70`, title: `${label} is not in your plan`, children: body });
+}
 function groupByCategory(services) {
   const groups = /* @__PURE__ */ new Map();
   for (const svc of services) {
@@ -128,8 +153,8 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
     ] }),
     /* @__PURE__ */ jsx("div", { className: "flex flex-col gap-4", children: groupByCategory(services).map(([category, items]) => /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("p", { className: "mb-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground", children: category }),
-      /* @__PURE__ */ jsx("div", { className: "grid grid-cols-4 gap-1.5", children: items.map(
-        ({ key, label: svcLabel, href, Icon, status, color }) => href ? /* @__PURE__ */ jsxs(
+      /* @__PURE__ */ jsx("div", { className: "grid gap-1.5", style: GRID_STYLE, children: items.map(
+        ({ key, label: svcLabel, href, Icon, status, color, locked }) => locked ? /* @__PURE__ */ jsx(LockedTile, { label: svcLabel, href, Icon, accent: ACCENT_CLASSES[color], onNavigate }, key) : href ? /* @__PURE__ */ jsxs(
           "a",
           {
             href,
@@ -139,7 +164,7 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
             className: "group flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-colors hover:bg-secondary",
             children: [
               /* @__PURE__ */ jsx("div", { className: `flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${ACCENT_CLASSES[color]}`, children: /* @__PURE__ */ jsx(Icon, { className: "h-5 w-5" }) }),
-              /* @__PURE__ */ jsx("span", { className: "w-full text-xs font-semibold leading-tight text-foreground", children: svcLabel })
+              /* @__PURE__ */ jsx(TileLabel, { label: svcLabel })
             ]
           },
           key
@@ -150,7 +175,7 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
             title: status === "coming-soon" ? `${svcLabel} \u2014 coming soon` : svcLabel,
             children: [
               /* @__PURE__ */ jsx("div", { className: `flex h-10 w-10 items-center justify-center rounded-xl ${ACCENT_CLASSES[color]}`, children: /* @__PURE__ */ jsx(Icon, { className: "h-5 w-5" }) }),
-              /* @__PURE__ */ jsx("span", { className: "w-full text-xs font-semibold leading-tight text-foreground", children: svcLabel }),
+              /* @__PURE__ */ jsx(TileLabel, { label: svcLabel }),
               status === "coming-soon" && /* @__PURE__ */ jsx("span", { className: "rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground", children: "Soon" })
             ]
           },
@@ -160,15 +185,33 @@ function AppSwitcherGrid({ services, onNavigate, label, className }) {
     ] }, category)) })
   ] });
 }
+var PANEL_WIDTH = 420;
+var EDGE = 8;
 function AppSwitcherTrigger({ services, className, onNavigate }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const [pos, setPos] = useState(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    const onResize = () => setOpen(false);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [open]);
   if (services.length === 0) return null;
   const toggle = () => {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
+      const vw = document.documentElement.clientWidth;
+      const width = Math.min(PANEL_WIDTH, vw - 2 * EDGE);
+      const right = Math.min(Math.max(EDGE, vw - r.right), vw - EDGE - width);
+      setPos({ top: r.bottom + EDGE, right, width });
     }
     setOpen((v) => !v);
   };
@@ -196,8 +239,10 @@ function AppSwitcherTrigger({ services, className, onNavigate }) {
         /* @__PURE__ */ jsx(
           "div",
           {
-            className: "fixed z-[91] w-80 max-w-[calc(100vw-1rem)] max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-popover p-4 shadow-2xl",
-            style: { top: pos.top, right: pos.right },
+            role: "dialog",
+            "aria-label": "Codevertex apps",
+            className: "fixed z-[91] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-popover p-4 shadow-2xl",
+            style: { top: pos.top, right: pos.right, width: pos.width, maxHeight: `calc(100dvh - ${pos.top + EDGE}px)` },
             children: /* @__PURE__ */ jsx(AppSwitcherGrid, { services, onNavigate: close })
           }
         )

@@ -24,7 +24,7 @@ type ServiceKey = 'pos' | 'inventory' | 'logistics' | 'marketflow' | 'erp' | 'or
  | 'sourcing'
 /** @deprecated Not listed any more; kept so host apps that still name it in `urls` type-check. */
  | 'traceability' | 'ticketing' | 'treasury' | 'notifications' | 'library' | 'mail' | 'ispbilling' | 'truload' | 'maskani' | 'hadia';
-type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
+type ServiceCategory = 'Commerce' | 'Finance & Growth' | 'People & Operations' | 'Industry' | 'Account & Support';
 type ServiceAccent = 'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'fuchsia';
 interface ServiceDefinition {
     key: ServiceKey;
@@ -155,19 +155,6 @@ interface AppSwitcherGridProps {
 }
 declare function AppSwitcherGrid({ services, onNavigate, label, className }: AppSwitcherGridProps): react_jsx_runtime.JSX.Element | null;
 
-/**
- * Self-contained quick-access "apps" launcher — a header icon button that opens
- * AppSwitcherGrid in a small anchored popover. Ports auth-ui's own Grid3x3
- * icon-trigger pattern (first built for DashboardTopNav) into a single reusable
- * component so every other *-ui gets the same quick-launch affordance instead
- * of only reaching the switcher through the full AccountPanel slide-over.
- *
- * Portals to `document.body` and positions itself from the trigger button's
- * own bounding rect (the same technique this fleet's headers already use for
- * their own anchored dropdowns) — required because a host header's
- * `backdrop-filter`/`transform` would otherwise clip a plain `fixed` popover
- * (see AccountPanel's own doc comment for the same gotcha).
- */
 interface AppSwitcherTriggerProps {
     services: VisibleService[];
     className?: string;

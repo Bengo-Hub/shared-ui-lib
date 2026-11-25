@@ -64,7 +64,7 @@ export type ServiceKey =
   | 'maskani'
   | 'hadia';
 
-export type ServiceCategory = 'Commerce' | 'Operations' | 'Growth & Finance' | 'Platform' | 'Specialized';
+export type ServiceCategory = 'Commerce' | 'Finance & Growth' | 'People & Operations' | 'Industry' | 'Account & Support';
 
 export type ServiceAccent = 'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'fuchsia';
 
@@ -105,34 +105,37 @@ export const DEFAULT_SERVICE_URLS: Partial<Record<ServiceKey, string>> = {
 };
 
 export const SERVICE_REGISTRY: ServiceDefinition[] = [
-  // Commerce
-  { key: 'pos', label: 'POS', Icon: ShoppingCart, category: 'Commerce', color: 'violet', manageOnly: false, serviceTag: 'pos', status: 'live' },
-  { key: 'inventory', label: 'Inventory', Icon: Package, category: 'Commerce', color: 'blue', manageOnly: false, serviceTag: 'inventory', status: 'live' },
-  { key: 'ordering', label: 'Online Store', Icon: Globe, category: 'Commerce', color: 'emerald', manageOnly: false, serviceTag: 'ordering', status: 'live' },
-
-  // Operations
-  { key: 'logistics', label: 'Logistics', Icon: Truck, category: 'Operations', color: 'amber', manageOnly: true, serviceTag: 'logistics', status: 'live' },
-  { key: 'projects', label: 'Projects', Icon: FolderKanban, category: 'Operations', color: 'cyan', manageOnly: true, serviceTag: 'projects', status: 'live' },
+  // A label is the name, optionally followed by a short explanation in parentheses; AppSwitcherGrid
+  // prints that part smaller, on its own line. Groups show in the order they first appear here.
   // Sourcing and Traceability are not built yet, so they are not listed (no "Soon" tiles).
-  { key: 'truload', label: 'TruLoad', Icon: Scale, category: 'Operations', color: 'amber', manageOnly: true, serviceTag: 'truload', status: 'live' },
 
-  // Growth & Finance
-  { key: 'marketflow', label: 'CRM (MarketFlow)', Icon: UserSquare, category: 'Growth & Finance', color: 'fuchsia', manageOnly: true, serviceTag: 'marketflow', status: 'live' },
-  { key: 'erp', label: 'ERP (HR, Payroll)', Icon: Users, category: 'Growth & Finance', color: 'rose', manageOnly: true, serviceTag: 'erp', status: 'live' },
-  { key: 'treasury', label: 'Treasury (Books)', Icon: Landmark, category: 'Growth & Finance', color: 'emerald', manageOnly: true, status: 'live' },
-  { key: 'subscriptions', label: 'Subscriptions', Icon: Tag, category: 'Growth & Finance', color: 'violet', manageOnly: true, status: 'live', path: '/billing' },
+  // Commerce
+  { key: 'pos', label: 'Point of Sale (POS)', Icon: ShoppingCart, category: 'Commerce', color: 'violet', manageOnly: false, serviceTag: 'pos', status: 'live' },
+  { key: 'inventory', label: 'Inventory & Procurement', Icon: Package, category: 'Commerce', color: 'blue', manageOnly: false, serviceTag: 'inventory', status: 'live' },
+  { key: 'ordering', label: 'Storefront (e-Commerce)', Icon: Globe, category: 'Commerce', color: 'emerald', manageOnly: false, serviceTag: 'ordering', status: 'live' },
 
-  // Platform
-  { key: 'auth', label: 'Account Portal', Icon: BookOpen, category: 'Platform', color: 'violet', manageOnly: false, status: 'live', path: '/dashboard/my-tenant' },
-  { key: 'mail', label: 'Mail', Icon: Mail, category: 'Platform', color: 'fuchsia', manageOnly: false, status: 'live' },
-  { key: 'notifications', label: 'Notifications', Icon: Bell, category: 'Platform', color: 'amber', manageOnly: true, status: 'live', path: '/dashboard' },
-  { key: 'ticketing', label: 'Ticketing', Icon: Ticket, category: 'Platform', color: 'rose', manageOnly: false, status: 'live' },
+  // Finance & Growth
+  { key: 'treasury', label: 'Treasury (Accounting & Ledgers)', Icon: Landmark, category: 'Finance & Growth', color: 'emerald', manageOnly: true, status: 'live' },
+  { key: 'marketflow', label: 'CRM (MarketFlow)', Icon: UserSquare, category: 'Finance & Growth', color: 'fuchsia', manageOnly: true, serviceTag: 'marketflow', status: 'live' },
 
-  // Specialized
-  { key: 'afya', label: 'Afya', Icon: HeartPulse, category: 'Specialized', color: 'rose', manageOnly: false, serviceTag: 'hospital', status: 'live' },
-  { key: 'library', label: 'Library', Icon: Library, category: 'Specialized', color: 'blue', manageOnly: false, serviceTag: 'library', status: 'live' },
-  { key: 'ispbilling', label: 'ISP Billing', Icon: Wifi, category: 'Specialized', color: 'cyan', manageOnly: true, serviceTag: 'isp_billing', status: 'live' },
-  { key: 'maskani', label: 'Maskani', Icon: Building2, category: 'Specialized', color: 'fuchsia', manageOnly: false, serviceTag: 'maskani', status: 'live' },
+  // People & Operations
+  { key: 'erp', label: 'ERP (HR & Payroll)', Icon: Users, category: 'People & Operations', color: 'rose', manageOnly: true, serviceTag: 'erp', status: 'live' },
+  { key: 'projects', label: 'Projects & Tenders', Icon: FolderKanban, category: 'People & Operations', color: 'cyan', manageOnly: true, serviceTag: 'projects', status: 'live' },
+  { key: 'logistics', label: 'Logistics & Courier', Icon: Truck, category: 'People & Operations', color: 'amber', manageOnly: true, serviceTag: 'logistics', status: 'live' },
+
+  // Industry
+  { key: 'afya', label: 'Hospital Management (Afya)', Icon: HeartPulse, category: 'Industry', color: 'rose', manageOnly: false, serviceTag: 'hospital', status: 'live' },
+  { key: 'truload', label: 'TruLoad (Weighing & Axle Load)', Icon: Scale, category: 'Industry', color: 'amber', manageOnly: true, serviceTag: 'truload', status: 'live' },
+  { key: 'library', label: 'Library', Icon: Library, category: 'Industry', color: 'blue', manageOnly: false, serviceTag: 'library', status: 'live' },
+  { key: 'maskani', label: 'Property (Maskani)', Icon: Building2, category: 'Industry', color: 'fuchsia', manageOnly: false, serviceTag: 'maskani', status: 'live' },
+  { key: 'ispbilling', label: 'ISP Billing', Icon: Wifi, category: 'Industry', color: 'cyan', manageOnly: true, serviceTag: 'isp_billing', status: 'live' },
   // Custom service for one client: only the hadia tenant ever sees it.
-  { key: 'hadia', label: 'Hadia', Icon: Gift, category: 'Specialized', color: 'emerald', manageOnly: true, status: 'live', onlyForTenant: 'hadia', path: '/admin' },
+  { key: 'hadia', label: 'Hadia', Icon: Gift, category: 'Industry', color: 'emerald', manageOnly: true, status: 'live', onlyForTenant: 'hadia', path: '/admin' },
+
+  // Account & Support
+  { key: 'auth', label: 'Manage Account', Icon: BookOpen, category: 'Account & Support', color: 'violet', manageOnly: false, status: 'live', path: '/dashboard/my-tenant' },
+  { key: 'subscriptions', label: 'Billing & Subscriptions', Icon: Tag, category: 'Account & Support', color: 'violet', manageOnly: true, status: 'live', path: '/billing' },
+  { key: 'notifications', label: 'Notifications', Icon: Bell, category: 'Account & Support', color: 'amber', manageOnly: true, status: 'live', path: '/dashboard' },
+  { key: 'ticketing', label: 'Ticketing', Icon: Ticket, category: 'Account & Support', color: 'rose', manageOnly: false, status: 'live' },
+  { key: 'mail', label: 'Mail', Icon: Mail, category: 'Account & Support', color: 'fuchsia', manageOnly: false, status: 'live' },
 ];

@@ -9,8 +9,8 @@ import type { ServiceDefinition } from './service-registry';
 const Icon = (() => null) as unknown as ServiceDefinition['Icon'];
 const registry: ServiceDefinition[] = [
   { key: 'pos', label: 'POS', Icon, category: 'Commerce', color: 'violet', manageOnly: false, serviceTag: 'pos', status: 'live' },
-  { key: 'notifications', label: 'Notifications', Icon, category: 'Platform', color: 'amber', manageOnly: true, status: 'live', path: '/dashboard' },
-  { key: 'hadia', label: 'Hadia', Icon, category: 'Specialized', color: 'emerald', manageOnly: true, status: 'live', onlyForTenant: 'hadia', path: '/admin' },
+  { key: 'notifications', label: 'Notifications', Icon, category: 'Account & Support', color: 'amber', manageOnly: true, status: 'live', path: '/dashboard' },
+  { key: 'hadia', label: 'Hadia', Icon, category: 'Industry', color: 'emerald', manageOnly: true, status: 'live', onlyForTenant: 'hadia', path: '/admin' },
 ];
 const defaults = { notifications: 'https://notifications.codevertexafrica.com', hadia: 'https://hadiafrica.com' };
 
@@ -54,7 +54,7 @@ test('apps that do not route by tenant slug open on their fixed page, never /org
   for (const [key, path] of [['subscriptions', '/billing'], ['auth', '/dashboard/my-tenant'], ['notifications', '/dashboard']]) {
     assert.match(source, new RegExp(`key: '${key}'.*path: '${path}'`), `${key} opens on ${path}`);
   }
-  const svc: ServiceDefinition = { key: 'subscriptions', label: 'Subscriptions', Icon, category: 'Growth & Finance', color: 'violet', manageOnly: true, status: 'live', path: '/billing' };
+  const svc: ServiceDefinition = { key: 'subscriptions', label: 'Subscriptions', Icon, category: 'Account & Support', color: 'violet', manageOnly: true, status: 'live', path: '/billing' };
   const [link] = computeVisibleServices({ ...base, urls: { subscriptions: 'https://pricing.example' }, activeServiceTags: [] }, [svc], {});
   assert.equal(link.href, 'https://pricing.example/billing');
 });

@@ -41,6 +41,23 @@ const ACCENT_CLASSES: Record<ServiceAccent, string> = {
   fuchsia: 'bg-fuchsia-500/10 text-fuchsia-600 group-hover:bg-fuchsia-500/15 dark:text-fuchsia-400',
 };
 
+// As many columns as fit the PANEL (not the viewport): four in the wide drawer, three in the profile
+// panel, two or three on a phone. Inline because the host's Tailwind resolves the classes, and an
+// auto-fill arbitrary value is easy for a host build to miss. 5.75rem holds the longest single word
+// ("Subscriptions", "Procurement") at text-xs, so labels wrap between words and never overlap.
+const GRID_STYLE = { gridTemplateColumns: 'repeat(auto-fill, minmax(min(5.75rem, 100%), 1fr))' } as const;
+
+/** "Treasury (Accounting & Ledgers)" as a name and a smaller line under it. */
+function TileLabel({ label }: { label: string }) {
+  const m = /^(.+?)\s*\((.+)\)$/.exec(label);
+  return (
+    <span className="w-full break-words text-xs font-semibold leading-tight text-foreground">
+      {m ? m[1] : label}
+      {m && <span className="mt-0.5 block text-[10px] font-medium leading-tight text-muted-foreground">{m[2]}</span>}
+    </span>
+  );
+}
+
 function LockedTile({
   label,
   href,
@@ -59,7 +76,7 @@ function LockedTile({
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl opacity-60 ${accent}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className="w-full text-xs font-semibold leading-tight text-foreground">{label}</span>
+      <TileLabel label={label} />
       <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
         Not in your plan
       </span>
@@ -106,13 +123,11 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
             <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {category}
             </p>
-            {/* Fixed column count (not a viewport-width breakpoint): this grid always renders
-                inside a narrow anchored panel/popover regardless of the host window's size, so a
-                `sm:` breakpoint keyed off viewport width — not the panel's own width — produced
-                an inconsistent column count in practice. */}
-            <div className="grid grid-cols-4 gap-1.5">
-              {items.map(({ key, label: svcLabel, href, Icon, status, color }) =>
-                href ? (
+            <div className="grid gap-1.5" style={GRID_STYLE}>
+              {items.map(({ key, label: svcLabel, href, Icon, status, color, locked }) =>
+                locked ? (
+                  <LockedTile key={key} label={svcLabel} href={href} Icon={Icon} accent={ACCENT_CLASSES[color]} onNavigate={onNavigate} />
+                ) : href ? (
                   <a
                     key={key}
                     href={href}
@@ -130,7 +145,7 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${ACCENT_CLASSES[color]}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="w-full text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
+                    <TileLabel label={svcLabel} />
                   </a>
                 ) : (
                   <div
@@ -141,7 +156,7 @@ export function AppSwitcherGrid({ services, onNavigate, label, className }: AppS
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${ACCENT_CLASSES[color]}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="w-full text-xs font-semibold leading-tight text-foreground">{svcLabel}</span>
+                    <TileLabel label={svcLabel} />
                     {status === 'coming-soon' && (
                       <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                         Soon
