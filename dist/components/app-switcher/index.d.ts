@@ -104,6 +104,10 @@ interface UseVisibleServicesOptions {
      * linked to Account Portal + Subscriptions). Omit to use the full registry.
      */
     include?: ServiceKey[];
+    /** The app the switcher is shown in; it is never listed (the person is already in it). */
+    current?: ServiceKey;
+    /** The page's origin; the hook fills it from window.location on the client. */
+    currentOrigin?: string;
 }
 /** The filter over the real registry and default URLs, for non-React callers. */
 declare function computeVisibleServices(opts: UseVisibleServicesOptions): VisibleService[];
