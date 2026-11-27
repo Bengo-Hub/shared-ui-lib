@@ -69,3 +69,17 @@ test('manage-only services stay hidden from non-managers', () => {
   assert.ok(!keys(list).includes('notifications'));
   assert.ok(!keys(list).includes('hadia'));
 });
+
+test('the app the switcher is shown in is never listed, by key or by origin', () => {
+  assert.ok(!keys(run({ orgSlug: 'hadia', current: 'hadia' })).includes('hadia'));
+  assert.ok(!keys(run({ orgSlug: 'hadia', currentOrigin: 'https://hadiafrica.com' })).includes('hadia'));
+  assert.ok(!keys(run({ urls: { pos: 'https://pos.example' }, currentOrigin: 'https://pos.example' })).includes('pos'));
+  // Another app's origin leaves the list as it was.
+  assert.ok(keys(run({ orgSlug: 'hadia', currentOrigin: 'https://books.codevertexafrica.com' })).includes('hadia'));
+});
+
+test('an added service appears unlocked once its tag is active, locked before', () => {
+  const urls = { pos: 'https://pos.example' };
+  assert.ok(run({ urls, activeServiceTags: ['treasury'] }).find((s) => s.key === 'pos')?.locked);
+  assert.ok(!run({ urls, activeServiceTags: ['treasury', 'pos'] }).find((s) => s.key === 'pos')?.locked);
+});

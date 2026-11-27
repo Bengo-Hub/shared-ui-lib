@@ -100,7 +100,25 @@ export interface ServiceDefinition {
  * every app's switcher because only two hosts passed its URL.
  */
 export const DEFAULT_SERVICE_URLS: Partial<Record<ServiceKey, string>> = {
+  // Production hosts (devops-k8s ingress, 27 November 2026). Without a default, a service a host
+  // app did not configure disappeared from its switcher entirely, even as a "Not in your plan" tile
+  // (hadia-ui never listed MarketFlow).
+  pos: 'https://pos.codevertexafrica.com',
+  inventory: 'https://inventory.codevertexafrica.com',
+  ordering: 'https://ordering.codevertexafrica.com',
+  treasury: 'https://books.codevertexafrica.com',
+  marketflow: 'https://marketflow.codevertexafrica.com',
+  projects: 'https://projects.codevertexafrica.com',
+  logistics: 'https://logistics.codevertexafrica.com',
+  afya: 'https://afya.codevertexafrica.com',
+  library: 'https://library.codevertexafrica.com',
+  maskani: 'https://maskaniapp.codevertexafrica.com',
+  ispbilling: 'https://ispbilling.codevertexafrica.com',
+  auth: 'https://accounts.codevertexafrica.com',
+  subscriptions: 'https://pricing.codevertexafrica.com',
   notifications: 'https://notifications.codevertexafrica.com',
+  ticketing: 'https://ticketing.codevertexafrica.com',
+  mail: 'https://webmail.codevertexafrica.com',
   hadia: 'https://hadiafrica.com',
 };
 

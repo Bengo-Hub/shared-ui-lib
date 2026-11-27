@@ -16,6 +16,23 @@ export interface VisibleServicesInput {
   lockUnsubscribed?: boolean;
   upgradeUrl?: string | null;
   include?: ServiceKey[];
+  /** The app the switcher is shown in: never listed, since the person is already in it. */
+  current?: ServiceKey;
+  /**
+   * The page's origin (window.location.origin on the client). A service whose base URL is this
+   * origin is the current app and is left out too, so apps that do not pass `current` still never
+   * list themselves.
+   */
+  currentOrigin?: string;
+}
+
+function originOf(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -34,14 +51,19 @@ export function computeVisibleServices(
     lockUnsubscribed = true,
     upgradeUrl,
     include,
+    current,
+    currentOrigin,
   }: VisibleServicesInput,
   registry: readonly ServiceDefinition[],
   defaults: Partial<Record<ServiceKey, string>>,
 ): VisibleService[] {
   const allow = include ? new Set(include) : null;
+  const here = originOf(currentOrigin);
   const out: VisibleService[] = [];
   for (const svc of registry) {
     if (allow && !allow.has(svc.key)) continue;
+    if (current && svc.key === current) continue;
+    if (here && originOf(urls[svc.key] ?? defaults[svc.key]) === here) continue;
     if (svc.manageOnly && !canManageLinks) continue;
     if (svc.onlyForTenant && svc.onlyForTenant !== orgSlug) continue;
     const entitled = !!svc.serviceTag && activeServiceTags != null && activeServiceTags.includes(svc.serviceTag);

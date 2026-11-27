@@ -41,6 +41,10 @@ export interface UseVisibleServicesOptions {
    * linked to Account Portal + Subscriptions). Omit to use the full registry.
    */
   include?: ServiceKey[];
+  /** The app the switcher is shown in; it is never listed (the person is already in it). */
+  current?: ServiceKey;
+  /** The page's origin; the hook fills it from window.location on the client. */
+  currentOrigin?: string;
 }
 
 /** The filter over the real registry and default URLs, for non-React callers. */
@@ -53,9 +57,12 @@ export function computeVisibleServices(opts: UseVisibleServicesOptions): Visible
  * the "SERVICES" profile-menu dropdown (visible-services.ts holds the rules).
  */
 export function useVisibleServices(opts: UseVisibleServicesOptions): VisibleService[] {
-  const { orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include } = opts;
+  const { orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current } = opts;
+  // On the client the current app is also recognised by its own origin, so every host leaves
+  // itself out even without passing `current`.
+  const currentOrigin = opts.currentOrigin ?? (typeof window !== 'undefined' ? window.location.origin : undefined);
   return useMemo(
-    () => computeVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include }),
-    [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include],
+    () => computeVisibleServices({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current, currentOrigin }),
+    [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current, currentOrigin],
   );
 }

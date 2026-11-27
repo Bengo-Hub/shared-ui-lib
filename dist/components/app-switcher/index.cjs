@@ -7,7 +7,25 @@ var reactDom = require('react-dom');
 
 // src/components/app-switcher/service-registry.ts
 var DEFAULT_SERVICE_URLS = {
+  // Production hosts (devops-k8s ingress, 27 November 2026). Without a default, a service a host
+  // app did not configure disappeared from its switcher entirely, even as a "Not in your plan" tile
+  // (hadia-ui never listed MarketFlow).
+  pos: "https://pos.codevertexafrica.com",
+  inventory: "https://inventory.codevertexafrica.com",
+  ordering: "https://ordering.codevertexafrica.com",
+  treasury: "https://books.codevertexafrica.com",
+  marketflow: "https://marketflow.codevertexafrica.com",
+  projects: "https://projects.codevertexafrica.com",
+  logistics: "https://logistics.codevertexafrica.com",
+  afya: "https://afya.codevertexafrica.com",
+  library: "https://library.codevertexafrica.com",
+  maskani: "https://maskaniapp.codevertexafrica.com",
+  ispbilling: "https://ispbilling.codevertexafrica.com",
+  auth: "https://accounts.codevertexafrica.com",
+  subscriptions: "https://pricing.codevertexafrica.com",
   notifications: "https://notifications.codevertexafrica.com",
+  ticketing: "https://ticketing.codevertexafrica.com",
+  mail: "https://webmail.codevertexafrica.com",
   hadia: "https://hadiafrica.com"
 };
 var SERVICE_REGISTRY = [
@@ -42,6 +60,14 @@ var SERVICE_REGISTRY = [
 ];
 
 // src/components/app-switcher/visible-services.ts
+function originOf(url) {
+  if (!url) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
 function computeVisibleServices({
   orgSlug,
   urls,
@@ -49,12 +75,17 @@ function computeVisibleServices({
   activeServiceTags,
   lockUnsubscribed = true,
   upgradeUrl,
-  include
+  include,
+  current,
+  currentOrigin
 }, registry, defaults) {
   const allow = include ? new Set(include) : null;
+  const here = originOf(currentOrigin);
   const out = [];
   for (const svc of registry) {
     if (allow && !allow.has(svc.key)) continue;
+    if (current && svc.key === current) continue;
+    if (here && originOf(urls[svc.key] ?? defaults[svc.key]) === here) continue;
     if (svc.manageOnly && !canManageLinks) continue;
     if (svc.onlyForTenant && svc.onlyForTenant !== orgSlug) continue;
     const entitled = !!svc.serviceTag && activeServiceTags != null && activeServiceTags.includes(svc.serviceTag);
@@ -78,10 +109,11 @@ function computeVisibleServices2(opts) {
   return computeVisibleServices(opts, SERVICE_REGISTRY, DEFAULT_SERVICE_URLS);
 }
 function useVisibleServices(opts) {
-  const { orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include } = opts;
+  const { orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current } = opts;
+  const currentOrigin = opts.currentOrigin ?? (typeof window !== "undefined" ? window.location.origin : void 0);
   return react.useMemo(
-    () => computeVisibleServices2({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include }),
-    [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include]
+    () => computeVisibleServices2({ orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current, currentOrigin }),
+    [orgSlug, urls, canManageLinks, activeServiceTags, lockUnsubscribed, upgradeUrl, include, current, currentOrigin]
   );
 }
 
